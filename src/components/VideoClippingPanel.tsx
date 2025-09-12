@@ -22,7 +22,7 @@ import {
   getSupportedVideoExtensions,
   VideoClipRequest 
 } from '../utils/videoClipping';
-import { validatePost, publishPost } from '../utils/ayrshare';
+import { validatePost, publishPost } from '../utils/socialApi';
 
 const VideoClippingPanel: React.FC = () => {
   const { profileKey } = useUserContext();

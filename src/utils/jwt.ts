@@ -1,4 +1,4 @@
-import { generateJWT } from './ayrshare';
+import { generateJWT } from './socialApi';
 
 export const getConnectSocialsURL = async (profileKey: string): Promise<string> => {
   try {
