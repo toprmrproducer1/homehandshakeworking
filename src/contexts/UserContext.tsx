@@ -34,7 +34,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const fetchProfile = async () => {
     if (!profileKey) {
-      setError('Profile key not found in user metadata');
+      console.warn('Profile key not found in user metadata');
+      setError(null); // Don't show error for missing profile key
       setLoading(false);
       return;
     }
@@ -45,7 +46,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       const profile = await fetchUserProfile(profileKey);
       setUserProfile(profile);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch user profile');
+      console.error('Profile fetch error:', err);
+      // Don't show error to user, just log it
+      setError(null);
+      setUserProfile(null);
     } finally {
       setLoading(false);
     }
