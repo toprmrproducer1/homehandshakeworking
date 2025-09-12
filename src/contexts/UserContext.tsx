@@ -34,14 +34,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const fetchProfile = async () => {
     if (!profileKey) {
-      setError('Profile key not found in user metadata. Please contact support to activate your account.');
-      setLoading(false);
-      return;
-    }
-
-    // Check if API key is available
-    if (!import.meta.env.VITE_SOCIAL_API_KEY) {
-      setError('API configuration missing. Please contact support.');
+      setError('Profile key not found in user metadata');
       setLoading(false);
       return;
     }
@@ -52,37 +45,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       const profile = await fetchUserProfile(profileKey);
       setUserProfile(profile);
     } catch (err) {
-      console.error('Profile fetch error:', err);
-      
-      // Handle different types of network errors
-      if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch')) {
-          setError('Unable to connect to the server. Please check your internet connection and try again. If the problem persists, the API server may be temporarily unavailable.');
-        } else if (err.message.includes('CORS')) {
-          setError('Cross-origin request blocked. Please contact support to configure the API server.');
-        } else if (err.message.includes('401') || err.message.includes('403')) {
-          setError('Authentication failed. Please check your API credentials or contact support.');
-        } else if (err.message.includes('404')) {
-          setError('API endpoint not found. Please contact support to verify the API configuration.');
-        } else if (err.message.includes('500')) {
-          setError('Server error occurred. Please try again later or contact support.');
-        } else {
-          setError(`${err.message}. Please try refreshing the page or contact support if the issue persists.`);
-        }
-      } else {
-        setError('An unexpected error occurred. Please try refreshing the page or contact support.');
-      }
+      setError(err instanceof Error ? err.message : 'Failed to fetch user profile');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (profileKey) {
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
+    fetchProfile();
   }, [profileKey]);
 
   return (

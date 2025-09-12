@@ -1,19 +1,7 @@
 const API_KEY = import.meta.env.VITE_SOCIAL_API_KEY;
-const BASE_URL = import.meta.env.VITE_SOCIAL_API_BASE_URL || 'https://api.homehandshake.com/api';
-
-// Helper function to check if API is configured
-const checkApiConfiguration = () => {
-  if (!API_KEY) {
-    throw new Error('API key not configured. Please contact support.');
-  }
-  if (!BASE_URL) {
-    throw new Error('API base URL not configured. Please contact support.');
-  }
-};
+const BASE_URL = 'https://api.homehandshake.com/api';
 
 export const generateJWT = async (profileKey: string) => {
-  checkApiConfiguration();
-  
   const response = await fetch(`${BASE_URL}/profiles/generateJWT`, {
     method: 'POST',
     headers: {
@@ -35,8 +23,6 @@ export const generateJWT = async (profileKey: string) => {
 };
 
 export const fetchSocialAnalytics = async (profileKey: string, platforms: string[]) => {
-  checkApiConfiguration();
-  
   const response = await fetch(`${BASE_URL}/analytics/social`, {
     method: 'POST',
     headers: {
@@ -57,41 +43,23 @@ export const fetchSocialAnalytics = async (profileKey: string, platforms: string
 };
 
 export const fetchUserProfile = async (profileKey: string) => {
-  checkApiConfiguration();
-  
-  try {
-    const response = await fetch(`${BASE_URL}/user`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Profile-Key': profileKey,
-        'Content-Type': 'application/json',
-      },
-      // Add timeout to prevent hanging requests
-      signal: AbortSignal.timeout(10000), // 10 second timeout
-    });
+  const response = await fetch(`${BASE_URL}/user`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Profile-Key': profileKey,
+      'Content-Type': 'application/json',
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    // Handle network errors more specifically
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error('Request timed out. Please check your internet connection.');
-      } else if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-        throw new Error('Failed to fetch');
-      }
-    }
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user profile: ${response.statusText}`);
   }
+
+  return response.json();
 };
 
 export const fetchPostHistory = async (profileKey: string, platform: string) => {
-  checkApiConfiguration();
-  
   const response = await fetch(`${BASE_URL}/history/${platform}`, {
     method: 'GET',
     headers: {
@@ -109,8 +77,6 @@ export const fetchPostHistory = async (profileKey: string, platform: string) => 
 };
 
 export const validatePost = async (profileKey: string, post: string, platforms: string[], mediaUrls?: string[]) => {
-  checkApiConfiguration();
-  
   const response = await fetch(`${BASE_URL}/validate/post`, {
     method: 'POST',
     headers: {
@@ -133,8 +99,6 @@ export const validatePost = async (profileKey: string, post: string, platforms: 
 };
 
 export const publishPost = async (profileKey: string, post: string, platforms: string[], mediaUrls?: string[], additionalOptions?: any) => {
-  checkApiConfiguration();
-  
   const response = await fetch(`${BASE_URL}/post`, {
     method: 'POST',
     headers: {
