@@ -27,6 +27,7 @@ const MissingEnvComponent = () => (
           <li>• VITE_SOCIAL_API_KEY</li>
           <li>• VITE_SOCIAL_DOMAIN</li>
           <li>• VITE_SOCIAL_PRIVATE_KEY</li>
+          <li>• VITE_SOCIAL_API_BASE_URL</li>
         </ul>
       </div>
     </div>

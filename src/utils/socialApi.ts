@@ -1,10 +1,13 @@
 const API_KEY = import.meta.env.VITE_SOCIAL_API_KEY;
-const BASE_URL = 'https://api.homehandshake.com/api';
+const BASE_URL = import.meta.env.VITE_SOCIAL_API_BASE_URL || 'https://api.homehandshake.com/api';
 
 // Helper function to check if API is configured
 const checkApiConfiguration = () => {
   if (!API_KEY) {
     throw new Error('API key not configured. Please contact support.');
+  }
+  if (!BASE_URL) {
+    throw new Error('API base URL not configured. Please contact support.');
   }
 };
 
