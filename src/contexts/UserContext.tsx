@@ -34,7 +34,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const fetchProfile = async () => {
     if (!profileKey) {
-      setError('Profile key not found in user metadata');
+      setError('Profile key not found in user metadata. Please contact support to activate your account.');
+      setLoading(false);
+      return;
+    }
+
+    // Check if API key is available
+    if (!import.meta.env.VITE_SOCIAL_API_KEY) {
+      setError('API configuration missing. Please contact support.');
       setLoading(false);
       return;
     }
@@ -45,14 +52,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       const profile = await fetchUserProfile(profileKey);
       setUserProfile(profile);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch user profile');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user profile';
+      console.error('Profile fetch error:', err);
+      setError(`${errorMessage}. Please try refreshing the page or contact support if the issue persists.`);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
+    if (profileKey) {
+      fetchProfile();
+    } else {
+      setLoading(false);
+    }
   }, [profileKey]);
 
   return (
