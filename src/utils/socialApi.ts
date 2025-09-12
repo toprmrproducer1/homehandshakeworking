@@ -56,20 +56,34 @@ export const fetchSocialAnalytics = async (profileKey: string, platforms: string
 export const fetchUserProfile = async (profileKey: string) => {
   checkApiConfiguration();
   
-  const response = await fetch(`${BASE_URL}/user`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${API_KEY}`,
-      'Profile-Key': profileKey,
-      'Content-Type': 'application/json',
-    },
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/user`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Profile-Key': profileKey,
+        'Content-Type': 'application/json',
+      },
+      // Add timeout to prevent hanging requests
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch user profile: ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    // Handle network errors more specifically
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out. Please check your internet connection.');
+      } else if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        throw new Error('Failed to fetch');
+      }
+    }
+    throw error;
   }
-
-  return response.json();
 };
 
 export const fetchPostHistory = async (profileKey: string, platform: string) => {

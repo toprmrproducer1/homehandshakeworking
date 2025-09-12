@@ -52,9 +52,26 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       const profile = await fetchUserProfile(profileKey);
       setUserProfile(profile);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user profile';
       console.error('Profile fetch error:', err);
-      setError(`${errorMessage}. Please try refreshing the page or contact support if the issue persists.`);
+      
+      // Handle different types of network errors
+      if (err instanceof Error) {
+        if (err.message === 'Failed to fetch') {
+          setError('Unable to connect to the server. Please check your internet connection and try again. If the problem persists, the API server may be temporarily unavailable.');
+        } else if (err.message.includes('CORS')) {
+          setError('Cross-origin request blocked. Please contact support to configure the API server.');
+        } else if (err.message.includes('401') || err.message.includes('403')) {
+          setError('Authentication failed. Please check your API credentials or contact support.');
+        } else if (err.message.includes('404')) {
+          setError('API endpoint not found. Please contact support to verify the API configuration.');
+        } else if (err.message.includes('500')) {
+          setError('Server error occurred. Please try again later or contact support.');
+        } else {
+          setError(`${err.message}. Please try refreshing the page or contact support if the issue persists.`);
+        }
+      } else {
+        setError('An unexpected error occurred. Please try refreshing the page or contact support.');
+      }
     } finally {
       setLoading(false);
     }
