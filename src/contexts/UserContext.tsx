@@ -56,7 +56,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       
       // Handle different types of network errors
       if (err instanceof Error) {
-        if (err.message === 'Failed to fetch') {
+        if (err.message.includes('Failed to fetch')) {
           setError('Unable to connect to the server. Please check your internet connection and try again. If the problem persists, the API server may be temporarily unavailable.');
         } else if (err.message.includes('CORS')) {
           setError('Cross-origin request blocked. Please contact support to configure the API server.');
