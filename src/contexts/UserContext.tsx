@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { fetchUserProfile } from '../utils/socialApi';
+import { fetchUserProfile } from '../utils/ayrshare';
 
 interface UserContextType {
   profileKey: string;

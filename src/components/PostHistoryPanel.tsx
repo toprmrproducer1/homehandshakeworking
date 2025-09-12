@@ -15,7 +15,7 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
-import { fetchPostHistory } from '../utils/socialApi';
+import { fetchPostHistory } from '../utils/ayrshare';
 
 const PostHistoryPanel: React.FC = () => {
   const { profileKey, userProfile } = useUserContext();

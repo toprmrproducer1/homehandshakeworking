@@ -1,5 +1,5 @@
-const API_KEY = import.meta.env.VITE_SOCIAL_API_KEY;
-const BASE_URL = 'https://api.homehandshake.com/api';
+const API_KEY = import.meta.env.VITE_AYRSHARE_API_KEY;
+const BASE_URL = 'https://api.ayrshare.com/api';
 
 export const generateJWT = async (profileKey: string) => {
   const response = await fetch(`${BASE_URL}/profiles/generateJWT`, {
@@ -9,8 +9,8 @@ export const generateJWT = async (profileKey: string) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      domain: import.meta.env.VITE_SOCIAL_DOMAIN,
-      privateKey: import.meta.env.VITE_SOCIAL_PRIVATE_KEY,
+      domain: import.meta.env.VITE_AYRSHARE_DOMAIN,
+      privateKey: import.meta.env.VITE_AYRSHARE_PRIVATE_KEY,
       profileKey: profileKey,
     }),
   });

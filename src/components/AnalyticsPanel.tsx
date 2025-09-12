@@ -13,7 +13,7 @@ import {
   Globe
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
-import { fetchSocialAnalytics } from '../utils/socialApi';
+import { fetchSocialAnalytics } from '../utils/ayrshare';
 
 const AnalyticsPanel: React.FC = () => {
   const { profileKey, userProfile } = useUserContext();
