@@ -26,4 +26,6 @@ export const generateImages = async (request: ImageGenerationRequest, profileKey
   return response.json();
 };
 
-export const getSupportedImageFormats = () => ['jpg', 'jpeg', 'png', 'webp'];
+export const getSupportedImageFormats = () => [
+  'jpg', 'jpeg', 'png', 'webp', 'avif', 'bmp', 'gif', 'tiff', 'tif', 'svg', 'ico', 'heic', 'heif'
+];
