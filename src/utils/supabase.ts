@@ -21,9 +21,23 @@ export interface GeneratedImage {
 }
 
 export const saveGeneratedImages = async (data: Omit<GeneratedImage, 'id' | 'created_at' | 'updated_at'>) => {
+  // Validate that we have image URLs
+  if (!data.generated_images || data.generated_images.length === 0) {
+    throw new Error('No generated images to save');
+  }
+  
+  // Validate that all URLs are valid
+  const validUrls = data.generated_images.filter(url => url && url.startsWith('http'));
+  if (validUrls.length === 0) {
+    throw new Error('No valid image URLs found');
+  }
+  
   const { data: result, error } = await supabase
     .from('generated_images')
-    .insert([data])
+    .insert([{
+      ...data,
+      generated_images: validUrls
+    }])
     .select()
     .single();
 

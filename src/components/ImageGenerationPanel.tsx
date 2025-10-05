@@ -79,16 +79,19 @@ const ImageGenerationPanel: React.FC = () => {
       // Generate images via webhook
       const response = await generateImages(request, profileKey);
       
+      // Extract image URLs from the webhook response format
+      const imageUrls = response.map((item: any) => item.data);
+      
       // Save to database
       const savedData = await saveGeneratedImages({
         user_id: user.id,
         profile_key: profileKey,
-        inspiration_image_url: previewUrl, // Store the preview URL temporarily
+        inspiration_image_url: previewUrl,
         prompt: prompt.trim(),
-        generated_images: response.imageUrls || response.images || [],
+        generated_images: imageUrls,
       });
 
-      setSuccess(`Successfully generated ${response.imageUrls?.length || response.images?.length || 5} images!`);
+      setSuccess(`Successfully generated ${imageUrls.length} premium images!`);
       
       // Reset form
       setPrompt('');
@@ -398,6 +401,10 @@ const ImageGenerationPanel: React.FC = () => {
                                 alt={`Generated image ${index + 1}`}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-110"
                                 loading="lazy"
+                                onError={(e) => {
+                                  console.error('Failed to load image:', imageUrl);
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
+                                }}
                               />
                               
                               {/* Overlay Actions */}
