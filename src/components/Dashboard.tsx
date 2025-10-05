@@ -12,12 +12,15 @@ import {
   CheckCircle,
   Calendar,
   Send,
-  History
+  History,
+  Image,
+  Wand2
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import SocialAccountsPanel from './SocialAccountsPanel';
 import ConnectSocialsButton from './ConnectSocialsButton';
 import VideoClippingPanel from './VideoClippingPanel';
+import ImageGenerationPanel from './ImageGenerationPanel';
 import AnalyticsPanel from './AnalyticsPanel';
 import PostingPanel from './PostingPanel';
 import PostHistoryPanel from './PostHistoryPanel';
@@ -29,6 +32,7 @@ const Dashboard: React.FC = () => {
   const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },
     { id: 'clip', name: 'Clip Content', icon: Scissors },
+    { id: 'generate', name: 'Generate Images', icon: Wand2 },
     { id: 'post', name: 'Create Post', icon: Send },
     { id: 'history', name: 'Post History', icon: History },
     { id: 'social', name: 'Social Accounts', icon: Users },
@@ -186,6 +190,7 @@ const Dashboard: React.FC = () => {
                   {userProfile?.activeSocialAccounts?.length || 0} platforms connected
                 </p>
                 <button 
+                  onClick={() => setActiveTab('clip')}
                   onClick={() => setActiveTab('social')}
                   className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
                 >
@@ -194,13 +199,15 @@ const Dashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-6 text-white">
-                <BarChart3 className="h-8 w-8 mb-4" />
-                <h3 className="font-semibold mb-2">Analytics</h3>
-                <p className="text-orange-100 mb-4 text-sm">View your content performance</p>
-                <button className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
-                  <BarChart3 className="h-4 w-4" />
-                  <span>View Stats</span>
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
+                <Wand2 className="h-8 w-8 mb-4" />
+                <h3 className="font-semibold mb-2">Generate AI Images</h3>
+                <p className="text-purple-100 mb-4 text-sm">Create stunning images with AI assistance</p>
+                <button 
+                  onClick={() => setActiveTab('generate')}
+                  className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
+                  <Plus className="h-4 w-4" />
+                  <span>Generate</span>
                 </button>
               </div>
             </div>
@@ -213,6 +220,10 @@ const Dashboard: React.FC = () => {
 
         {activeTab === 'clip' && (
           <VideoClippingPanel />
+        )}
+
+        {activeTab === 'generate' && (
+          <ImageGenerationPanel />
         )}
 
         {activeTab === 'post' && (
