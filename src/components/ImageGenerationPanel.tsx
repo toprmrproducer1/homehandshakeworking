@@ -1,18 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Image as ImageIcon, 
-  Upload, 
-  Wand2, 
-  RefreshCw, 
-  AlertCircle, 
-  CheckCircle,
-  Download,
-  Copy,
-  Trash2,
-  Eye,
-  ExternalLink,
-  Sparkles
-} from 'lucide-react';
+import { Image as ImageIcon, Upload, Wand as Wand2, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Download, Copy, Trash2, Eye, ExternalLink, Sparkles } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
 import { generateImages, getSupportedImageFormats, ImageGenerationRequest } from '../utils/imageGeneration';

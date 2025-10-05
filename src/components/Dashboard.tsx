@@ -1,21 +1,6 @@
 import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { 
-  Scissors, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  Plus,
-  ExternalLink,
-  RefreshCw,
-  AlertCircle,
-  CheckCircle,
-  Calendar,
-  Send,
-  History,
-  Image,
-  Wand2
-} from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import SocialAccountsPanel from './SocialAccountsPanel';
 import ConnectSocialsButton from './ConnectSocialsButton';
