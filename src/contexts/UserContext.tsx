@@ -8,6 +8,7 @@ interface UserContextType {
   loading: boolean;
   error: string | null;
   refetchProfile: () => void;
+  isAccountActive: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -31,11 +32,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   const profileKey = (user?.publicMetadata?.['Profile-Key'] as string) || '';
+  const isAccountActive = (user?.publicMetadata?.['account-active'] as boolean) ?? true;
 
   const fetchProfile = async () => {
     if (!profileKey) {
       console.warn('Profile key not found in user metadata');
-      setError(null); // Don't show error for missing profile key
+      setError(null);
       setLoading(false);
       return;
     }
@@ -47,7 +49,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setUserProfile(profile);
     } catch (err) {
       console.error('Profile fetch error:', err);
-      // Don't show error to user, just log it
       setError(null);
       setUserProfile(null);
     } finally {
@@ -65,7 +66,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       userProfile,
       loading,
       error,
-      refetchProfile: fetchProfile
+      refetchProfile: fetchProfile,
+      isAccountActive
     }}>
       {children}
     </UserContext.Provider>

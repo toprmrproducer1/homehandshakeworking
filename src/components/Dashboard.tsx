@@ -9,10 +9,15 @@ import ImageGenerationPanel from './ImageGenerationPanel';
 import AnalyticsPanel from './AnalyticsPanel';
 import PostingPanel from './PostingPanel';
 import PostHistoryPanel from './PostHistoryPanel';
+import AccountActivation from './AccountActivation';
 
 const Dashboard: React.FC = () => {
-  const { userProfile, loading, error, refetchProfile } = useUserContext();
+  const { userProfile, loading, error, refetchProfile, isAccountActive } = useUserContext();
   const [activeTab, setActiveTab] = useState('overview');
+
+  if (!isAccountActive) {
+    return <AccountActivation />;
+  }
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },
@@ -174,8 +179,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-emerald-100 mb-4 text-sm">
                   {userProfile?.activeSocialAccounts?.length || 0} platforms connected
                 </p>
-                <button 
-                  onClick={() => setActiveTab('clip')}
+                <button
                   onClick={() => setActiveTab('social')}
                   className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
                 >
