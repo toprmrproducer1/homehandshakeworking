@@ -18,7 +18,10 @@ const AccountActivation: React.FC = () => {
     const loadingToast = toast.loading('Creating profile...');
 
     try {
-      const result = await createProfile(user.primaryEmailAddress.emailAddress);
+      const result = await createProfile(
+        user.primaryEmailAddress.emailAddress,
+        user.id
+      );
 
       toast.dismiss(loadingToast);
 
@@ -32,6 +35,27 @@ const AccountActivation: React.FC = () => {
           toast.success(
             `Profile Key: ${result.profileKey}`,
             { duration: 8000 }
+          );
+        }
+
+        if (result.bucketName) {
+          toast.success(
+            `Bucket Created: ${result.bucketName}`,
+            { duration: 6000 }
+          );
+        }
+
+        if (result.refId) {
+          toast.success(
+            `Reference ID: ${result.refId}`,
+            { duration: 6000 }
+          );
+        }
+
+        if (result.clerkUpdated) {
+          toast.success(
+            'Clerk metadata updated successfully',
+            { duration: 5000 }
           );
         }
       } else {

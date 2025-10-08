@@ -9,6 +9,7 @@ const corsHeaders = {
 interface CreateProfileRequest {
   email: string;
   title: string;
+  userId?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -20,7 +21,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { email, title }: CreateProfileRequest = await req.json();
+    const { email, title, userId }: CreateProfileRequest = await req.json();
 
     if (!email || !title) {
       return new Response(
@@ -35,15 +36,24 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const externalApiUrl = "http://localhost:4000/api/create-profile";
+    const externalApiUrl = "https://homehandshake-backend-final.vercel.app/api/create-profile";
     
+    const requestBody: CreateProfileRequest = {
+      email,
+      title,
+    };
+
+    if (userId) {
+      requestBody.userId = userId;
+    }
+
     const response = await fetch(externalApiUrl, {
       method: "POST",
       headers: {
         "accept": "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, title }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -69,7 +79,11 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         profileKey: data.profileKey,
-        message: data.message || "Profile created successfully",
+        refId: data.refId,
+        bucketName: data.bucketName,
+        bucketCreated: data.bucketCreated,
+        clerkUpdated: data.clerkUpdated,
+        message: "Profile created successfully",
         ...data,
       }),
       {

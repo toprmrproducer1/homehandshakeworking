@@ -4,11 +4,16 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 interface CreateProfileRequest {
   email: string;
   title: string;
+  userId?: string;
 }
 
 interface CreateProfileResponse {
   success: boolean;
   profileKey?: string;
+  refId?: string;
+  bucketName?: string;
+  bucketCreated?: boolean;
+  clerkUpdated?: boolean;
   message?: string;
 }
 
@@ -31,11 +36,20 @@ const generateRandomTitle = (): string => {
   return `${randomAdjective} ${randomRole}`;
 };
 
-export const createProfile = async (email: string): Promise<CreateProfileResponse> => {
+export const createProfile = async (email: string, userId?: string): Promise<CreateProfileResponse> => {
   const title = generateRandomTitle();
 
   try {
     const apiUrl = `${SUPABASE_URL}/functions/v1/create-profile`;
+
+    const requestBody: CreateProfileRequest = {
+      email,
+      title,
+    };
+
+    if (userId) {
+      requestBody.userId = userId;
+    }
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -43,10 +57,7 @@ export const createProfile = async (email: string): Promise<CreateProfileRespons
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        email,
-        title,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -58,6 +69,10 @@ export const createProfile = async (email: string): Promise<CreateProfileRespons
     return {
       success: true,
       profileKey: data.profileKey,
+      refId: data.refId,
+      bucketName: data.bucketName,
+      bucketCreated: data.bucketCreated,
+      clerkUpdated: data.clerkUpdated,
       message: data.message || 'Profile created successfully',
     };
   } catch (error) {
