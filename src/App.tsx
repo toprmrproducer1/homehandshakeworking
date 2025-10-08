@@ -25,8 +25,8 @@ function App() {
     return <LandingPage />;
   }
 
-  // Check if account is active - default to true if not set
-  const accountActive = user?.publicMetadata?.['account-active'] as boolean ?? true;
+  // Check if account is active - default to false if not set
+  const accountActive = user?.publicMetadata?.['account-active'] as boolean ?? false;
 
   // Console log Clerk metadata for debugging
   console.log('Clerk Public Metadata:', user?.publicMetadata);

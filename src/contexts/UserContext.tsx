@@ -32,7 +32,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   const profileKey = (user?.publicMetadata?.['Profile-Key'] as string) || '';
-  const isAccountActive = (user?.publicMetadata?.['account-active'] as boolean) ?? true;
+  const isAccountActive = (user?.publicMetadata?.['account-active'] as boolean) ?? false;
 
   // Console log for debugging
   console.log('UserContext - Clerk Metadata:', user?.publicMetadata);
