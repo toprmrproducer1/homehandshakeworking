@@ -25,9 +25,30 @@ Deno.serve(async (req: Request) => {
 
     if (!email || !title) {
       return new Response(
-        JSON.stringify({ error: "Email and title are required" }),
+        JSON.stringify({ 
+          success: false,
+          message: "Email and title are required" 
+        }),
         {
           status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    const apiKey = Deno.env.get('HOMEHANDSHAKE_API_KEY');
+    if (!apiKey) {
+      console.error('Missing HOMEHANDSHAKE_API_KEY environment variable');
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          message: "Server misconfiguration: missing API key" 
+        }),
+        {
+          status: 500,
           headers: {
             ...corsHeaders,
             "Content-Type": "application/json",
@@ -47,21 +68,37 @@ Deno.serve(async (req: Request) => {
       requestBody.userId = userId;
     }
 
+    console.log('Calling external API:', externalApiUrl);
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch(externalApiUrl, {
       method: "POST",
       headers: {
         "accept": "application/json",
         "Content-Type": "application/json",
+        "x-api-key": apiKey,
       },
       body: JSON.stringify(requestBody),
     });
 
+    console.log('Response status:', response.status);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText || `API error: ${response.status}` };
+      }
+
       return new Response(
         JSON.stringify({
           success: false,
           message: errorData.message || `API error: ${response.status}`,
+          details: errorData,
         }),
         {
           status: response.status,
@@ -74,6 +111,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await response.json();
+    console.log('Success response:', JSON.stringify(data, null, 2));
 
     return new Response(
       JSON.stringify({
@@ -100,6 +138,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: false,
         message: error instanceof Error ? error.message : "Internal server error",
+        error: String(error),
       }),
       {
         status: 500,
