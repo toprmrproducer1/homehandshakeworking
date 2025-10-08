@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:4000/api';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface CreateProfileRequest {
   email: string;
@@ -34,10 +35,12 @@ export const createProfile = async (email: string): Promise<CreateProfileRespons
   const title = generateRandomTitle();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/create-profile`, {
+    const apiUrl = `${SUPABASE_URL}/functions/v1/create-profile`;
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
