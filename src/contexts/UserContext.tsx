@@ -34,6 +34,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const profileKey = (user?.publicMetadata?.['Profile-Key'] as string) || '';
   const isAccountActive = (user?.publicMetadata?.['account-active'] as boolean) ?? true;
 
+  // Console log for debugging
+  console.log('UserContext - Clerk Metadata:', user?.publicMetadata);
+  console.log('UserContext - Profile Key:', profileKey);
+  console.log('UserContext - Account Active:', isAccountActive);
+
   const fetchProfile = async () => {
     if (!profileKey) {
       console.warn('Profile key not found in user metadata');

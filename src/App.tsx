@@ -27,7 +27,11 @@ function App() {
 
   // Check if account is active - default to true if not set
   const accountActive = user?.publicMetadata?.['account-active'] as boolean ?? true;
-  
+
+  // Console log Clerk metadata for debugging
+  console.log('Clerk Public Metadata:', user?.publicMetadata);
+  console.log('Account Active Status:', accountActive);
+
   if (!accountActive) {
     return <AccountActivation />;
   }
