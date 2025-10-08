@@ -1,8 +1,51 @@
-import React from 'react';
-import { UserButton } from '@clerk/clerk-react';
-import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { UserButton, useUser } from '@clerk/clerk-react';
+import { Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { createProfile } from '../utils/profileApi';
 
 const AccountActivation: React.FC = () => {
+  const { user } = useUser();
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+
+  const handleCreateProfile = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      toast.error('No email address found');
+      return;
+    }
+
+    setIsCreatingProfile(true);
+    const loadingToast = toast.loading('Creating profile...');
+
+    try {
+      const result = await createProfile(user.primaryEmailAddress.emailAddress);
+
+      toast.dismiss(loadingToast);
+
+      if (result.success) {
+        toast.success(
+          result.message || 'Profile created successfully!',
+          { duration: 6000 }
+        );
+
+        if (result.profileKey) {
+          toast.success(
+            `Profile Key: ${result.profileKey}`,
+            { duration: 8000 }
+          );
+        }
+      } else {
+        toast.error(result.message || 'Failed to create profile');
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('An unexpected error occurred');
+      console.error('Profile creation error:', error);
+    } finally {
+      setIsCreatingProfile(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       {/* Header */}
@@ -69,12 +112,29 @@ const AccountActivation: React.FC = () => {
               </p>
             </div>
 
-            <button
-              onClick={() => window.location.reload()}
-              className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              Refresh Status
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={handleCreateProfile}
+                disabled={isCreatingProfile}
+                className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isCreatingProfile ? (
+                  <>
+                    <Loader className="h-5 w-5 animate-spin" />
+                    Creating Profile...
+                  </>
+                ) : (
+                  'Create Profile'
+                )}
+              </button>
+
+              <button
+                onClick={() => window.location.reload()}
+                className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Refresh Status
+              </button>
+            </div>
           </div>
         </div>
       </main>
