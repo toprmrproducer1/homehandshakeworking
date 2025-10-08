@@ -10,3 +10,8 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--production=false"
+  VITE_SUPABASE_URL = "https://eczinltfnokyqfghlbjo.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjemlubHRmbm9reXFmZ2hsYmpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2MTk5MDAsImV4cCI6MjA3NTE5NTkwMH0.Z6KBXzHdyzAzBzcDLVKx2RJzKVpoS4xksSqpQSkwWhc"
+  VITE_CLERK_PUBLISHABLE_KEY = "pk_test_ZmxleGlibGUtcmVkYmlyZC00LmNsZXJrLmFjY291bnRzLmRldiQ"
+  VITE_AYRSHARE_DOMAIN = "id-8ig3h"
+  VITE_AYRSHARE_API_KEY = "7FA008E8-5E8F47C9-978AF1AF-B2F965B1"
