@@ -13,18 +13,13 @@ import AdvancedAnalyticsPanel from './AdvancedAnalyticsPanel';
 import PostingPanel from './PostingPanel';
 import PostHistoryPanel from './PostHistoryPanel';
 import ProfileSettingsPanel from './ProfileSettingsPanel';
-import AccountActivation from './AccountActivation';
 import OverviewDashboard from './OverviewDashboard';
 import LibraryPanel from './LibraryPanel';
 import SettingsPanel from './SettingsPanel';
 
 const Dashboard: React.FC = () => {
-  const { userProfile, loading, error, refetchProfile, isAccountActive } = useUserContext();
+  const { userProfile, loading, error, refetchProfile } = useUserContext();
   const [activeTab, setActiveTab] = useState('overview');
-
-  if (!isAccountActive) {
-    return <AccountActivation />;
-  }
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: BarChart3 },

@@ -34,21 +34,20 @@ function App() {
   }
 
   // Check if account is active - default to false if not set
-  const accountActive = user?.publicMetadata?.['account-active'] as boolean ?? false;
+  const accountActive = user?.publicMetadata?.['account-active'];
+  const isActive = accountActive === true || accountActive === 'true';
 
   // Console log Clerk metadata for debugging
   console.log('Clerk Public Metadata:', user?.publicMetadata);
-  console.log('Account Active Status:', accountActive);
+  console.log('Account Active Raw:', accountActive);
+  console.log('Account Active Status:', isActive);
 
-  if (!accountActive) {
-    return <AccountActivation />;
-  }
-
+  // Always wrap in UserProvider, but show activation page if not active
   return (
     <UserProvider>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="*" element={<Dashboard />} />
+        <Route path="/" element={isActive ? <Dashboard /> : <AccountActivation />} />
+        <Route path="*" element={isActive ? <Dashboard /> : <AccountActivation />} />
       </Routes>
     </UserProvider>
   );

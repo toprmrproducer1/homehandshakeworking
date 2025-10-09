@@ -32,11 +32,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   const profileKey = (user?.publicMetadata?.['Profile-Key'] as string) || '';
-  const isAccountActive = (user?.publicMetadata?.['account-active'] as boolean) ?? false;
+  const accountActiveRaw = user?.publicMetadata?.['account-active'];
+  const isAccountActive = accountActiveRaw === true || accountActiveRaw === 'true';
 
   // Console log for debugging
   console.log('UserContext - Clerk Metadata:', user?.publicMetadata);
   console.log('UserContext - Profile Key:', profileKey);
+  console.log('UserContext - Account Active Raw:', accountActiveRaw);
   console.log('UserContext - Account Active:', isAccountActive);
 
   const fetchProfile = async (forceRefresh = false) => {
