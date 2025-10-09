@@ -1,5 +1,5 @@
 import React from 'react';
-import { SignInButton, SignUpButton } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 import { HeroSection } from './ui/hero-odyssey';
 import { motion } from 'framer-motion';
 import { TestimonialsColumn } from './ui/testimonials-columns';
@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -340,16 +342,15 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
 
-                <SignUpButton mode="modal">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="group px-8 py-4 bg-white text-purple-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl inline-flex items-center"
-                  >
-                    🔥 Start Free Trial
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
-                  </motion.button>
-                </SignUpButton>
+                <motion.button
+                  onClick={() => navigate('/sign-in')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="group px-8 py-4 bg-white text-purple-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl inline-flex items-center"
+                >
+                  🔥 Start Free Trial
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                </motion.button>
               </div>
             </div>
           </div>

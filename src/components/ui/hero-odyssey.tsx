@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SignUpButton, SignInButton } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 
 interface LightningProps {
   hue?: number;
@@ -202,6 +202,7 @@ const Lightning: React.FC<LightningProps> = ({
 };
 
 export const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const containerVariants = {
@@ -249,21 +250,15 @@ export const HeroSection: React.FC = () => {
               </svg>
             </div>
             <div className="hidden md:flex items-center space-x-6 ml-8">
-              <SignUpButton mode="modal">
-                <button className="px-4 py-2 bg-purple-600/50 hover:bg-purple-600/70 rounded-full text-sm transition-colors">Start Free Trial</button>
-              </SignUpButton>
+              <button onClick={() => navigate('/sign-in')} className="px-4 py-2 bg-purple-600/50 hover:bg-purple-600/70 rounded-full text-sm transition-colors">Start Free Trial</button>
               <button className="px-4 py-2 text-sm hover:text-purple-300 transition-colors">Features</button>
               <button className="px-4 py-2 text-sm hover:text-purple-300 transition-colors">Pricing</button>
               <button className="px-4 py-2 text-sm hover:text-purple-300 transition-colors">Contact</button>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <SignInButton mode="modal">
-              <button className="hidden md:block px-4 py-2 text-sm hover:text-purple-300 transition-colors">Sign In</button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full text-sm hover:from-purple-700 hover:to-purple-900 transition-colors shadow-lg shadow-purple-500/50">Get Started</button>
-            </SignUpButton>
+            <button onClick={() => navigate('/sign-in')} className="hidden md:block px-4 py-2 text-sm hover:text-purple-300 transition-colors">Sign In</button>
+            <button onClick={() => navigate('/sign-in')} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full text-sm hover:from-purple-700 hover:to-purple-900 transition-colors shadow-lg shadow-purple-500/50">Get Started</button>
             <button
               className="md:hidden p-2 rounded-md focus:outline-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -296,18 +291,13 @@ export const HeroSection: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <SignUpButton mode="modal">
-                <button className="px-6 py-3 bg-purple-600/50 rounded-full">Start Free Trial</button>
-              </SignUpButton>
+              <button onClick={() => navigate('/sign-in')} className="px-6 py-3 bg-purple-600/50 rounded-full">Start Free Trial</button>
               <button className="px-6 py-3">Features</button>
               <button className="px-6 py-3">Pricing</button>
               <button className="px-6 py-3">Contact</button>
-              <SignInButton mode="modal">
-                <button className="px-6 py-3">Sign In</button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full">Get Started</button>
-              </SignUpButton>
+              <button onClick={() => navigate('/sign-in')} className="px-6 py-3">Sign In</button>
+              <button onClick={() => navigate('/sign-in')} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full">Get Started</button>
+              
             </div>
           </motion.div>
         )}
@@ -318,19 +308,18 @@ export const HeroSection: React.FC = () => {
           animate="visible"
           className="relative z-30 flex flex-col items-center text-center max-w-4xl mx-auto pt-20"
         >
-          <SignUpButton mode="modal">
-            <motion.button
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 backdrop-blur-sm rounded-full text-sm mb-6 transition-all duration-300 group border border-purple-500/30"
-            >
-              <span>🚀 Start Your Free 14-Day Trial</span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transform group-hover:translate-x-1 transition-transform duration-300">
-                <path d="M8 3L13 8L8 13M13 8H3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </motion.button>
-          </SignUpButton>
+          <motion.button
+            onClick={() => navigate('/sign-in')}
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 backdrop-blur-sm rounded-full text-sm mb-6 transition-all duration-300 group border border-purple-500/30"
+          >
+            <span>🚀 Start Your Free 14-Day Trial</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="transform group-hover:translate-x-1 transition-transform duration-300">
+              <path d="M8 3L13 8L8 13M13 8H3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </motion.button>
 
           <motion.h1
             variants={itemVariants}
@@ -360,16 +349,15 @@ export const HeroSection: React.FC = () => {
             Transform your content workflow into a money-making machine. Extract your best moments, turn them into viral clips, and blast them across every platform — automatically.
           </motion.p>
 
-          <SignUpButton mode="modal">
-            <motion.button
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full hover:from-purple-700 hover:to-purple-900 transition-all shadow-lg shadow-purple-500/50 text-lg font-semibold"
-            >
-              Start Your Free 14-Day Trial
-            </motion.button>
-          </SignUpButton>
+          <motion.button
+            onClick={() => navigate('/sign-in')}
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full hover:from-purple-700 hover:to-purple-900 transition-all shadow-lg shadow-purple-500/50 text-lg font-semibold"
+          >
+            Start Your Free 14-Day Trial
+          </motion.button>
 
           <motion.p
             variants={itemVariants}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CheckCircleIcon } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
@@ -19,6 +20,8 @@ import {
 } from '@/components/ui/chart';
 
 export function PricingWithChart() {
+	const navigate = useNavigate();
+
 	return (
 		<div className="mx-auto max-w-6xl">
 			<div className="mx-auto mb-10 max-w-2xl text-center">
@@ -46,8 +49,8 @@ export function PricingWithChart() {
 							</p>
 						</div>
 
-						<Button asChild variant="outline" className="w-full">
-							<a href="#">Get Started</a>
+						<Button onClick={() => navigate('/sign-in')} variant="outline" className="w-full">
+							Get Started
 						</Button>
 
 						<div className="bg-purple-500/20 my-6 h-px w-full" />
@@ -106,13 +109,13 @@ export function PricingWithChart() {
 
 						<div className="mt-10 grid w-full grid-cols-2 gap-2.5">
 							<Button
-								asChild
+								onClick={() => navigate('/sign-in')}
 								className="bg-purple-600 text-white hover:bg-purple-700"
 							>
-								<a href="#">Get Started</a>
+								Get Started
 							</Button>
-							<Button asChild variant="outline">
-								<a href="#">Start free trial</a>
+							<Button onClick={() => navigate('/sign-in')} variant="outline">
+								Start free trial
 							</Button>
 						</div>
 					</div>

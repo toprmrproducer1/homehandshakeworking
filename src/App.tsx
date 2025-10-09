@@ -1,9 +1,10 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import AccountActivation from './components/AccountActivation';
+import SignInPageWrapper from './pages/SignInPageWrapper';
 import { UserProvider } from './contexts/UserContext';
 
 function App() {
@@ -20,9 +21,16 @@ function App() {
       </div>
     );
   }
-  
+
+  // Not signed in - show public routes
   if (!isSignedIn) {
-    return <LandingPage />;
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/sign-in" element={<SignInPageWrapper />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
   }
 
   // Check if account is active - default to false if not set
