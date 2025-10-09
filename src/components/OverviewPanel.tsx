@@ -118,8 +118,8 @@ const OverviewPanel: React.FC = () => {
 
   const connectedAccounts = userProfile?.displayNames || [];
   const totalFollowers = connectedAccounts.reduce((sum: number, acc: any) => {
-    const analytics = analytics?.[acc.platform.toLowerCase()]?.analytics;
-    return sum + (analytics?.followersCount || analytics?.subscriberCount || 0);
+    const platformAnalytics = analytics?.[acc.platform.toLowerCase()]?.analytics;
+    return sum + (platformAnalytics?.followersCount || platformAnalytics?.subscriberCount || 0);
   }, 0);
 
   return (
