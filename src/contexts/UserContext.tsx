@@ -31,7 +31,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const profileKey = (user?.publicMetadata?.['Profile-Key'] as string) || '';
+  const profileKey = ((user?.publicMetadata?.['profile-key'] || user?.publicMetadata?.['Profile-Key']) as string) || '';
   const accountActiveRaw = user?.publicMetadata?.['account-active'];
   const isAccountActive = accountActiveRaw === true || accountActiveRaw === 'true';
 

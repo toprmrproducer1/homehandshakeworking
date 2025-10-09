@@ -58,6 +58,32 @@ const AccountActivation: React.FC = () => {
             'Clerk metadata updated successfully',
             { duration: 5000 }
           );
+
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          const reloadToast = toast.loading('Refreshing account status...');
+
+          try {
+            await user.reload();
+            toast.dismiss(reloadToast);
+            toast.success('Account status updated! Redirecting...', { duration: 3000 });
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } catch (reloadError) {
+            toast.dismiss(reloadToast);
+            console.error('Failed to reload user:', reloadError);
+            toast('Please click "Refresh Status" to continue', {
+              icon: '🔄',
+              duration: 5000
+            });
+          }
+        } else {
+          toast('Profile created! Click "Refresh Status" to continue', {
+            icon: '🔄',
+            duration: 6000
+          });
         }
       } else {
         toast.error(result.message || 'Failed to create profile');

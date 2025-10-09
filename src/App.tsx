@@ -17,6 +17,28 @@ function App() {
     }
   }, [isLoaded, isSignedIn, user?.publicMetadata]);
 
+  // Periodically check for metadata updates for unactivated accounts
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return;
+
+    const accountActive = user?.publicMetadata?.['account-active'];
+    const profileKey = user?.publicMetadata?.['profile-key'] || user?.publicMetadata?.['Profile-Key'];
+    const isActive = (accountActive === true || accountActive === 'true') && !!profileKey;
+
+    if (!isActive) {
+      const intervalId = setInterval(async () => {
+        try {
+          console.log('🔄 Checking for account activation updates...');
+          await user.reload();
+        } catch (error) {
+          console.error('Failed to reload user metadata:', error);
+        }
+      }, 10000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [isLoaded, isSignedIn, user]);
+
   // Show loading while Clerk initializes or user data is loading
   if (!isLoaded || isSignedIn === undefined || isSignedIn === null) {
     return (
@@ -42,15 +64,12 @@ function App() {
 
   // Check if account is active - STRICTLY check, default to false if not explicitly true
   const accountActive = user?.publicMetadata?.['account-active'];
-  const profileKey = user?.publicMetadata?.['profile-key'];
+  const profileKey = user?.publicMetadata?.['profile-key'] || user?.publicMetadata?.['Profile-Key'];
 
   // Only allow activation if explicitly set to true (boolean) or 'true' (string)
   // AND has a profile key (meaning profile was created and activated)
   // Any undefined, null, false, or other value = NOT ACTIVE
-  let isActive = false;
-  if ((accountActive === true || accountActive === 'true') && profileKey) {
-    isActive = true;
-  }
+  const isActive = (accountActive === true || accountActive === 'true') && !!profileKey;
 
   // Console log Clerk metadata for debugging
   console.log('=== APP.TSX ACTIVATION CHECK ===');
