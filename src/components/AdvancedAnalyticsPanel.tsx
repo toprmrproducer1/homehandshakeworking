@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, Heart, MessageCircle, Globe, RefreshCw, Calendar } from 'lucide-react';
+import { useUserContext } from '../contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from './ui/chart';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const AdvancedAnalyticsPanel: React.FC = () => {
+  const { userProfile } = useUserContext();
   const [selectedPlatforms, setSelectedPlatforms] = useState(['instagram', 'twitter', 'youtube']);
   const [dateRange, setDateRange] = useState('7days');
+  const [platformData, setPlatformData] = useState<Array<{name: string, connected: boolean, color: string}>>([]);
 
-  const platformData = [
-    { name: 'Facebook', connected: false, color: '#1877F2' },
-    { name: 'Instagram', connected: true, color: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' },
-    { name: 'X/Twitter', connected: true, color: '#1DA1F2' },
-    { name: 'TikTok', connected: false, color: '#000000' },
-    { name: 'X/Twitter', connected: false, color: '#1DA1F2' },
-    { name: 'YouTube', connected: true, color: '#FF0000' },
-    { name: 'TikTok', connected: false, color: '#000000' },
+  const allPlatforms = [
+    { id: 'facebook', name: 'Facebook', color: '#1877F2' },
+    { id: 'instagram', name: 'Instagram', color: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' },
+    { id: 'twitter', name: 'X/Twitter', color: '#1DA1F2' },
+    { id: 'youtube', name: 'YouTube', color: '#FF0000' },
+    { id: 'tiktok', name: 'TikTok', color: '#000000' },
   ];
+
+  useEffect(() => {
+    if (userProfile?.displayNames) {
+      const connectedPlatformIds = userProfile.displayNames.map((account: any) => {
+        const platform = account.platform.toLowerCase();
+        if (platform === 'x/twitter' || platform === 'x') return 'twitter';
+        return platform;
+      });
+
+      const platforms = allPlatforms.map(platform => ({
+        ...platform,
+        connected: connectedPlatformIds.includes(platform.id)
+      }));
+
+      setPlatformData(platforms);
+    } else {
+      // Default to all disconnected
+      setPlatformData(allPlatforms.map(p => ({ ...p, connected: false })));
+    }
+  }, [userProfile]);
 
   const instagramStats = {
     followers: 759,

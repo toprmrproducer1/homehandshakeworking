@@ -165,7 +165,7 @@ const PostHistoryPanel: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-xl">
@@ -176,7 +176,7 @@ const PostHistoryPanel: React.FC = () => {
           <button
             onClick={() => selectedPlatform && loadPostHistory(selectedPlatform)}
             disabled={loading || !selectedPlatform}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
+            className="px-4 py-2 bg-purple-900/20 hover:bg-purple-800/30 text-purple-200 border border-purple-500/20 rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -200,8 +200,8 @@ const PostHistoryPanel: React.FC = () => {
                     isSelected && isConnected
                       ? `bg-gradient-to-r ${platform.color} text-white shadow-lg`
                       : isConnected
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-purple-900/20 text-gray-500 cursor-not-allowed border border-purple-500/20'
                   }`}
                 >
                   {platform.name}
@@ -230,14 +230,14 @@ const PostHistoryPanel: React.FC = () => {
 
       {/* Post History */}
       {loading ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="text-center py-12">
             <RefreshCw className="h-8 w-8 text-gray-400 mx-auto mb-4 animate-spin" />
             <p className="text-gray-600">Loading post history...</p>
           </div>
         </div>
       ) : selectedPlatform && postHistory.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <h3 className="text-xl font-semibold text-gray-900 mb-6">
             {availablePlatforms.find(p => p.id === selectedPlatform)?.name} Posts
           </h3>
@@ -253,7 +253,7 @@ const PostHistoryPanel: React.FC = () => {
                     {/* Media Preview */}
                     {mediaPreview && (
                       <div className="w-24 flex-shrink-0">
-                        <div className="relative bg-gray-100 rounded-lg overflow-hidden w-full" style={{ aspectRatio: '9/16' }}>
+                        <div className="relative bg-purple-900/20 rounded-lg overflow-hidden w-full" style={{ aspectRatio: '9/16' }}>
                           {post.mediaType === 'video' || post.contentType?.includes('video') ? (
                             <div className="relative w-full h-full">
                               <img
@@ -328,7 +328,7 @@ const PostHistoryPanel: React.FC = () => {
 
                       {/* Additional Platform-Specific Info */}
                       {selectedPlatform === 'youtube' && post.title && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="mt-3 p-3 bg-purple-900/20 rounded-lg border border-purple-500/20">
                           <p className="text-sm text-gray-700">
                             <span className="font-medium">Title:</span> {post.title}
                           </p>
@@ -351,7 +351,7 @@ const PostHistoryPanel: React.FC = () => {
                       )}
 
                       {selectedPlatform === 'facebook' && post.reactions && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="mt-3 p-3 bg-purple-900/20 rounded-lg border border-purple-500/20">
                           <p className="text-sm text-gray-700">
                             <span className="font-medium">Reactions:</span> {post.reactions.total || 0} total
                             {post.reactions.like > 0 && ` (${post.reactions.like} likes)`}
@@ -366,7 +366,7 @@ const PostHistoryPanel: React.FC = () => {
           </div>
         </div>
       ) : selectedPlatform && !loading ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="text-center py-12">
             <History className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No Posts Found</h3>
@@ -376,7 +376,7 @@ const PostHistoryPanel: React.FC = () => {
           </div>
         </div>
       ) : !selectedPlatform ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="text-center py-12">
             <History className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">Select a Platform</h3>

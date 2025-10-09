@@ -516,7 +516,7 @@ const PostingPanel: React.FC = () => {
 
       case 'tiktok':
         return (
-          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-4">
+          <div className="mt-4 p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl space-y-4">
             <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
               <X className="h-5 w-5" />
               <span>TikTok Options</span>
@@ -956,7 +956,7 @@ const PostingPanel: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
         <div className="flex items-center space-x-3 mb-6">
           <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-xl">
             <Send className="h-6 w-6 text-white" />
@@ -1047,7 +1047,7 @@ const PostingPanel: React.FC = () => {
                           className={`w-full p-4 rounded-xl text-sm font-medium transition-all duration-200 flex flex-col items-center space-y-2 ${
                             isSelected
                               ? `bg-gradient-to-r ${platform.color} text-white shadow-lg transform scale-105`
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              : 'bg-purple-900/20 text-purple-200 hover:bg-purple-800/30 border border-purple-500/20'
                           }`}
                         >
                           <Icon className="h-6 w-6" />
@@ -1062,7 +1062,7 @@ const PostingPanel: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+              <div className="text-center py-8 bg-purple-900/10 rounded-xl border-2 border-dashed border-purple-500/30">
                 <Send className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">No connected platforms found. Please connect your social accounts first.</p>
               </div>
@@ -1114,7 +1114,7 @@ const PostingPanel: React.FC = () => {
 
       {/* Results */}
       {(error || validationResult || publishResult) && (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <h3 className="text-xl font-semibold text-gray-900 mb-6">Results</h3>
           
           {/* Error */}

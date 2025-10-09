@@ -264,9 +264,9 @@ const VideoClippingPanel: React.FC = () => {
     <>
       <div className="space-y-8">
         {/* Upload Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-2 rounded-xl">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-700 p-2 rounded-xl">
               <Video className="h-6 w-6 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">Upload Video for Clipping</h2>
@@ -359,14 +359,14 @@ const VideoClippingPanel: React.FC = () => {
 
             {/* Error/Success Messages */}
             {error && (
-              <div className="flex items-center space-x-2 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-center space-x-2 p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
                 <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
                 <p className="text-red-700">{error}</p>
               </div>
             )}
 
             {success && (
-              <div className="flex items-center space-x-2 p-4 bg-green-50 border border-green-200 rounded-xl">
+              <div className="flex items-center space-x-2 p-4 bg-green-900/20 border border-green-500/30 rounded-xl">
                 <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                 <p className="text-green-700">{success}</p>
               </div>
@@ -376,7 +376,7 @@ const VideoClippingPanel: React.FC = () => {
             <button
               type="submit"
               disabled={uploading || !profileKey || (videoType === 1 && !videoFile) || (videoType !== 1 && !videoUrl)}
-              className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {uploading ? (
                 <>
@@ -394,10 +394,10 @@ const VideoClippingPanel: React.FC = () => {
         </div>
 
         {/* Clipped Videos */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-xl">
+              <div className="bg-gradient-to-r from-purple-500 to-purple-700 p-2 rounded-xl">
                 <Play className="h-6 w-6 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Clipped Videos</h2>
@@ -405,7 +405,7 @@ const VideoClippingPanel: React.FC = () => {
             <button
               onClick={loadClippedVideos}
               disabled={loading}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-purple-900/20 hover:bg-purple-800/30 text-purple-200 rounded-lg transition-colors flex items-center space-x-2 border border-purple-500/20"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
@@ -420,7 +420,7 @@ const VideoClippingPanel: React.FC = () => {
           ) : clippedVideos.length > 0 ? (
             <div className="grid gap-6">
               {clippedVideos.map((video, index) => (
-                <div key={video.id || index} className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+                <div key={video.id || index} className="bg-purple-900/10 rounded-xl p-6 hover:bg-purple-800/20 transition-colors border border-purple-500/20">
                   {/* Vertical Layout */}
                   <div className="space-y-4">
                     {/* Video Preview */}
@@ -481,7 +481,7 @@ const VideoClippingPanel: React.FC = () => {
                             href={video.mediaLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+                            className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
                           >
                             <Play className="h-4 w-4" />
                             <span>Play</span>
@@ -531,7 +531,7 @@ const VideoClippingPanel: React.FC = () => {
                         
                         {/* Show Catbox URL if available */}
                         {catboxUrls[video.id || video.mediaLink] && (
-                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="mt-3 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-sm font-medium text-green-800">Catbox.moe URL:</p>
@@ -567,7 +567,7 @@ const VideoClippingPanel: React.FC = () => {
       {/* Post Modal */}
       {showPostModal && selectedVideoForPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-gradient-to-br from-purple-900/95 to-black/95 backdrop-blur-xl rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/20">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-gray-900">Post Video to Social Media</h3>
@@ -584,7 +584,7 @@ const VideoClippingPanel: React.FC = () => {
 
             <div className="p-6 space-y-6">
               {/* Video Preview */}
-              <div className="bg-gray-100 rounded-lg p-4">
+              <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
                 <div className="flex items-center space-x-3 mb-3">
                   <Video className="h-5 w-5 text-gray-600" />
                   <span className="font-medium text-gray-900">{getVideoName(selectedVideoForPost, 0)}</span>
@@ -619,7 +619,7 @@ const VideoClippingPanel: React.FC = () => {
               </div>
 
               {/* Media URL Selection */}
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
                 <h4 className="font-medium text-gray-900 mb-3">Media URL to Use:</h4>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
@@ -712,14 +712,14 @@ const VideoClippingPanel: React.FC = () => {
 
               {/* Error/Success Messages */}
               {error && (
-                <div className="flex items-center space-x-2 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-center space-x-2 p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
                   <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
                   <p className="text-red-700">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="flex items-center space-x-2 p-4 bg-green-50 border border-green-200 rounded-xl">
+                <div className="flex items-center space-x-2 p-4 bg-green-900/20 border border-green-500/30 rounded-xl">
                   <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <p className="text-green-700">{success}</p>
                 </div>
@@ -729,7 +729,7 @@ const VideoClippingPanel: React.FC = () => {
               <div className="flex space-x-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={closePostModal}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-6 py-3 border border-purple-500/30 text-purple-200 rounded-xl hover:bg-purple-900/20 transition-colors"
                 >
                   Cancel
                 </button>
@@ -737,7 +737,7 @@ const VideoClippingPanel: React.FC = () => {
                 <button
                   onClick={handleValidatePost}
                   disabled={validating || !postText.trim() || selectedPlatforms.length === 0}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
                   {validating ? (
                     <>
@@ -755,7 +755,7 @@ const VideoClippingPanel: React.FC = () => {
                 <button
                   onClick={handlePublishPost}
                   disabled={publishing || !postText.trim() || selectedPlatforms.length === 0}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                 >
                   {publishing ? (
                     <>

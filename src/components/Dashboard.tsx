@@ -16,6 +16,7 @@ import ProfileSettingsPanel from './ProfileSettingsPanel';
 import AccountActivation from './AccountActivation';
 import OverviewDashboard from './OverviewDashboard';
 import LibraryPanel from './LibraryPanel';
+import SettingsPanel from './SettingsPanel';
 
 const Dashboard: React.FC = () => {
   const { userProfile, loading, error, refetchProfile, isAccountActive } = useUserContext();
@@ -144,14 +145,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6">Settings</h2>
-            <div className="text-center py-12">
-              <Settings className="h-16 w-16 text-purple-500/50 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-purple-200 mb-2">Account Settings</h3>
-              <p className="text-gray-400">Manage your account preferences and settings.</p>
-            </div>
-          </div>
+          <SettingsPanel />
         )}
       </div>
     </div>
