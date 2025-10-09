@@ -2,6 +2,7 @@ import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/clerk-react';
 import { HeroSection } from './ui/hero-odyssey';
 import { motion } from 'framer-motion';
+import { TestimonialsColumn } from './ui/testimonials-columns';
 import {
   Scissors,
   Share2,
@@ -38,6 +39,69 @@ const LandingPage: React.FC = () => {
       }
     }
   };
+
+  const testimonials = [
+    {
+      text: "Homehandshake completely transformed how I manage content. What used to take hours now takes minutes!",
+      image: "https://images.pexels.com/photos/3763188/pexels-photo-3763188.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Sarah Chen",
+      role: "Content Creator"
+    },
+    {
+      text: "The AI clipping feature is incredible. It finds the perfect moments in my videos every time.",
+      image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Marcus Johnson",
+      role: "YouTuber"
+    },
+    {
+      text: "Multi-platform posting made easy. I reach 10x more people with half the effort.",
+      image: "https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Emily Rodriguez",
+      role: "Digital Marketer"
+    }
+  ];
+
+  const testimonials2 = [
+    {
+      text: "The analytics dashboard gives me insights I never had before. Game changer for my content strategy.",
+      image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "David Kim",
+      role: "Social Media Manager"
+    },
+    {
+      text: "Best investment for my agency. My team collaborates seamlessly now.",
+      image: "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Jessica Williams",
+      role: "Agency Owner"
+    },
+    {
+      text: "From podcast to viral clips in seconds. This platform is pure magic.",
+      image: "https://images.pexels.com/photos/3778966/pexels-photo-3778966.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Alex Turner",
+      role: "Podcast Host"
+    }
+  ];
+
+  const testimonials3 = [
+    {
+      text: "The ROI is insane. More engagement, more clients, and way less stress.",
+      image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Olivia Martinez",
+      role: "Influencer"
+    },
+    {
+      text: "I can finally focus on creating content instead of editing and posting. Worth every penny!",
+      image: "https://images.pexels.com/photos/2613260/pexels-photo-2613260.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Ryan Cooper",
+      role: "Video Producer"
+    },
+    {
+      text: "Scheduling posts across platforms has never been easier. My reach doubled in just 2 months.",
+      image: "https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=100",
+      name: "Sophia Lee",
+      role: "Brand Strategist"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -186,6 +250,30 @@ const LandingPage: React.FC = () => {
                 </div>
               </motion.div>
             </motion.div>
+          </div>
+        </section>
+
+        <section className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/10 to-black overflow-hidden">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-200 bg-clip-text text-transparent">
+                💬 What Creators Are Saying
+              </h2>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Join thousands of creators who've transformed their content workflow
+              </p>
+            </motion.div>
+
+            <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[700px] overflow-hidden">
+              <TestimonialsColumn testimonials={testimonials} duration={15} />
+              <TestimonialsColumn testimonials={testimonials2} className="hidden md:block" duration={19} />
+              <TestimonialsColumn testimonials={testimonials3} className="hidden lg:block" duration={17} />
+            </div>
           </div>
         </section>
 

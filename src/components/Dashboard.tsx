@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2 } from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
+import { BentoGrid } from './ui/bento-grid';
 import SocialAccountsPanel from './SocialAccountsPanel';
 import ConnectSocialsButton from './ConnectSocialsButton';
 import VideoClippingPanel from './VideoClippingPanel';
@@ -103,7 +104,7 @@ const Dashboard: React.FC = () => {
             {/* Profile Overview */}
             <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6">Account Overview</h2>
-              
+
               {loading ? (
                 <div className="animate-pulse space-y-4">
                   <div className="h-4 bg-purple-900/20 rounded w-1/3"></div>
@@ -133,7 +134,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <h3 className="font-semibold text-purple-200 mb-4">Account Status</h3>
                     <div className="space-y-3">
@@ -161,53 +162,58 @@ const Dashboard: React.FC = () => {
               ) : null}
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="group relative bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-2xl p-6 text-white border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative">
-                  <Scissors className="h-8 w-8 mb-4 text-purple-300" />
-                  <h3 className="font-semibold mb-2 text-purple-200">Create New Clip</h3>
-                  <p className="text-gray-400 mb-4 text-sm">Start clipping your content for social media</p>
-                  <button className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20">
-                    <Plus className="h-4 w-4" />
-                    <span>New Clip</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="group relative bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-2xl p-6 text-white border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative">
-                  <Users className="h-8 w-8 mb-4 text-purple-300" />
-                  <h3 className="font-semibold mb-2 text-purple-200">Social Accounts</h3>
-                  <p className="text-gray-400 mb-4 text-sm">
-                    {userProfile?.activeSocialAccounts?.length || 0} platforms connected
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('social')}
-                    className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Manage</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="group relative bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-2xl p-6 text-white border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative">
-                  <Wand2 className="h-8 w-8 mb-4 text-purple-300" />
-                  <h3 className="font-semibold mb-2 text-purple-200">Generate AI Images</h3>
-                  <p className="text-gray-400 mb-4 text-sm">Create stunning images with AI assistance</p>
-                  <button
-                    onClick={() => setActiveTab('generate')}
-                    className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20">
-                    <Plus className="h-4 w-4" />
-                    <span>Generate</span>
-                  </button>
-                </div>
-              </div>
+            {/* BentoGrid Quick Actions */}
+            <div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6 px-4">Quick Actions</h2>
+              <BentoGrid items={[
+                {
+                  title: "Clip Videos",
+                  description: "AI-powered video clipping for viral content",
+                  icon: <Video className="h-5 w-5 text-purple-400" />,
+                  status: "Ready",
+                  tags: ["AI", "Video"],
+                  cta: "Start Clipping →",
+                  colSpan: 1
+                },
+                {
+                  title: "Generate Images",
+                  description: "Create stunning visuals with AI assistance",
+                  icon: <ImageIcon className="h-5 w-5 text-purple-400" />,
+                  status: "Active",
+                  tags: ["AI", "Images"],
+                  cta: "Generate Now →",
+                  colSpan: 1
+                },
+                {
+                  title: "Post to Socials",
+                  description: "Share content across all your platforms instantly",
+                  icon: <Send className="h-5 w-5 text-purple-400" />,
+                  status: "Live",
+                  tags: ["Multi-platform"],
+                  meta: `${userProfile?.activeSocialAccounts?.length || 0} connected`,
+                  cta: "Create Post →",
+                  colSpan: 1
+                },
+                {
+                  title: "Analytics Dashboard",
+                  description: "Track engagement and performance metrics across platforms",
+                  icon: <TrendingUp className="h-5 w-5 text-purple-400" />,
+                  status: "Updated",
+                  tags: ["Insights", "Data"],
+                  cta: "View Analytics →",
+                  colSpan: 2
+                },
+                {
+                  title: "Post History",
+                  description: "Browse your content history and performance",
+                  icon: <History className="h-5 w-5 text-purple-400" />,
+                  status: "Ready",
+                  tags: ["Archive"],
+                  meta: `${userProfile?.monthlyPostCount || 0} posts`,
+                  cta: "View History →",
+                  colSpan: 1
+                }
+              ]} />
             </div>
           </div>
         )}
