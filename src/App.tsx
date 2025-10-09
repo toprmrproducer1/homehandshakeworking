@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import LandingPage from './components/LandingPage';
-import Dashboard from './components/Dashboard';
+import DashboardNew from './components/DashboardNew';
 import AccountActivation from './components/AccountActivation';
 import SignInPageWrapper from './pages/SignInPageWrapper';
 import { UserProvider } from './contexts/UserContext';
@@ -47,8 +47,8 @@ function App() {
   return (
     <UserProvider>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="*" element={<Dashboard />} />
+        <Route path="/" element={<DashboardNew />} />
+        <Route path="*" element={<DashboardNew />} />
       </Routes>
     </UserProvider>
   );
