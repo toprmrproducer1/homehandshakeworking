@@ -32,9 +32,10 @@ Deno.serve(async (req: Request) => {
 
     const apiKey = Deno.env.get("VITE_AYRSHARE_API_KEY");
     const domain = Deno.env.get("VITE_AYRSHARE_DOMAIN");
-    const privateKey = Deno.env.get("VITE_AYRSHARE_PRIVATE_KEY");
+    let privateKey = Deno.env.get("VITE_AYRSHARE_PRIVATE_KEY");
 
     if (!apiKey || !domain || !privateKey) {
+      console.error("Missing config:", { hasApiKey: !!apiKey, hasDomain: !!domain, hasPrivateKey: !!privateKey });
       return new Response(
         JSON.stringify({ error: "Ayrshare configuration is missing" }),
         {
@@ -46,6 +47,17 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
+
+    // Remove quotes if present and ensure proper newline characters
+    privateKey = privateKey.replace(/^"|"$/g, '');
+    
+    // Replace escaped newlines with actual newlines if needed
+    if (privateKey.includes('\\n')) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+    
+    console.log("Private key starts with:", privateKey.substring(0, 30));
+    console.log("Private key ends with:", privateKey.substring(privateKey.length - 30));
 
     const response = await fetch("https://api.ayrshare.com/api/profiles/generateJWT", {
       method: "POST",
@@ -63,6 +75,7 @@ Deno.serve(async (req: Request) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Ayrshare API error:", errorText);
+      console.error("Request params:", { domain, profileKey, privateKeyLength: privateKey.length });
       return new Response(
         JSON.stringify({ error: "Failed to generate JWT", details: errorText }),
         {
