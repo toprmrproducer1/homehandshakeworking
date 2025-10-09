@@ -1,22 +1,25 @@
 const API_KEY = import.meta.env.VITE_AYRSHARE_API_KEY;
 const BASE_URL = 'https://api.ayrshare.com/api';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const generateJWT = async (profileKey: string) => {
-  const response = await fetch(`${BASE_URL}/profiles/generateJWT`, {
+  const edgeFunctionUrl = `${SUPABASE_URL}/functions/v1/generate-ayrshare-jwt`;
+
+  const response = await fetch(edgeFunctionUrl, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${API_KEY}`,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      domain: import.meta.env.VITE_AYRSHARE_DOMAIN,
-      privateKey: import.meta.env.VITE_AYRSHARE_PRIVATE_KEY,
-      profileKey: profileKey,
+      profileKey,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to generate JWT: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({ error: response.statusText }));
+    throw new Error(errorData.error || `Failed to generate JWT: ${response.statusText}`);
   }
 
   return response.json();
