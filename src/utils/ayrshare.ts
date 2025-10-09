@@ -5,6 +5,8 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const generateJWT = async (profileKey: string) => {
   const edgeFunctionUrl = `${SUPABASE_URL}/functions/v1/generate-ayrshare-jwt`;
+  const domain = import.meta.env.VITE_AYRSHARE_DOMAIN;
+  const privateKey = import.meta.env.VITE_AYRSHARE_PRIVATE_KEY;
 
   const response = await fetch(edgeFunctionUrl, {
     method: 'POST',
@@ -14,6 +16,9 @@ export const generateJWT = async (profileKey: string) => {
     },
     body: JSON.stringify({
       profileKey,
+      apiKey: API_KEY,
+      domain,
+      privateKey,
     }),
   });
 

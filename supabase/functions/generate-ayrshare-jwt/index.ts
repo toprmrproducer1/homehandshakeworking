@@ -15,7 +15,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { profileKey } = await req.json();
+    const { profileKey, apiKey, domain, privateKey } = await req.json();
 
     if (!profileKey) {
       return new Response(
@@ -29,10 +29,6 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
-
-    const apiKey = Deno.env.get("VITE_AYRSHARE_API_KEY");
-    const domain = Deno.env.get("VITE_AYRSHARE_DOMAIN");
-    let privateKey = Deno.env.get("VITE_AYRSHARE_PRIVATE_KEY");
 
     if (!apiKey || !domain || !privateKey) {
       console.error("Missing config:", { hasApiKey: !!apiKey, hasDomain: !!domain, hasPrivateKey: !!privateKey });
@@ -48,16 +44,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Remove quotes if present and ensure proper newline characters
-    privateKey = privateKey.replace(/^"|"$/g, '');
-    
-    // Replace escaped newlines with actual newlines if needed
-    if (privateKey.includes('\\n')) {
-      privateKey = privateKey.replace(/\\n/g, '\n');
-    }
-    
-    console.log("Private key starts with:", privateKey.substring(0, 30));
-    console.log("Private key ends with:", privateKey.substring(privateKey.length - 30));
+    console.log("Generating JWT with domain:", domain);
+    console.log("Profile key:", profileKey);
+    console.log("Private key length:", privateKey.length);
+    console.log("Private key first 30 chars:", privateKey.substring(0, 30));
 
     const response = await fetch("https://api.ayrshare.com/api/profiles/generateJWT", {
       method: "POST",
@@ -72,12 +62,14 @@ Deno.serve(async (req: Request) => {
       }),
     });
 
+    const responseText = await response.text();
+    console.log("Ayrshare response status:", response.status);
+    console.log("Ayrshare response:", responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Ayrshare API error:", errorText);
-      console.error("Request params:", { domain, profileKey, privateKeyLength: privateKey.length });
+      console.error("Ayrshare API error:", responseText);
       return new Response(
-        JSON.stringify({ error: "Failed to generate JWT", details: errorText }),
+        JSON.stringify({ error: "Failed to generate JWT", details: responseText }),
         {
           status: response.status,
           headers: {
@@ -88,7 +80,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const data = await response.json();
+    const data = JSON.parse(responseText);
 
     return new Response(
       JSON.stringify(data),
