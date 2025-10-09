@@ -22,9 +22,6 @@ createRoot(document.getElementById('root')!).render(
           colorPrimary: '#6366f1'
         }
       }}
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
-      signInUrl="/sign-in"
     >
       <BrowserRouter>
         <App />

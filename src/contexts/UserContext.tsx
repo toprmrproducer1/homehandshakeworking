@@ -1,73 +1,97 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useUser } from '@clerk/clerk-react';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  profileKey?: string;
-  isActive: boolean;
-}
+import { fetchUserProfile } from '../utils/ayrshare';
 
 interface UserContextType {
-  userProfile: UserProfile | null;
+  profileKey: string;
+  userProfile: any;
   loading: boolean;
   error: string | null;
   refetchProfile: () => void;
+  isAccountActive: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoaded } = useUser();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+export const useUserContext = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUserContext must be used within a UserProvider');
+  }
+  return context;
+};
+
+interface UserProviderProps {
+  children: ReactNode;
+}
+
+export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+  const { user } = useUser();
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProfile = () => {
-    if (!isLoaded || !user) {
+  const profileKey = (user?.publicMetadata?.['Profile-Key'] as string) || '';
+  const accountActiveRaw = user?.publicMetadata?.['account-active'];
+  const isAccountActive = accountActiveRaw === true || accountActiveRaw === 'true';
+
+  // Console log for debugging
+  console.log('UserContext - Clerk Metadata:', user?.publicMetadata);
+  console.log('UserContext - Profile Key:', profileKey);
+  console.log('UserContext - Account Active Raw:', accountActiveRaw);
+  console.log('UserContext - Account Active:', isAccountActive);
+
+  const fetchProfile = async (forceRefresh = false) => {
+    if (!profileKey) {
+      console.warn('Profile key not found in user metadata');
+      setError(null);
       setLoading(false);
       return;
     }
 
     try {
-      const accountActive = user.publicMetadata?.['account-active'];
-      const profileKey = user.publicMetadata?.['profile-key'] as string | undefined;
-
-      setUserProfile({
-        id: user.id,
-        email: user.primaryEmailAddress?.emailAddress || '',
-        profileKey,
-        isActive: accountActive === true || accountActive === 'true'
-      });
+      setLoading(true);
       setError(null);
+      // Add cache busting for force refresh
+      const profile = await fetchUserProfile(profileKey);
+      setUserProfile(profile);
+      console.log('Profile updated:', profile);
     } catch (err) {
-      setError('Failed to load user profile');
-      console.error('Error fetching profile:', err);
+      console.error('Profile fetch error:', err);
+      setError(null);
+      setUserProfile(null);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
-  }, [user, isLoaded]);
+    if (profileKey) {
+      fetchProfile(false);
+    }
+  }, [profileKey]);
 
-  const refetchProfile = () => {
-    setLoading(true);
-    fetchProfile();
-  };
+  // Auto-refresh every 30 seconds to keep social accounts up to date
+  useEffect(() => {
+    if (!profileKey) return;
+
+    const intervalId = setInterval(() => {
+      fetchProfile(true);
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [profileKey]);
 
   return (
-    <UserContext.Provider value={{ userProfile, loading, error, refetchProfile }}>
+    <UserContext.Provider value={{
+      profileKey,
+      userProfile,
+      loading,
+      error,
+      refetchProfile: fetchProfile,
+      isAccountActive
+    }}>
       {children}
     </UserContext.Provider>
   );
-};
-
-export const useUserContext = () => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error('useUserContext must be used within a UserProvider');
-  }
-  return context;
 };

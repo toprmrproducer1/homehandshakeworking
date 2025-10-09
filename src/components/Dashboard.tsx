@@ -1,10 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { Sparkles } from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
+import { useUserContext } from '../contexts/UserContext';
+import { BentoGrid } from './ui/bento-grid';
+import SidebarMenu from './SidebarMenu';
+import SocialAccountsPanel from './SocialAccountsPanel';
+import ConnectSocialsButton from './ConnectSocialsButton';
+import VideoClippingPanel from './VideoClippingPanel';
+import ImageGenerationPanel from './ImageGenerationPanel';
+import AnalyticsPanel from './AnalyticsPanel';
+import AdvancedAnalyticsPanel from './AdvancedAnalyticsPanel';
+import PostingPanel from './PostingPanel';
+import PostHistoryPanel from './PostHistoryPanel';
+import ProfileSettingsPanel from './ProfileSettingsPanel';
+import OverviewDashboard from './OverviewDashboard';
+import LibraryPanel from './LibraryPanel';
+import SettingsPanel from './SettingsPanel';
 
 const Dashboard: React.FC = () => {
+  const { userProfile, loading, error, refetchProfile } = useUserContext();
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const tabs = [
+    { id: 'overview', name: 'Overview', icon: BarChart3 },
+    { id: 'clip', name: 'Clip Content', icon: Scissors },
+    { id: 'generate', name: 'Generate Images', icon: Wand2 },
+    { id: 'post', name: 'Create Post', icon: Send },
+    { id: 'history', name: 'Post History', icon: History },
+    { id: 'library', name: 'Library', icon: FolderOpen },
+    { id: 'social', name: 'Social Accounts', icon: Users },
+    { id: 'analytics', name: 'Analytics', icon: BarChart3 },
+    { id: 'settings', name: 'Settings', icon: Settings },
+  ];
+
   return (
     <div className="min-h-screen bg-black">
+      <SidebarMenu activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Header */}
       <header className="bg-black/40 backdrop-blur-xl border-b border-purple-900/20 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -15,61 +48,101 @@ const Dashboard: React.FC = () => {
               Homehandshake
             </span>
           </div>
-
-          <UserButton
-            appearance={{
+          
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={refetchProfile}
+              disabled={loading}
+              className="p-2 text-gray-400 hover:text-purple-400 transition-colors duration-200 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <UserButton appearance={{
               elements: {
                 avatarBox: "h-10 w-10"
               }
-            }}
-          />
+            }} />
+          </div>
         </div>
       </header>
 
-      <main className="px-6 py-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">
-              Welcome to Your Dashboard
-            </h1>
-            <p className="text-gray-400">
-              Your content control center
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-3xl p-6 border border-purple-500/20">
-              <h3 className="text-xl font-semibold text-white mb-2">Content Clipping</h3>
-              <p className="text-gray-400 mb-4">
-                Create viral clips from your videos
-              </p>
-              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors">
-                Start Clipping
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-3xl p-6 border border-purple-500/20">
-              <h3 className="text-xl font-semibold text-white mb-2">Social Accounts</h3>
-              <p className="text-gray-400 mb-4">
-                Manage your connected platforms
-              </p>
-              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors">
-                Connect Accounts
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-3xl p-6 border border-purple-500/20">
-              <h3 className="text-xl font-semibold text-white mb-2">Analytics</h3>
-              <p className="text-gray-400 mb-4">
-                Track your content performance
-              </p>
-              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors">
-                View Analytics
-              </button>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Navigation Tabs */}
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 mb-8 overflow-x-auto backdrop-blur-xl scrollbar-hide">
+          <nav className="flex">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-shrink-0 px-4 py-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-500/50'
+                      : 'text-gray-400 hover:text-purple-300 hover:bg-purple-500/10'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{tab.name}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
-      </main>
+
+        {/* Content */}
+        {error && (
+          <div className="bg-red-900/20 border border-red-500/20 rounded-xl p-6 mb-8">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-6 w-6 text-red-400 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-red-300">Error Loading Profile</h3>
+                <p className="text-red-400 mt-1">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'overview' && (
+          <OverviewDashboard />
+        )}
+
+        {activeTab === 'social' && (
+          <SocialAccountsPanel />
+        )}
+
+        {activeTab === 'clip' && (
+          <VideoClippingPanel />
+        )}
+
+        {activeTab === 'generate' && (
+          <ImageGenerationPanel />
+        )}
+
+        {activeTab === 'post' && (
+          <PostingPanel />
+        )}
+
+        {activeTab === 'history' && (
+          <PostHistoryPanel />
+        )}
+
+        {activeTab === 'analytics' && (
+          <AdvancedAnalyticsPanel />
+        )}
+
+        {activeTab === 'library' && (
+          <LibraryPanel />
+        )}
+
+        {activeTab === 'profile' && (
+          <ProfileSettingsPanel />
+        )}
+
+        {activeTab === 'settings' && (
+          <SettingsPanel />
+        )}
+      </div>
     </div>
   );
 };
