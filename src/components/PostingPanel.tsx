@@ -958,16 +958,16 @@ const PostingPanel: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
         <div className="flex items-center space-x-3 mb-6">
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-2 rounded-xl">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-700 p-2 rounded-xl">
             <Send className="h-6 w-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Create & Publish Post</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Create & Publish Post</h2>
         </div>
 
         <div className="space-y-6">
           {/* Post Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-purple-200 mb-2">
               Post Content
             </label>
             <textarea
@@ -975,10 +975,10 @@ const PostingPanel: React.FC = () => {
               onChange={(e) => setPostContent(e.target.value)}
               placeholder="What's on your mind?"
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
+              className="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-xl text-white placeholder-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-colors resize-none"
             />
             <div className="flex justify-between items-center mt-1">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-purple-300">
                 {postContent.length} characters
               </div>
               {getCharacterLimitWarning()}
@@ -988,13 +988,13 @@ const PostingPanel: React.FC = () => {
           {/* Media URLs */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-purple-200">
                 Media URLs (Optional)
               </label>
               <button
                 type="button"
                 onClick={addMediaUrl}
-                className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1"
+                className="text-sm text-purple-400 hover:text-purple-300 flex items-center space-x-1"
               >
                 <Image className="h-4 w-4" />
                 <span>Add Media</span>
@@ -1004,13 +1004,13 @@ const PostingPanel: React.FC = () => {
               {mediaUrls.map((url, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <div className="relative flex-1">
-                    <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-400" />
                     <input
                       type="url"
                       value={url}
                       onChange={(e) => updateMediaUrl(index, e.target.value)}
                       placeholder="https://example.com/image.jpg or video.mp4"
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-colors"
                     />
                   </div>
                   {mediaUrls.length > 1 && (
@@ -1029,7 +1029,7 @@ const PostingPanel: React.FC = () => {
 
           {/* Platform Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-purple-200 mb-3">
               Select Platforms
             </label>
             {connectedPlatforms.length > 0 ? (
@@ -1063,8 +1063,8 @@ const PostingPanel: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8 bg-purple-900/10 rounded-xl border-2 border-dashed border-purple-500/30">
-                <Send className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No connected platforms found. Please connect your social accounts first.</p>
+                <Send className="h-12 w-12 text-purple-500/50 mx-auto mb-4" />
+                <p className="text-gray-400">No connected platforms found. Please connect your social accounts first.</p>
               </div>
             )}
           </div>
@@ -1075,7 +1075,7 @@ const PostingPanel: React.FC = () => {
               type="button"
               onClick={handleValidate}
               disabled={validating || !postContent.trim() || selectedPlatforms.length === 0}
-              className="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {validating ? (
                 <>
@@ -1094,7 +1094,7 @@ const PostingPanel: React.FC = () => {
               type="button"
               onClick={handlePublish}
               disabled={!canPublish}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {publishing ? (
                 <>
@@ -1115,15 +1115,15 @@ const PostingPanel: React.FC = () => {
       {/* Results */}
       {(error || validationResult || publishResult) && (
         <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">Results</h3>
+          <h3 className="text-xl font-semibold text-white mb-6">Results</h3>
           
           {/* Error */}
           {error && (
-            <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl mb-4">
-              <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <div className="flex items-center space-x-3 p-4 bg-red-900/20 border border-red-500/30 rounded-xl mb-4">
+              <AlertCircle className="h-6 w-6 text-red-400 flex-shrink-0" />
               <div>
-                <h4 className="font-semibold text-red-900">Error</h4>
-                <p className="text-red-700">{error}</p>
+                <h4 className="font-semibold text-red-300">Error</h4>
+                <p className="text-red-300">{error}</p>
               </div>
             </div>
           )}
@@ -1131,22 +1131,22 @@ const PostingPanel: React.FC = () => {
           {/* Validation Result */}
           {validationResult && (
             <div className={`flex items-center space-x-3 p-4 rounded-xl mb-4 ${
-              validationResult.status === 'success' 
-                ? 'bg-green-50 border border-green-200' 
-                : 'bg-red-50 border border-red-200'
+              validationResult.status === 'success'
+                ? 'bg-green-900/20 border border-green-500/30'
+                : 'bg-red-900/20 border border-red-500/30'
             }`}>
               {validationResult.status === 'success' ? (
-                <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                <CheckCircle className="h-6 w-6 text-green-400 flex-shrink-0" />
               ) : (
-                <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                <AlertCircle className="h-6 w-6 text-red-400 flex-shrink-0" />
               )}
               <div>
                 <h4 className={`font-semibold ${
-                  validationResult.status === 'success' ? 'text-green-900' : 'text-red-900'
+                  validationResult.status === 'success' ? 'text-green-300' : 'text-red-300'
                 }`}>
                   Validation {validationResult.status === 'success' ? 'Passed' : 'Failed'}
                 </h4>
-                <p className={validationResult.status === 'success' ? 'text-green-700' : 'text-red-700'}>
+                <p className={validationResult.status === 'success' ? 'text-green-300' : 'text-red-300'}>
                   {validationResult.message}
                 </p>
               </div>
@@ -1156,24 +1156,24 @@ const PostingPanel: React.FC = () => {
           {/* Publish Result */}
           {publishResult && (
             <div className={`p-4 rounded-xl ${
-              publishResult.status === 'success' 
-                ? 'bg-green-50 border border-green-200' 
-                : 'bg-red-50 border border-red-200'
+              publishResult.status === 'success'
+                ? 'bg-green-900/20 border border-green-500/30'
+                : 'bg-red-900/20 border border-red-500/30'
             }`}>
               <div className="flex items-center space-x-3 mb-4">
                 {publishResult.status === 'success' ? (
-                  <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                  <CheckCircle className="h-6 w-6 text-green-400 flex-shrink-0" />
                 ) : (
-                  <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                  <AlertCircle className="h-6 w-6 text-red-400 flex-shrink-0" />
                 )}
                 <div>
                   <h4 className={`font-semibold ${
-                    publishResult.status === 'success' ? 'text-green-900' : 'text-red-900'
+                    publishResult.status === 'success' ? 'text-green-300' : 'text-red-300'
                   }`}>
                     Post {publishResult.status === 'success' ? 'Published Successfully' : 'Failed to Publish'}
                   </h4>
                   {publishResult.id && (
-                    <p className={publishResult.status === 'success' ? 'text-green-700' : 'text-red-700'}>
+                    <p className={publishResult.status === 'success' ? 'text-green-300' : 'text-red-300'}>
                       Post ID: {publishResult.id}
                     </p>
                   )}
@@ -1183,24 +1183,24 @@ const PostingPanel: React.FC = () => {
               {/* Platform Results */}
               {publishResult.postIds && publishResult.postIds.length > 0 && (
                 <div className="space-y-3">
-                  <h5 className="font-medium text-gray-900">Platform Results:</h5>
+                  <h5 className="font-medium text-white">Platform Results:</h5>
                   <div className="grid gap-3">
                     {publishResult.postIds.map((result: any, index: number) => (
                       <div key={index} className={`p-3 rounded-lg border ${
-                        result.status === 'success' 
-                          ? 'bg-green-50 border-green-200' 
-                          : 'bg-red-50 border-red-200'
+                        result.status === 'success'
+                          ? 'bg-green-900/20 border-green-500/30'
+                          : 'bg-red-900/20 border-red-500/30'
                       }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             {result.status === 'success' ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <CheckCircle className="h-4 w-4 text-green-400" />
                             ) : (
-                              <AlertCircle className="h-4 w-4 text-red-600" />
+                              <AlertCircle className="h-4 w-4 text-red-400" />
                             )}
-                            <span className="font-medium capitalize">{result.platform}</span>
+                            <span className="font-medium capitalize text-white">{result.platform}</span>
                             {result.id && result.id !== 'pending' && (
-                              <span className="text-xs text-gray-500">ID: {result.id}</span>
+                              <span className="text-xs text-purple-300">ID: {result.id}</span>
                             )}
                             {result.id === 'pending' && (
                               <span className="text-xs text-yellow-600 flex items-center space-x-1">
@@ -1214,7 +1214,7 @@ const PostingPanel: React.FC = () => {
                               href={result.postUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center space-x-1"
+                              className="text-sm text-purple-400 hover:text-purple-300 flex items-center space-x-1"
                             >
                               <span>View Post</span>
                               <Link className="h-3 w-3" />
@@ -1222,7 +1222,7 @@ const PostingPanel: React.FC = () => {
                           )}
                         </div>
                         {result.message && (
-                          <p className="text-sm text-gray-600 mt-1">{result.message}</p>
+                          <p className="text-sm text-purple-200 mt-1">{result.message}</p>
                         )}
                       </div>
                     ))}
@@ -1233,15 +1233,15 @@ const PostingPanel: React.FC = () => {
               {/* Errors */}
               {publishResult.errors && publishResult.errors.length > 0 && (
                 <div className="space-y-3 mt-4">
-                  <h5 className="font-medium text-red-900">Errors:</h5>
+                  <h5 className="font-medium text-red-300">Errors:</h5>
                   <div className="space-y-2">
                     {publishResult.errors.map((error: any, index: number) => (
-                      <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div key={index} className="p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
                         <div className="flex items-center space-x-2 mb-1">
-                          <AlertCircle className="h-4 w-4 text-red-600" />
-                          <span className="font-medium text-red-900 capitalize">{error.platform}</span>
+                          <AlertCircle className="h-4 w-4 text-red-400" />
+                          <span className="font-medium text-red-300 capitalize">{error.platform}</span>
                         </div>
-                        <p className="text-sm text-red-700">{error.message}</p>
+                        <p className="text-sm text-red-300">{error.message}</p>
                       </div>
                     ))}
                   </div>
