@@ -8,6 +8,31 @@
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    background-color: #000000;
+  }
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0px);
+  }
+}
+
+@keyframes slideRightIn {
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateX(0px);
+  }
+}
+
+@keyframes testimonialIn {
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0px) scale(1);
   }
 }
 
@@ -15,12 +40,46 @@
   .font-inter {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
-  
+
   .text-shadow-lg {
     text-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
-  
+
   .backdrop-blur-xs {
     backdrop-filter: blur(2px);
   }
+
+  .animate-element {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(20px);
+    animation: fadeSlideIn 0.6s ease-out forwards;
+  }
+
+  .animate-slide-right {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateX(-20px);
+    animation: slideRightIn 0.8s ease-out forwards;
+  }
+
+  .animate-testimonial {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(20px) scale(0.95);
+    animation: testimonialIn 0.6s ease-out forwards;
+  }
+
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  .animate-delay-500 { animation-delay: 500ms; }
+  .animate-delay-600 { animation-delay: 600ms; }
+  .animate-delay-700 { animation-delay: 700ms; }
+  .animate-delay-800 { animation-delay: 800ms; }
+  .animate-delay-900 { animation-delay: 900ms; }
+  .animate-delay-1000 { animation-delay: 1000ms; }
+  .animate-delay-1200 { animation-delay: 1200ms; }
+  .animate-delay-1400 { animation-delay: 1400ms; }
 }

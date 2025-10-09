@@ -31,15 +31,15 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-black/40 backdrop-blur-xl border-b border-purple-900/20 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-2 rounded-xl">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
               <Scissors className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">
               Homehandshake
             </span>
           </div>
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
             <button 
               onClick={refetchProfile}
               disabled={loading}
-              className="p-2 text-gray-600 hover:text-indigo-600 transition-colors duration-200 disabled:opacity-50"
+              className="p-2 text-gray-400 hover:text-purple-400 transition-colors duration-200 disabled:opacity-50"
             >
               <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -63,18 +63,18 @@ const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg mb-8 overflow-hidden">
-          <nav className="flex">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 mb-8 overflow-hidden backdrop-blur-xl">
+          <nav className="flex overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 px-6 py-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+                  className={`flex-1 px-6 py-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 whitespace-nowrap ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-500/50'
+                      : 'text-gray-400 hover:text-purple-300 hover:bg-purple-500/10'
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -87,12 +87,12 @@ const Dashboard: React.FC = () => {
 
         {/* Content */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
+          <div className="bg-red-900/20 border border-red-500/20 rounded-xl p-6 mb-8">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+              <AlertCircle className="h-6 w-6 text-red-400 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-red-900">Error Loading Profile</h3>
-                <p className="text-red-700 mt-1">{error}</p>
+                <h3 className="font-semibold text-red-300">Error Loading Profile</h3>
+                <p className="text-red-400 mt-1">{error}</p>
               </div>
             </div>
           </div>
@@ -101,56 +101,56 @@ const Dashboard: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Profile Overview */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Overview</h2>
+            <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6">Account Overview</h2>
               
               {loading ? (
                 <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-4 bg-purple-900/20 rounded w-1/3"></div>
+                  <div className="h-4 bg-purple-900/20 rounded w-1/2"></div>
+                  <div className="h-4 bg-purple-900/20 rounded w-1/4"></div>
                 </div>
               ) : userProfile ? (
                 <div className="grid md:grid-cols-2 gap-8">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-4">Profile Information</h3>
+                    <h3 className="font-semibold text-purple-200 mb-4">Profile Information</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Email:</span>
-                        <span className="font-medium">{userProfile.email || 'N/A'}</span>
+                        <span className="text-gray-400">Email:</span>
+                        <span className="font-medium text-white">{userProfile.email || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Profile Type:</span>
-                        <span className="font-medium">{userProfile.title || 'User Profile'}</span>
+                        <span className="text-gray-400">Profile Type:</span>
+                        <span className="font-medium text-white">{userProfile.title || 'User Profile'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Monthly Posts:</span>
-                        <span className="font-medium">{userProfile.monthlyPostCount || 0}</span>
+                        <span className="text-gray-400">Monthly Posts:</span>
+                        <span className="font-medium text-white">{userProfile.monthlyPostCount || 0}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Monthly Quota:</span>
-                        <span className="font-medium">{userProfile.monthlyPostQuota || 'Unlimited'}</span>
+                        <span className="text-gray-400">Monthly Quota:</span>
+                        <span className="font-medium text-white">{userProfile.monthlyPostQuota || 'Unlimited'}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-4">Account Status</h3>
+                    <h3 className="font-semibold text-purple-200 mb-4">Account Status</h3>
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span className="text-gray-700">Account Active</span>
+                        <CheckCircle className="h-5 w-5 text-green-400" />
+                        <span className="text-gray-300">Account Active</span>
                       </div>
                       {userProfile.messagingEnabled && (
                         <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                          <span className="text-gray-700">Messaging Enabled</span>
+                          <CheckCircle className="h-5 w-5 text-green-400" />
+                          <span className="text-gray-300">Messaging Enabled</span>
                         </div>
                       )}
                       {userProfile.lastApiCall && (
                         <div className="flex items-center space-x-2">
-                          <Calendar className="h-5 w-5 text-gray-400" />
-                          <span className="text-gray-700">
+                          <Calendar className="h-5 w-5 text-purple-400" />
+                          <span className="text-gray-300">
                             Last API Call: {new Date(userProfile.lastApiCall).toLocaleDateString()}
                           </span>
                         </div>
@@ -163,41 +163,50 @@ const Dashboard: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-6 text-white">
-                <Scissors className="h-8 w-8 mb-4" />
-                <h3 className="font-semibold mb-2">Create New Clip</h3>
-                <p className="text-indigo-100 mb-4 text-sm">Start clipping your content for social media</p>
-                <button className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
-                  <Plus className="h-4 w-4" />
-                  <span>New Clip</span>
-                </button>
+              <div className="group relative bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-2xl p-6 text-white border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <Scissors className="h-8 w-8 mb-4 text-purple-300" />
+                  <h3 className="font-semibold mb-2 text-purple-200">Create New Clip</h3>
+                  <p className="text-gray-400 mb-4 text-sm">Start clipping your content for social media</p>
+                  <button className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20">
+                    <Plus className="h-4 w-4" />
+                    <span>New Clip</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-6 text-white">
-                <Users className="h-8 w-8 mb-4" />
-                <h3 className="font-semibold mb-2">Social Accounts</h3>
-                <p className="text-emerald-100 mb-4 text-sm">
-                  {userProfile?.activeSocialAccounts?.length || 0} platforms connected
-                </p>
-                <button
-                  onClick={() => setActiveTab('social')}
-                  className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Manage</span>
-                </button>
+              <div className="group relative bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-2xl p-6 text-white border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <Users className="h-8 w-8 mb-4 text-purple-300" />
+                  <h3 className="font-semibold mb-2 text-purple-200">Social Accounts</h3>
+                  <p className="text-gray-400 mb-4 text-sm">
+                    {userProfile?.activeSocialAccounts?.length || 0} platforms connected
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('social')}
+                    className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Manage</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
-                <Wand2 className="h-8 w-8 mb-4" />
-                <h3 className="font-semibold mb-2">Generate AI Images</h3>
-                <p className="text-purple-100 mb-4 text-sm">Create stunning images with AI assistance</p>
-                <button 
-                  onClick={() => setActiveTab('generate')}
-                  className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2">
-                  <Plus className="h-4 w-4" />
-                  <span>Generate</span>
-                </button>
+              <div className="group relative bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-2xl p-6 text-white border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <Wand2 className="h-8 w-8 mb-4 text-purple-300" />
+                  <h3 className="font-semibold mb-2 text-purple-200">Generate AI Images</h3>
+                  <p className="text-gray-400 mb-4 text-sm">Create stunning images with AI assistance</p>
+                  <button
+                    onClick={() => setActiveTab('generate')}
+                    className="w-full bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/20">
+                    <Plus className="h-4 w-4" />
+                    <span>Generate</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -228,12 +237,12 @@ const Dashboard: React.FC = () => {
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6">Settings</h2>
             <div className="text-center py-12">
-              <Settings className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Account Settings</h3>
-              <p className="text-gray-500">Manage your account preferences and settings.</p>
+              <Settings className="h-16 w-16 text-purple-500/50 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-purple-200 mb-2">Account Settings</h3>
+              <p className="text-gray-400">Manage your account preferences and settings.</p>
             </div>
           </div>
         )}

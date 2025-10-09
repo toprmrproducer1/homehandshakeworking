@@ -1,190 +1,277 @@
 import React from 'react';
 import { SignInButton, SignUpButton } from '@clerk/clerk-react';
-import { 
-  Scissors, 
-  Share2, 
-  Zap, 
-  Target, 
-  Users, 
-  BarChart3, 
+import { HeroSection } from './ui/hero-odyssey';
+import { motion } from 'framer-motion';
+import {
+  Scissors,
+  Share2,
+  Zap,
+  Target,
+  Users,
+  BarChart3,
   ArrowRight,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  TrendingUp,
+  Layers,
+  Globe
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="relative z-10 px-6 py-6">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-2 rounded-xl">
-              <Scissors className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Homehandshake
-            </span>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <SignInButton mode="modal">
-              <button className="px-6 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200">
-                Sign In
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                Get Started
-              </button>
-            </SignUpButton>
-          </div>
-        </nav>
-      </header>
+    <div className="min-h-screen bg-black text-white">
+      <HeroSection />
 
-      {/* Hero Section */}
-      <main className="px-6 pt-12 pb-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-indigo-100 rounded-full text-indigo-700 text-sm font-medium mb-6">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Transform your content workflow
+      <main className="relative z-10">
+        <section className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/20 to-black">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">
+                💡 The Problem
+              </h2>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                You pour hours into content… editing, clipping, resizing, re-uploading — one platform at a time.
+              </p>
+              <p className="text-xl text-gray-400 mt-4 max-w-3xl mx-auto">
+                By the time you're done, the algorithm's already moved on. Your content's dead before it's even posted.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-center mb-20"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-200 bg-clip-text text-transparent">
+                🚀 The Solution
+              </h2>
+              <p className="text-2xl text-purple-200 mb-4">
+                Meet Homehandshake — your AI-powered content ops partner.
+              </p>
+              <p className="text-lg text-gray-400 max-w-3xl mx-auto">
+                Built for creators, editors, and media teams who want to dominate the feed without losing their minds (or weekends).
+              </p>
+            </motion.div>
+
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
+            >
+              <motion.div variants={itemVariants} className="group relative bg-gradient-to-br from-purple-900/20 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
+                    <Scissors className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-purple-200">🧠 Smart Content Clipping</h3>
+                  <p className="text-gray-400 leading-relaxed mb-4">
+                    AI scans your videos, finds the "stop scroll" moments, and turns them into platform-perfect clips.
+                  </p>
+                  <ul className="space-y-2 text-sm text-purple-300">
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> Auto captions</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> Auto resizing</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> Emotion-based hook detection</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> Batch export for 30+ clips in seconds</li>
+                  </ul>
+                  <p className="text-purple-400 mt-4 font-medium">You talk. We find the gold.</p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="group relative bg-gradient-to-br from-purple-900/20 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
+                    <Globe className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-purple-200">🌍 Multi-Platform Sharing</h3>
+                  <p className="text-gray-400 leading-relaxed mb-4">
+                    Post once. Appear everywhere. Homehandshake auto-optimizes your clips for:
+                  </p>
+                  <ul className="space-y-2 text-sm text-purple-300">
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> TikTok</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> Instagram</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> YouTube Shorts</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> Facebook Reels</li>
+                    <li className="flex items-center"><CheckCircle className="h-4 w-4 mr-2" /> LinkedIn</li>
+                  </ul>
+                  <p className="text-purple-400 mt-4 font-medium">One upload → 15+ optimized posts → Zero extra work.</p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="group relative bg-gradient-to-br from-purple-900/20 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-purple-200">⚡ Lightning-Fast Processing</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    From long-form to viral short in seconds. No exporting. No waiting. No editors ghosting you.
+                    AI handles clipping, formatting, and scheduling — while you focus on creating.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="group relative bg-gradient-to-br from-purple-900/20 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
+                    <Target className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-purple-200">🎯 Targeted Distribution</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Your content doesn't just go everywhere — it goes where it matters.
+                    Homehandshake personalizes delivery per platform, audience, and engagement type.
+                  </p>
+                  <p className="text-purple-400 mt-4 font-medium">Smarter targeting. More reach. Higher ROI.</p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="group relative bg-gradient-to-br from-purple-900/20 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-purple-200">🤝 Team Collaboration Made Easy</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    Bring your team into the loop. Plan, review, approve, and schedule — all in one sleek dashboard.
+                    Built for solo creators, agencies, and production studios who run on efficiency.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants} className="group relative bg-gradient-to-br from-purple-900/20 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-4 text-purple-200">📊 Analytics & Insights</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    See what hits and what flops — instantly. Track views, engagement rates, and conversion metrics across all platforms in one unified dashboard.
+                  </p>
+                  <p className="text-purple-400 mt-4 font-medium">No more guessing. Just data-driven growth.</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/10 to-black">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-200 bg-clip-text text-transparent">
+                🌈 Built by AI. Powered by You.
+              </h2>
+              <div className="grid md:grid-cols-2 gap-6 text-left mb-12">
+                <div className="bg-gradient-to-br from-purple-900/20 to-black p-6 rounded-xl border border-purple-500/20">
+                  <p className="text-purple-300 mb-2">💬 GPT-4.1 for smart content writing</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-900/20 to-black p-6 rounded-xl border border-purple-500/20">
+                  <p className="text-purple-300 mb-2">🎥 DALL·E & Veo for visuals & videos</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-900/20 to-black p-6 rounded-xl border border-purple-500/20">
+                  <p className="text-purple-300 mb-2">📅 Cross-platform posting</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-900/20 to-black p-6 rounded-xl border border-purple-500/20">
+                  <p className="text-purple-300 mb-2">📈 Real-time analytics</p>
+                </div>
+              </div>
+              <p className="text-xl text-gray-300 mb-8">
+                Everything automated. Everything customizable. Your brand, your content — amplified by AI.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="px-6 py-20">
+          <div className="max-w-5xl mx-auto">
+            <div className="relative bg-gradient-to-r from-purple-900 via-purple-800 to-purple-900 rounded-3xl p-12 text-center overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(168,85,247,0.3)_0%,_transparent_50%)]"></div>
+              <div className="relative z-10">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+                  🏁 Ready to Transform Your Workflow?
+                </h2>
+                <p className="text-xl mb-8 text-purple-100">
+                  Join 50,000+ creators who clip smarter, create faster, and grow bigger.
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-6 mb-8 text-purple-100">
+                  <div className="flex items-center">
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Free 14-day trial
+                  </div>
+                  <div className="flex items-center">
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    No credit card required
+                  </div>
+                  <div className="flex items-center">
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Cancel anytime
+                  </div>
+                </div>
+
+                <SignUpButton mode="modal">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="group px-8 py-4 bg-white text-purple-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl inline-flex items-center"
+                  >
+                    🔥 Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                  </motion.button>
+                </SignUpButton>
+              </div>
             </div>
-            
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Clip, Create, and
-              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent block">
-                Share Everywhere
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-              The ultimate platform for content creators to clip engaging content and distribute it across all social media platforms with Homehandshake's precision and ease.
+          </div>
+        </section>
+
+        <footer className="px-6 py-12 border-t border-purple-900/20">
+          <div className="max-w-7xl mx-auto text-center">
+            <p className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-transparent">
+              🖤 Built for Creators. Powered by AI.
             </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <SignUpButton mode="modal">
-                <button className="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center">
-                  Start Clipping Now
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
-                </button>
-              </SignUpButton>
-              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-indigo-300 hover:text-indigo-600 transition-all duration-200 hover:bg-indigo-50">
-                Watch Demo
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-indigo-600 mb-2">50K+</div>
-                <div className="text-gray-600">Content Creators</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-indigo-600 mb-2">1M+</div>
-                <div className="text-gray-600">Posts Shared</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-indigo-600 mb-2">15+</div>
-                <div className="text-gray-600">Platforms</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-            <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-indigo-200 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
-                <Scissors className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Smart Content Clipping</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Effortlessly extract the most engaging moments from your content with AI-powered clipping tools.
-              </p>
-            </div>
-
-            <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-emerald-200 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
-                <Share2 className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Multi-Platform Sharing</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Post to all your social media accounts simultaneously with platform-optimized formatting.
-              </p>
-            </div>
-
-            <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-orange-200 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Lightning Fast</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Process and distribute your content in seconds, not hours. Maximize your reach in minimal time.
-              </p>
-            </div>
-
-            <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
-                <Target className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Targeted Distribution</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Customize content for each platform to maximize engagement and reach your target audience.
-              </p>
-            </div>
-
-            <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-pink-200 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
-                <Users className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Team Collaboration</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Work together with your team to create, review, and schedule content across all platforms.
-              </p>
-            </div>
-
-            <div className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-violet-200 transform hover:-translate-y-1">
-              <div className="bg-gradient-to-r from-violet-500 to-purple-500 p-3 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform duration-200">
-                <BarChart3 className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Analytics & Insights</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Track performance across platforms and optimize your content strategy with detailed analytics.
-              </p>
-            </div>
-          </div>
-
-          {/* CTA Section */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-12 text-center text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Transform Your Content?
-            </h2>
-            <p className="text-xl mb-8 text-indigo-100">
-              Join thousands of creators who are already maximizing their reach with Homehandshake.
+            <p className="text-gray-400">
+              Homehandshake — because great content deserves to go everywhere.
             </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <div className="flex items-center text-indigo-100">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                Free 14-day trial
-              </div>
-              <div className="flex items-center text-indigo-100">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                No credit card required
-              </div>
-              <div className="flex items-center text-indigo-100">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                Cancel anytime
-              </div>
-            </div>
-            
-            <SignUpButton mode="modal">
-              <button className="px-8 py-4 bg-white text-indigo-600 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                Start Your Free Trial
-              </button>
-            </SignUpButton>
           </div>
-        </div>
+        </footer>
       </main>
     </div>
   );
