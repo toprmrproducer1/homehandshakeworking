@@ -13,9 +13,11 @@
     "@clerk/clerk-react": "^5.46.1",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+    "@radix-ui/react-slot": "^1.2.3",
     "@supabase/supabase-js": "^2.58.0",
     "@types/jsonwebtoken": "^9.0.10",
     "buffer": "^6.0.3",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.22",
     "jsonwebtoken": "^9.0.2",
@@ -25,6 +27,7 @@
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.8.2",
+    "recharts": "^3.2.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon } from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { BentoGrid } from './ui/bento-grid';
+import SidebarMenu from './SidebarMenu';
 import SocialAccountsPanel from './SocialAccountsPanel';
 import ConnectSocialsButton from './ConnectSocialsButton';
 import VideoClippingPanel from './VideoClippingPanel';
 import ImageGenerationPanel from './ImageGenerationPanel';
 import AnalyticsPanel from './AnalyticsPanel';
+import AdvancedAnalyticsPanel from './AdvancedAnalyticsPanel';
 import PostingPanel from './PostingPanel';
 import PostHistoryPanel from './PostHistoryPanel';
+import ProfileSettingsPanel from './ProfileSettingsPanel';
 import AccountActivation from './AccountActivation';
 
 const Dashboard: React.FC = () => {
@@ -33,12 +36,14 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black">
+      <SidebarMenu activeTab={activeTab} onTabChange={setActiveTab} />
+
       {/* Header */}
       <header className="bg-black/40 backdrop-blur-xl border-b border-purple-900/20 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
-              <Scissors className="h-6 w-6 text-white" />
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">
               Homehandshake
@@ -244,7 +249,11 @@ const Dashboard: React.FC = () => {
         )}
 
         {activeTab === 'analytics' && (
-          <AnalyticsPanel />
+          <AdvancedAnalyticsPanel />
+        )}
+
+        {activeTab === 'profile' && (
+          <ProfileSettingsPanel />
         )}
 
         {activeTab === 'settings' && (

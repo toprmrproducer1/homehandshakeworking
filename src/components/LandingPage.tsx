@@ -3,6 +3,7 @@ import { SignInButton, SignUpButton } from '@clerk/clerk-react';
 import { HeroSection } from './ui/hero-odyssey';
 import { motion } from 'framer-motion';
 import { TestimonialsColumn } from './ui/testimonials-columns';
+import { PricingWithChart } from './ui/pricing-with-chart';
 import {
   Scissors,
   Share2,
@@ -306,6 +307,10 @@ const LandingPage: React.FC = () => {
               </p>
             </motion.div>
           </div>
+        </section>
+
+        <section className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/10 to-black">
+          <PricingWithChart />
         </section>
 
         <section className="px-6 py-20">
