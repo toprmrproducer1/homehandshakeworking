@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles } from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { BentoGrid } from './ui/bento-grid';
 import SidebarMenu from './SidebarMenu';
@@ -15,6 +15,7 @@ import PostHistoryPanel from './PostHistoryPanel';
 import ProfileSettingsPanel from './ProfileSettingsPanel';
 import AccountActivation from './AccountActivation';
 import OverviewDashboard from './OverviewDashboard';
+import LibraryPanel from './LibraryPanel';
 
 const Dashboard: React.FC = () => {
   const { userProfile, loading, error, refetchProfile, isAccountActive } = useUserContext();
@@ -30,6 +31,7 @@ const Dashboard: React.FC = () => {
     { id: 'generate', name: 'Generate Images', icon: Wand2 },
     { id: 'post', name: 'Create Post', icon: Send },
     { id: 'history', name: 'Post History', icon: History },
+    { id: 'library', name: 'Library', icon: FolderOpen },
     { id: 'social', name: 'Social Accounts', icon: Users },
     { id: 'analytics', name: 'Analytics', icon: BarChart3 },
     { id: 'settings', name: 'Settings', icon: Settings },
@@ -131,6 +133,10 @@ const Dashboard: React.FC = () => {
 
         {activeTab === 'analytics' && (
           <AdvancedAnalyticsPanel />
+        )}
+
+        {activeTab === 'library' && (
+          <LibraryPanel />
         )}
 
         {activeTab === 'profile' && (

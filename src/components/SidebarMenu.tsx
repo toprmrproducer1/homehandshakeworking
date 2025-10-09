@@ -9,7 +9,8 @@ import {
   BarChart3,
   Settings,
   X,
-  Sparkles
+  Sparkles,
+  FolderOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,13 +39,14 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ activeTab, onTabChange }) => 
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'clipping', label: 'Clip Content', icon: Scissors },
+    { id: 'clip', label: 'Clip Content', icon: Scissors },
     { id: 'generate', label: 'Generate Images', icon: ImageIcon },
-    { id: 'posting', label: 'Create Post', icon: Send },
+    { id: 'post', label: 'Create Post', icon: Send },
     { id: 'history', label: 'Post History', icon: History },
+    { id: 'library', label: 'Library', icon: FolderOpen },
     { id: 'social', label: 'Social Accounts', icon: Users },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'profile', label: 'Profile Settings', icon: Settings },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (

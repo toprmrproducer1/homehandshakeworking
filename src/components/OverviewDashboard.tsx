@@ -25,6 +25,33 @@ const OverviewDashboard: React.FC = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('1 Day');
   const [activePromotionPlatform, setActivePromotionPlatform] = useState('instagram');
   const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(new Date());
+
+  useEffect(() => {
+    if (profileKey && userProfile?.displayNames) {
+      loadAnalytics();
+    }
+  }, [profileKey, userProfile]);
+
+  const loadAnalytics = async () => {
+    if (!profileKey || !userProfile?.displayNames) return;
+
+    try {
+      setLoading(true);
+      const platforms = userProfile.displayNames.map((account: any) => {
+        const platform = account.platform.toLowerCase();
+        if (platform === 'x/twitter' || platform === 'x') return 'twitter';
+        return platform;
+      });
+
+      const data = await fetchSocialAnalytics(profileKey, platforms);
+      setAnalytics(data);
+    } catch (err) {
+      console.error('Error loading analytics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getPlatformIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -87,7 +114,18 @@ const OverviewDashboard: React.FC = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     await refetchProfile();
+    await loadAnalytics();
+    setLastRefreshTime(new Date());
     setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const getTimeSinceRefresh = () => {
+    const seconds = Math.floor((new Date().getTime() - lastRefreshTime.getTime()) / 1000);
+    if (seconds < 60) return `${seconds} sec ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours} hr ago`;
   };
 
   const getConnectedAccounts = () => {
@@ -124,11 +162,12 @@ const OverviewDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-purple-200">Connected accounts</h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Refreshed 20 sec ago</span>
+              <span className="text-xs text-gray-400">Refreshed {getTimeSinceRefresh()}</span>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="p-1.5 hover:bg-purple-500/10 rounded-lg transition-colors"
+                title="Click to refresh connected accounts"
               >
                 <RefreshCw className={`h-4 w-4 text-purple-400 ${refreshing ? 'animate-spin' : ''}`} />
               </button>
@@ -136,7 +175,7 @@ const OverviewDashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            {profileLoading ? (
+            {profileLoading || loading ? (
               [...Array(3)].map((_, i) => (
                 <div key={i} className="bg-purple-900/10 rounded-xl p-4 animate-pulse">
                   <div className="h-8 w-8 bg-purple-500/20 rounded mb-2"></div>
@@ -146,10 +185,13 @@ const OverviewDashboard: React.FC = () => {
               ))
             ) : getConnectedAccounts().length > 0 ? (
               getConnectedAccounts().slice(0, 3).map((account: any, index: number) => {
+                const platformId = account.platform.toLowerCase() === 'x/twitter' || account.platform.toLowerCase() === 'x' ? 'twitter' : account.platform.toLowerCase();
+                const platformAnalytics = analytics?.[platformId]?.analytics || {};
+
                 const metrics = {
-                  subscribers: account.followersCount || Math.floor(Math.random() * 10000),
-                  comments: Math.floor(Math.random() * 5000),
-                  likes: Math.floor(Math.random() * 2000000)
+                  subscribers: platformAnalytics.followersCount || platformAnalytics.subscriberCount || 0,
+                  comments: platformAnalytics.commentsCount || platformAnalytics.comments || 0,
+                  likes: platformAnalytics.likesCount || platformAnalytics.likeCount || platformAnalytics.likes || 0
                 };
 
                 return (
@@ -165,7 +207,9 @@ const OverviewDashboard: React.FC = () => {
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-400">Subscribers</span>
+                        <span className="text-xs text-gray-400">
+                          {account.platform.toLowerCase() === 'youtube' ? 'Subscribers' : 'Followers'}
+                        </span>
                         <span className="text-sm font-bold text-white">{formatNumber(metrics.subscribers)}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
