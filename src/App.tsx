@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import LandingPage from './components/LandingPage';
@@ -9,6 +9,7 @@ import { UserProvider } from './contexts/UserContext';
 
 function App() {
   const { isSignedIn, user, isLoaded } = useUser();
+  const [initializing, setInitializing] = useState(true);
 
   // Monitor user metadata changes
   useEffect(() => {
@@ -17,13 +18,28 @@ function App() {
     }
   }, [isLoaded, isSignedIn, user?.publicMetadata]);
 
+  // Wait for Clerk to fully initialize before making routing decisions
+  useEffect(() => {
+    if (isLoaded) {
+      // Add a small delay to ensure metadata is fully loaded
+      const timer = setTimeout(() => {
+        setInitializing(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoaded]);
+
   // Show loading while Clerk initializes or user data is loading
-  if (!isLoaded || isSignedIn === undefined || isSignedIn === null) {
+  if (!isLoaded || initializing || isSignedIn === undefined || isSignedIn === null) {
+    console.log('🔄 Loading state:', { isLoaded, initializing, isSignedIn });
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading Homehandshake...</p>
+          <p className="text-gray-600 text-sm mt-2">
+            {!isLoaded ? 'Initializing...' : initializing ? 'Loading user data...' : 'Preparing...'}
+          </p>
         </div>
       </div>
     );
