@@ -173,7 +173,8 @@ const Dashboard: React.FC = () => {
                   status: "Ready",
                   tags: ["AI", "Video"],
                   cta: "Start Clipping →",
-                  colSpan: 1
+                  colSpan: 1,
+                  onClick: () => setActiveTab('clipping')
                 },
                 {
                   title: "Generate Images",
@@ -182,7 +183,8 @@ const Dashboard: React.FC = () => {
                   status: "Active",
                   tags: ["AI", "Images"],
                   cta: "Generate Now →",
-                  colSpan: 1
+                  colSpan: 1,
+                  onClick: () => setActiveTab('generate')
                 },
                 {
                   title: "Post to Socials",
@@ -192,7 +194,8 @@ const Dashboard: React.FC = () => {
                   tags: ["Multi-platform"],
                   meta: `${userProfile?.activeSocialAccounts?.length || 0} connected`,
                   cta: "Create Post →",
-                  colSpan: 1
+                  colSpan: 1,
+                  onClick: () => setActiveTab('posting')
                 },
                 {
                   title: "Analytics Dashboard",
@@ -201,7 +204,8 @@ const Dashboard: React.FC = () => {
                   status: "Updated",
                   tags: ["Insights", "Data"],
                   cta: "View Analytics →",
-                  colSpan: 2
+                  colSpan: 2,
+                  onClick: () => setActiveTab('analytics')
                 },
                 {
                   title: "Post History",
@@ -211,7 +215,8 @@ const Dashboard: React.FC = () => {
                   tags: ["Archive"],
                   meta: `${userProfile?.monthlyPostCount || 0} posts`,
                   cta: "View History →",
-                  colSpan: 1
+                  colSpan: 1,
+                  onClick: () => setActiveTab('history')
                 }
               ]} />
             </div>

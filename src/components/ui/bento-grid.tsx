@@ -10,6 +10,7 @@ export interface BentoItem {
     cta?: string;
     colSpan?: number;
     hasPersistentHover?: boolean;
+    onClick?: () => void;
 }
 
 interface BentoGridProps {
@@ -20,10 +21,11 @@ function BentoGrid({ items }: BentoGridProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 max-w-7xl mx-auto">
             {items.map((item, index) => (
-                <div
+                <button
                     key={index}
+                    onClick={item.onClick}
                     className={cn(
-                        "group relative p-4 rounded-xl overflow-hidden transition-all duration-300",
+                        "group relative p-4 rounded-xl overflow-hidden transition-all duration-300 text-left",
                         "border border-purple-500/20 bg-gradient-to-br from-purple-900/20 to-black backdrop-blur-xl",
                         "hover:shadow-[0_2px_12px_rgba(168,85,247,0.2)]",
                         "hover:-translate-y-0.5 will-change-transform",
@@ -97,7 +99,7 @@ function BentoGrid({ items }: BentoGridProps) {
                                 : "opacity-0 group-hover:opacity-100"
                         } transition-opacity duration-300`}
                     />
-                </div>
+                </button>
             ))}
         </div>
     );
