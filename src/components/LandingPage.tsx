@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useClerk } from '@clerk/clerk-react';
 import { HeroSection } from './ui/hero-odyssey';
 import { motion } from 'framer-motion';
 import { TestimonialsColumn } from './ui/testimonials-columns';
@@ -21,6 +22,14 @@ import {
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { openSignIn } = useClerk();
+
+  const handleGetStarted = () => {
+    openSignIn({
+      afterSignInUrl: '/',
+      afterSignUpUrl: '/',
+    });
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -343,7 +352,7 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 <motion.button
-                  onClick={() => navigate('/sign-in')}
+                  onClick={handleGetStarted}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="group px-8 py-4 bg-white text-purple-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 shadow-xl hover:shadow-2xl inline-flex items-center"

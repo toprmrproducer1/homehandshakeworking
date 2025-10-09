@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useClerk } from '@clerk/clerk-react';
 
 interface LightningProps {
   hue?: number;
@@ -203,7 +204,15 @@ const Lightning: React.FC<LightningProps> = ({
 
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
+  const { openSignIn } = useClerk();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleGetStarted = () => {
+    openSignIn({
+      afterSignInUrl: '/',
+      afterSignUpUrl: '/',
+    });
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -250,15 +259,15 @@ export const HeroSection: React.FC = () => {
               </svg>
             </div>
             <div className="hidden md:flex items-center space-x-6 ml-8">
-              <button onClick={() => navigate('/sign-in')} className="px-4 py-2 bg-purple-600/50 hover:bg-purple-600/70 rounded-full text-sm transition-colors">Start Free Trial</button>
+              <button onClick={handleGetStarted} className="px-4 py-2 bg-purple-600/50 hover:bg-purple-600/70 rounded-full text-sm transition-colors">Start Free Trial</button>
               <button className="px-4 py-2 text-sm hover:text-purple-300 transition-colors">Features</button>
               <button className="px-4 py-2 text-sm hover:text-purple-300 transition-colors">Pricing</button>
               <button className="px-4 py-2 text-sm hover:text-purple-300 transition-colors">Contact</button>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <button onClick={() => navigate('/sign-in')} className="hidden md:block px-4 py-2 text-sm hover:text-purple-300 transition-colors">Sign In</button>
-            <button onClick={() => navigate('/sign-in')} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full text-sm hover:from-purple-700 hover:to-purple-900 transition-colors shadow-lg shadow-purple-500/50">Get Started</button>
+            <button onClick={handleGetStarted} className="hidden md:block px-4 py-2 text-sm hover:text-purple-300 transition-colors">Sign In</button>
+            <button onClick={handleGetStarted} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full text-sm hover:from-purple-700 hover:to-purple-900 transition-colors shadow-lg shadow-purple-500/50">Get Started</button>
             <button
               className="md:hidden p-2 rounded-md focus:outline-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -291,12 +300,12 @@ export const HeroSection: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <button onClick={() => navigate('/sign-in')} className="px-6 py-3 bg-purple-600/50 rounded-full">Start Free Trial</button>
+              <button onClick={handleGetStarted} className="px-6 py-3 bg-purple-600/50 rounded-full">Start Free Trial</button>
               <button className="px-6 py-3">Features</button>
               <button className="px-6 py-3">Pricing</button>
               <button className="px-6 py-3">Contact</button>
-              <button onClick={() => navigate('/sign-in')} className="px-6 py-3">Sign In</button>
-              <button onClick={() => navigate('/sign-in')} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full">Get Started</button>
+              <button onClick={handleGetStarted} className="px-6 py-3">Sign In</button>
+              <button onClick={handleGetStarted} className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full">Get Started</button>
               
             </div>
           </motion.div>
@@ -309,7 +318,7 @@ export const HeroSection: React.FC = () => {
           className="relative z-30 flex flex-col items-center text-center max-w-4xl mx-auto pt-20"
         >
           <motion.button
-            onClick={() => navigate('/sign-in')}
+            onClick={handleGetStarted}
             variants={itemVariants}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -350,7 +359,7 @@ export const HeroSection: React.FC = () => {
           </motion.p>
 
           <motion.button
-            onClick={() => navigate('/sign-in')}
+            onClick={handleGetStarted}
             variants={itemVariants}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
