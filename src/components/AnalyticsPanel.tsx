@@ -26,9 +26,7 @@ const AnalyticsPanel: React.FC = () => {
     { id: 'facebook', name: 'Facebook', color: 'from-blue-500 to-blue-600' },
     { id: 'instagram', name: 'Instagram', color: 'from-pink-500 to-purple-600' },
     { id: 'twitter', name: 'X/Twitter', color: 'from-sky-500 to-sky-600' },
-    { id: 'x', name: 'X/Twitter', color: 'from-sky-500 to-sky-600' },
     { id: 'youtube', name: 'YouTube', color: 'from-red-500 to-red-600' },
-    { id: 'tiktok', name: 'TikTok', color: 'from-gray-800 to-black' },
     { id: 'tiktok', name: 'TikTok', color: 'from-gray-800 to-black' },
   ];
 

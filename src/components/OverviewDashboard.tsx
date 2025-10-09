@@ -23,7 +23,6 @@ const OverviewDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] = useState('1 Day');
-  const [activePromotionPlatform, setActivePromotionPlatform] = useState('instagram');
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date());
 
@@ -86,30 +85,6 @@ const OverviewDashboard: React.FC = () => {
     { day: '22', instagram: 14000, youtube: 11500, twitter: 9800 },
   ];
 
-  const activePromotionData = [
-    { day: '02', followers: 30000 },
-    { day: '13', followers: 48000 },
-    { day: '14', followers: 35000 },
-    { day: '15', followers: 28000 },
-    { day: '16', followers: 32000 },
-    { day: '17', followers: 40000 },
-    { day: '18', followers: 38000 },
-    { day: '19', followers: 35000 },
-    { day: '20', followers: 42000 },
-    { day: '21', followers: 50000 },
-    { day: '22', followers: 45000 },
-  ];
-
-  const activityHeatmap = Array.from({ length: 7 }, (_, dayIndex) =>
-    Array.from({ length: 24 }, (_, hourIndex) => {
-      const value = Math.random();
-      return {
-        day: dayIndex,
-        hour: hourIndex,
-        intensity: value < 0.3 ? 'low' : value < 0.6 ? 'medium' : value < 0.8 ? 'high' : 'highest'
-      };
-    })
-  ).flat();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -176,7 +151,7 @@ const OverviewDashboard: React.FC = () => {
 
           <div className="grid grid-cols-3 gap-4">
             {profileLoading || loading ? (
-              [...Array(3)].map((_, i) => (
+              [...Array(4)].map((_, i) => (
                 <div key={i} className="bg-purple-900/10 rounded-xl p-4 animate-pulse">
                   <div className="h-8 w-8 bg-purple-500/20 rounded mb-2"></div>
                   <div className="h-4 bg-purple-500/20 rounded mb-2"></div>
@@ -184,7 +159,7 @@ const OverviewDashboard: React.FC = () => {
                 </div>
               ))
             ) : getConnectedAccounts().length > 0 ? (
-              getConnectedAccounts().slice(0, 3).map((account: any, index: number) => {
+              getConnectedAccounts().map((account: any, index: number) => {
                 const platformId = account.platform.toLowerCase() === 'x/twitter' || account.platform.toLowerCase() === 'x' ? 'twitter' : account.platform.toLowerCase();
                 const platformAnalytics = analytics?.[platformId]?.analytics || {};
 
@@ -234,56 +209,61 @@ const OverviewDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Active Promotion Section */}
+        {/* Quick Stats Section */}
         <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-purple-200">Active Promotion</h2>
-            <select
-              value={activePromotionPlatform}
-              onChange={(e) => setActivePromotionPlatform(e.target.value)}
-              className="px-3 py-1.5 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-purple-400"
-            >
-              <option value="instagram">Instagram</option>
-              <option value="youtube">Youtube</option>
-              <option value="twitter">Twitter</option>
-            </select>
+            <h2 className="text-lg font-semibold text-purple-200">Quick Stats</h2>
           </div>
 
-          <div className="mb-4">
-            <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={activePromotionData}>
-                <Bar dataKey="followers" fill="url(#colorGradient)" radius={[4, 4, 0, 0]} />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#6d28d9" stopOpacity={0.8} />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <TrendingUp className="h-4 w-4 text-purple-400" />
-                <span className="text-2xl font-bold text-white">35,543</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="h-5 w-5 text-purple-400" />
+                <span className="text-xs text-gray-400">Total Followers</span>
               </div>
-              <div className="text-xs text-gray-400">Followers</div>
-              <div className="text-xs text-green-400">+1800 in last 2 hr</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white mb-1">₹5,000</div>
-              <div className="text-xs text-gray-400">Spending</div>
-              <div className="text-xs text-orange-400">3 days left</div>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Eye className="h-4 w-4 text-purple-400" />
-                <span className="text-2xl font-bold text-white">1.5L</span>
+              <div className="text-2xl font-bold text-white">
+                {formatNumber(getConnectedAccounts().reduce((sum: number, acc: any) => {
+                  const platformId = acc.platform.toLowerCase() === 'x/twitter' || acc.platform.toLowerCase() === 'x' ? 'twitter' : acc.platform.toLowerCase();
+                  const platformAnalytics = analytics?.[platformId]?.analytics || {};
+                  return sum + (platformAnalytics.followersCount || platformAnalytics.subscriberCount || 0);
+                }, 0))}
               </div>
-              <div className="text-xs text-gray-400">Reach</div>
-              <div className="text-xs text-gray-400">account reached</div>
+            </div>
+            <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="h-5 w-5 text-pink-400" />
+                <span className="text-xs text-gray-400">Total Likes</span>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {formatNumber(getConnectedAccounts().reduce((sum: number, acc: any) => {
+                  const platformId = acc.platform.toLowerCase() === 'x/twitter' || acc.platform.toLowerCase() === 'x' ? 'twitter' : acc.platform.toLowerCase();
+                  const platformAnalytics = analytics?.[platformId]?.analytics || {};
+                  return sum + (platformAnalytics.likesCount || platformAnalytics.likeCount || platformAnalytics.likes || 0);
+                }, 0))}
+              </div>
+            </div>
+            <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle className="h-5 w-5 text-blue-400" />
+                <span className="text-xs text-gray-400">Total Comments</span>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {formatNumber(getConnectedAccounts().reduce((sum: number, acc: any) => {
+                  const platformId = acc.platform.toLowerCase() === 'x/twitter' || acc.platform.toLowerCase() === 'x' ? 'twitter' : acc.platform.toLowerCase();
+                  const platformAnalytics = analytics?.[platformId]?.analytics || {};
+                  return sum + (platformAnalytics.commentsCount || platformAnalytics.comments || 0);
+                }, 0))}
+              </div>
+            </div>
+            <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-5 w-5 text-green-400" />
+                <span className="text-xs text-gray-400">Platforms</span>
+              </div>
+              <div className="text-2xl font-bold text-white">
+                {getConnectedAccounts().length}
+              </div>
+              <div className="text-xs text-gray-400">Connected</div>
             </div>
           </div>
         </div>
@@ -342,61 +322,6 @@ const OverviewDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Most Active Time Heatmap */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-purple-200">Most active Time</h2>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3">
-              <button className="text-sm text-blue-400">Instagram</button>
-              <button className="text-sm text-gray-500">Youtube</button>
-              <button className="text-sm text-gray-500">Twitter</button>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <span>Refreshed 20 sec ago</span>
-              <button
-                onClick={handleRefresh}
-                className="p-1 hover:bg-purple-500/10 rounded transition-colors"
-              >
-                <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-24 gap-1">
-          {activityHeatmap.map((cell, index) => (
-            <div
-              key={index}
-              className={`aspect-square rounded ${
-                cell.intensity === 'highest' ? 'bg-blue-500' :
-                cell.intensity === 'high' ? 'bg-blue-600' :
-                cell.intensity === 'medium' ? 'bg-blue-800' :
-                'bg-purple-900/20'
-              }`}
-            />
-          ))}
-        </div>
-
-        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-purple-500/20">
-          <div>
-            <div className="text-xs text-gray-400 mb-1">Most active time</div>
-            <div className="text-white font-semibold">12:00 PM - 13:45 PM</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-400 mb-1">Engagements</div>
-            <div className="text-white font-semibold">14,487</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-400 mb-1">Likes</div>
-            <div className="text-white font-semibold">+1,254</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-400 mb-1">Posts</div>
-            <div className="text-white font-semibold">+1,254</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

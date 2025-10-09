@@ -72,15 +72,15 @@ const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Navigation Tabs */}
-        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 mb-8 overflow-hidden backdrop-blur-xl">
-          <nav className="flex overflow-x-auto">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 mb-8 overflow-x-auto backdrop-blur-xl">
+          <nav className="flex min-w-max">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 px-6 py-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 whitespace-nowrap ${
+                  className={`px-4 py-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-500/50'
                       : 'text-gray-400 hover:text-purple-300 hover:bg-purple-500/10'
