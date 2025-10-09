@@ -160,18 +160,18 @@ const AnalyticsPanel: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-2 rounded-xl">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
               <BarChart3 className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Social Media Analytics</h2>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Social Media Analytics</h2>
           </div>
           <button
             onClick={loadAnalytics}
             disabled={loading || selectedPlatforms.length === 0}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -180,14 +180,14 @@ const AnalyticsPanel: React.FC = () => {
 
         {/* Platform Selection */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Platforms</h3>
+          <h3 className="text-lg font-semibold text-purple-200 mb-4">Select Platforms</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {availablePlatforms.map((platform) => {
-              const isConnected = userProfile?.displayNames?.some((account: any) => 
+              const isConnected = userProfile?.displayNames?.some((account: any) =>
                 account.platform.toLowerCase() === platform.id
               );
               const isSelected = selectedPlatforms.includes(platform.id);
-              
+
               return (
                 <button
                   key={platform.id}
@@ -195,10 +195,10 @@ const AnalyticsPanel: React.FC = () => {
                   disabled={!isConnected}
                   className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isSelected && isConnected
-                      ? `bg-gradient-to-r ${platform.color} text-white shadow-lg`
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-500/30'
                       : isConnected
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      ? 'bg-purple-900/20 text-purple-200 hover:bg-purple-800/30 border border-purple-500/30'
+                      : 'bg-gray-900/40 text-gray-500 cursor-not-allowed border border-gray-700/30'
                   }`}
                 >
                   {platform.name}
@@ -214,12 +214,12 @@ const AnalyticsPanel: React.FC = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+        <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-6">
           <div className="flex items-center space-x-3">
-            <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <AlertCircle className="h-6 w-6 text-red-400 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-red-900">Error Loading Analytics</h3>
-              <p className="text-red-700 mt-1">{error}</p>
+              <h3 className="font-semibold text-red-300">Error Loading Analytics</h3>
+              <p className="text-red-400 mt-1">{error}</p>
             </div>
           </div>
         </div>
@@ -227,10 +227,10 @@ const AnalyticsPanel: React.FC = () => {
 
       {/* Analytics Data */}
       {loading ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
           <div className="text-center py-12">
-            <RefreshCw className="h-8 w-8 text-gray-400 mx-auto mb-4 animate-spin" />
-            <p className="text-gray-600">Loading analytics data...</p>
+            <RefreshCw className="h-8 w-8 text-purple-400 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-400">Loading analytics data...</p>
           </div>
         </div>
       ) : analytics && selectedPlatforms.length > 0 ? (
@@ -242,15 +242,15 @@ const AnalyticsPanel: React.FC = () => {
             if (!platform || !metrics || metrics.length === 0) return null;
 
             return (
-              <div key={platformId} className="bg-white rounded-2xl shadow-lg p-8">
+              <div key={platformId} className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className={`bg-gradient-to-r ${platform.color} p-2 rounded-xl`}>
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
                     <BarChart3 className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{platform.name} Analytics</h3>
+                    <h3 className="text-xl font-bold text-white">{platform.name} Analytics</h3>
                     {analytics[platformId]?.lastUpdated && (
-                      <p className="text-sm text-gray-500 flex items-center space-x-1">
+                      <p className="text-sm text-gray-400 flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
                         <span>Last updated: {new Date(analytics[platformId].lastUpdated).toLocaleDateString()}</span>
                       </p>
@@ -262,12 +262,12 @@ const AnalyticsPanel: React.FC = () => {
                   {metrics.map((metric, index) => {
                     const Icon = metric.icon;
                     return (
-                      <div key={index} className="bg-gray-50 rounded-xl p-6 text-center">
-                        <Icon className="h-8 w-8 text-gray-600 mx-auto mb-3" />
-                        <div className="text-2xl font-bold text-gray-900 mb-1">
+                      <div key={index} className="bg-purple-900/20 rounded-xl p-6 text-center border border-purple-500/20">
+                        <Icon className="h-8 w-8 text-purple-400 mx-auto mb-3" />
+                        <div className="text-2xl font-bold text-white mb-1">
                           {metric.value}
                         </div>
-                        <div className="text-sm text-gray-600">{metric.label}</div>
+                        <div className="text-sm text-gray-400">{metric.label}</div>
                       </div>
                     );
                   })}
@@ -275,9 +275,9 @@ const AnalyticsPanel: React.FC = () => {
 
                 {/* Additional platform-specific info */}
                 {analytics[platformId]?.analytics?.username && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Account:</span> @{analytics[platformId].analytics.username}
+                  <div className="mt-6 pt-6 border-t border-purple-500/20">
+                    <p className="text-sm text-gray-400">
+                      <span className="font-medium text-purple-200">Account:</span> @{analytics[platformId].analytics.username}
                     </p>
                   </div>
                 )}
@@ -286,11 +286,11 @@ const AnalyticsPanel: React.FC = () => {
           })}
         </div>
       ) : selectedPlatforms.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
           <div className="text-center py-12">
-            <BarChart3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No Platforms Selected</h3>
-            <p className="text-gray-500">Select connected platforms above to view analytics data.</p>
+            <BarChart3 className="h-16 w-16 text-purple-500/50 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-purple-200 mb-2">No Platforms Selected</h3>
+            <p className="text-gray-400">Select connected platforms above to view analytics data.</p>
           </div>
         </div>
       ) : null}

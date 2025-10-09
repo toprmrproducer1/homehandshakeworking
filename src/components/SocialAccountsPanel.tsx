@@ -54,11 +54,11 @@ const SocialAccountsPanel: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Social Media Accounts</h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-2">Social Media Accounts</h2>
+            <p className="text-gray-400">
               Manage your connected social media platforms for content distribution
             </p>
           </div>
@@ -67,21 +67,21 @@ const SocialAccountsPanel: React.FC = () => {
       </div>
 
       {/* Connected Accounts */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-6">Connected Platforms</h3>
+      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
+        <h3 className="text-xl font-semibold text-purple-200 mb-6">Connected Platforms</h3>
         
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="bg-gray-200 rounded-xl p-6 h-32"></div>
+                <div className="bg-purple-900/20 rounded-xl p-6 h-32"></div>
               </div>
             ))}
           </div>
         ) : getConnectedAccounts().length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {getConnectedAccounts().map((account: any, index: number) => (
-              <div key={index} className="group bg-gradient-to-r bg-gray-50 hover:bg-gray-100 rounded-xl p-6 border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+              <div key={index} className="group bg-gradient-to-br from-purple-800/20 to-black rounded-xl p-6 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20">
                 <div className="flex items-start justify-between mb-4">
                   <div className={`bg-gradient-to-r ${getPlatformColor(account.platform)} p-2 rounded-lg text-white`}>
                     {getPlatformIcon(account.platform)}
@@ -93,14 +93,14 @@ const SocialAccountsPanel: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-gray-900 capitalize">
+                  <h4 className="font-semibold text-white capitalize">
                     {account.platform === 'twitter' ? 'X/Twitter' : account.platform}
                   </h4>
-                  <p className="text-sm text-gray-600 font-medium">
+                  <p className="text-sm text-purple-200 font-medium">
                     {account.displayName || account.username}
                   </p>
                   {account.username && account.username !== account.displayName && (
-                    <p className="text-xs text-gray-500">@{account.username}</p>
+                    <p className="text-xs text-gray-400">@{account.username}</p>
                   )}
                 </div>
 
@@ -109,7 +109,7 @@ const SocialAccountsPanel: React.FC = () => {
                     href={account.profileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-1 text-xs text-indigo-600 hover:text-indigo-700 mt-3 group-hover:underline"
+                    className="inline-flex items-center space-x-1 text-xs text-purple-400 hover:text-purple-300 mt-3 group-hover:underline"
                   >
                     <span>View Profile</span>
                     <ExternalLink className="h-3 w-3" />
@@ -148,10 +148,10 @@ const SocialAccountsPanel: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-            <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No Social Accounts Connected</h3>
-            <p className="text-gray-500 mb-6">
+          <div className="text-center py-12 bg-purple-900/10 rounded-xl border-2 border-dashed border-purple-500/30">
+            <Users className="h-16 w-16 text-purple-500/50 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-purple-200 mb-2">No Social Accounts Connected</h3>
+            <p className="text-gray-400 mb-6">
               Connect your social media accounts to start sharing your content across platforms
             </p>
             <ConnectSocialsButton />
@@ -161,32 +161,32 @@ const SocialAccountsPanel: React.FC = () => {
 
       {/* Summary Stats */}
       {getConnectedAccounts().length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">Platform Summary</h3>
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
+          <h3 className="text-xl font-semibold text-purple-200 mb-6">Platform Summary</h3>
           <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-indigo-600 mb-2">
+              <div className="text-3xl font-bold text-purple-400 mb-2">
                 {getConnectedAccounts().length}
               </div>
-              <div className="text-gray-600">Connected Platforms</div>
+              <div className="text-gray-400">Connected Platforms</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-emerald-600 mb-2">
+              <div className="text-3xl font-bold text-purple-400 mb-2">
                 {userProfile.monthlyPostCount || 0}
               </div>
-              <div className="text-gray-600">Posts This Month</div>
+              <div className="text-gray-400">Posts This Month</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 mb-2">
+              <div className="text-3xl font-bold text-purple-400 mb-2">
                 {userProfile.monthlyPostQuota || '∞'}
               </div>
-              <div className="text-gray-600">Monthly Quota</div>
+              <div className="text-gray-400">Monthly Quota</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+              <div className="text-3xl font-bold text-purple-400 mb-2">
                 {userProfile.messagingConversationMonthlyCount || 0}
               </div>
-              <div className="text-gray-600">Conversations</div>
+              <div className="text-gray-400">Conversations</div>
             </div>
           </div>
         </div>

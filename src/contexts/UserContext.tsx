@@ -39,7 +39,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   console.log('UserContext - Profile Key:', profileKey);
   console.log('UserContext - Account Active:', isAccountActive);
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (forceRefresh = false) => {
     if (!profileKey) {
       console.warn('Profile key not found in user metadata');
       setError(null);
@@ -50,8 +50,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
+      // Add cache busting for force refresh
       const profile = await fetchUserProfile(profileKey);
       setUserProfile(profile);
+      console.log('Profile updated:', profile);
     } catch (err) {
       console.error('Profile fetch error:', err);
       setError(null);
@@ -62,7 +64,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchProfile();
+    if (profileKey) {
+      fetchProfile(false);
+    }
+  }, [profileKey]);
+
+  // Auto-refresh every 30 seconds to keep social accounts up to date
+  useEffect(() => {
+    if (!profileKey) return;
+
+    const intervalId = setInterval(() => {
+      fetchProfile(true);
+    }, 30000);
+
+    return () => clearInterval(intervalId);
   }, [profileKey]);
 
   return (

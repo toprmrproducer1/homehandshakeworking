@@ -14,6 +14,7 @@ import PostingPanel from './PostingPanel';
 import PostHistoryPanel from './PostHistoryPanel';
 import ProfileSettingsPanel from './ProfileSettingsPanel';
 import AccountActivation from './AccountActivation';
+import OverviewDashboard from './OverviewDashboard';
 
 const Dashboard: React.FC = () => {
   const { userProfile, loading, error, refetchProfile, isAccountActive } = useUserContext();
@@ -105,127 +106,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Profile Overview */}
-            <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6">Account Overview</h2>
-
-              {loading ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-purple-900/20 rounded w-1/3"></div>
-                  <div className="h-4 bg-purple-900/20 rounded w-1/2"></div>
-                  <div className="h-4 bg-purple-900/20 rounded w-1/4"></div>
-                </div>
-              ) : userProfile ? (
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="font-semibold text-purple-200 mb-4">Profile Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Email:</span>
-                        <span className="font-medium text-white">{userProfile.email || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Profile Type:</span>
-                        <span className="font-medium text-white">{userProfile.title || 'User Profile'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Monthly Posts:</span>
-                        <span className="font-medium text-white">{userProfile.monthlyPostCount || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Monthly Quota:</span>
-                        <span className="font-medium text-white">{userProfile.monthlyPostQuota || 'Unlimited'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-purple-200 mb-4">Account Status</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-5 w-5 text-green-400" />
-                        <span className="text-gray-300">Account Active</span>
-                      </div>
-                      {userProfile.messagingEnabled && (
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-5 w-5 text-green-400" />
-                          <span className="text-gray-300">Messaging Enabled</span>
-                        </div>
-                      )}
-                      {userProfile.lastApiCall && (
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="h-5 w-5 text-purple-400" />
-                          <span className="text-gray-300">
-                            Last API Call: {new Date(userProfile.lastApiCall).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            {/* BentoGrid Quick Actions */}
-            <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-6 px-4">Quick Actions</h2>
-              <BentoGrid items={[
-                {
-                  title: "Clip Videos",
-                  description: "AI-powered video clipping for viral content",
-                  icon: <Video className="h-5 w-5 text-purple-400" />,
-                  status: "Ready",
-                  tags: ["AI", "Video"],
-                  cta: "Start Clipping →",
-                  colSpan: 1,
-                  onClick: () => setActiveTab('clipping')
-                },
-                {
-                  title: "Generate Images",
-                  description: "Create stunning visuals with AI assistance",
-                  icon: <ImageIcon className="h-5 w-5 text-purple-400" />,
-                  status: "Active",
-                  tags: ["AI", "Images"],
-                  cta: "Generate Now →",
-                  colSpan: 1,
-                  onClick: () => setActiveTab('generate')
-                },
-                {
-                  title: "Post to Socials",
-                  description: "Share content across all your platforms instantly",
-                  icon: <Send className="h-5 w-5 text-purple-400" />,
-                  status: "Live",
-                  tags: ["Multi-platform"],
-                  meta: `${userProfile?.activeSocialAccounts?.length || 0} connected`,
-                  cta: "Create Post →",
-                  colSpan: 1,
-                  onClick: () => setActiveTab('posting')
-                },
-                {
-                  title: "Analytics Dashboard",
-                  description: "Track engagement and performance metrics across platforms",
-                  icon: <TrendingUp className="h-5 w-5 text-purple-400" />,
-                  status: "Updated",
-                  tags: ["Insights", "Data"],
-                  cta: "View Analytics →",
-                  colSpan: 2,
-                  onClick: () => setActiveTab('analytics')
-                },
-                {
-                  title: "Post History",
-                  description: "Browse your content history and performance",
-                  icon: <History className="h-5 w-5 text-purple-400" />,
-                  status: "Ready",
-                  tags: ["Archive"],
-                  meta: `${userProfile?.monthlyPostCount || 0} posts`,
-                  cta: "View History →",
-                  colSpan: 1,
-                  onClick: () => setActiveTab('history')
-                }
-              ]} />
-            </div>
-          </div>
+          <OverviewDashboard />
         )}
 
         {activeTab === 'social' && (
