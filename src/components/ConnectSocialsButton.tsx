@@ -13,11 +13,15 @@ const ConnectSocialsButton: React.FC = () => {
     }
 
     try {
+      console.log('Attempting to generate connect URL with profileKey:', profileKey);
       const url = await getConnectSocialsURL(profileKey);
+      console.log('Successfully generated URL:', url);
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error generating connect socials URL:', error);
-      alert('Unable to generate connection URL. Please check your configuration and try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error details:', errorMessage);
+      alert(`Unable to generate connection URL. Error: ${errorMessage}`);
     }
   };
 
