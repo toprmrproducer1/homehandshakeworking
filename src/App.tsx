@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import LandingPage from './components/LandingPage';
@@ -9,6 +9,13 @@ import { UserProvider } from './contexts/UserContext';
 
 function App() {
   const { isSignedIn, user, isLoaded } = useUser();
+
+  // Monitor user metadata changes
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      console.log('🔄 User metadata updated:', user.publicMetadata);
+    }
+  }, [isLoaded, isSignedIn, user?.publicMetadata]);
 
   // Show loading while Clerk initializes or user data is loading
   if (!isLoaded || isSignedIn === undefined || isSignedIn === null) {
@@ -33,18 +40,28 @@ function App() {
     );
   }
 
-  // Check if account is active - default to false if not set
+  // Check if account is active - STRICTLY check, default to false if not explicitly true
   const accountActive = user?.publicMetadata?.['account-active'];
-  const isActive = accountActive === true || accountActive === 'true';
+  const profileKey = user?.publicMetadata?.['profile-key'];
+
+  // Only allow activation if explicitly set to true (boolean) or 'true' (string)
+  // AND has a profile key (meaning profile was created and activated)
+  // Any undefined, null, false, or other value = NOT ACTIVE
+  let isActive = false;
+  if ((accountActive === true || accountActive === 'true') && profileKey) {
+    isActive = true;
+  }
 
   // Console log Clerk metadata for debugging
   console.log('=== APP.TSX ACTIVATION CHECK ===');
   console.log('Clerk isLoaded:', isLoaded);
   console.log('User ID:', user?.id);
   console.log('User Email:', user?.primaryEmailAddress?.emailAddress);
-  console.log('Clerk Public Metadata:', user?.publicMetadata);
-  console.log('Account Active Raw:', accountActive);
+  console.log('Clerk Public Metadata:', JSON.stringify(user?.publicMetadata, null, 2));
+  console.log('Account Active Raw:', accountActive, '(type:', typeof accountActive, ')');
+  console.log('Profile Key:', profileKey);
   console.log('Account Active Status (isActive):', isActive);
+  console.log('🎯 Should show:', isActive ? 'DASHBOARD ✅' : 'ACTIVATION PAGE ⚠️');
   console.log('================================');
 
   // Always wrap in UserProvider, but show activation page if not active
