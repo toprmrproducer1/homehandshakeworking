@@ -8,10 +8,10 @@ import SignInPageWrapper from './pages/SignInPageWrapper';
 import { UserProvider } from './contexts/UserContext';
 
 function App() {
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn, user, isLoaded } = useUser();
 
-  // Show loading while Clerk initializes
-  if (isSignedIn === undefined || isSignedIn === null) {
+  // Show loading while Clerk initializes or user data is loading
+  if (!isLoaded || isSignedIn === undefined || isSignedIn === null) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -38,15 +38,22 @@ function App() {
   const isActive = accountActive === true || accountActive === 'true';
 
   // Console log Clerk metadata for debugging
+  console.log('=== APP.TSX ACTIVATION CHECK ===');
+  console.log('Clerk isLoaded:', isLoaded);
+  console.log('User ID:', user?.id);
+  console.log('User Email:', user?.primaryEmailAddress?.emailAddress);
   console.log('Clerk Public Metadata:', user?.publicMetadata);
   console.log('Account Active Raw:', accountActive);
-  console.log('Account Active Status:', isActive);
+  console.log('Account Active Status (isActive):', isActive);
+  console.log('================================');
 
   // Always wrap in UserProvider, but show activation page if not active
   return (
     <UserProvider>
       <Routes>
         <Route path="/" element={isActive ? <Dashboard /> : <AccountActivation />} />
+        <Route path="/dashboard" element={isActive ? <Dashboard /> : <AccountActivation />} />
+        <Route path="/sso-callback" element={isActive ? <Dashboard /> : <AccountActivation />} />
         <Route path="*" element={isActive ? <Dashboard /> : <AccountActivation />} />
       </Routes>
     </UserProvider>
