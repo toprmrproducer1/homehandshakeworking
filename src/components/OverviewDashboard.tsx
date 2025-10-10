@@ -15,7 +15,7 @@ import {
   Filter
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
-import { fetchSocialAnalytics } from '../utils/ayrshare';
+import { fetchSocialAnalytics, normalizeAnalytics } from '../utils/ayrshare';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 
 const OverviewDashboard: React.FC = () => {
@@ -162,12 +162,7 @@ const OverviewDashboard: React.FC = () => {
               getConnectedAccounts().map((account: any, index: number) => {
                 const platformId = account.platform.toLowerCase() === 'x/twitter' || account.platform.toLowerCase() === 'x' ? 'twitter' : account.platform.toLowerCase();
                 const platformAnalytics = analytics?.[platformId]?.analytics || {};
-
-                const metrics = {
-                  subscribers: platformAnalytics.followersCount || platformAnalytics.subscriberCount || 0,
-                  comments: platformAnalytics.commentsCount || platformAnalytics.comments || 0,
-                  likes: platformAnalytics.likesCount || platformAnalytics.likeCount || platformAnalytics.likes || 0
-                };
+                const metrics = normalizeAnalytics(platformId, platformAnalytics);
 
                 return (
                   <div key={index} className="bg-gradient-to-br from-purple-800/20 to-black rounded-xl p-4 border border-purple-500/20">
@@ -185,7 +180,7 @@ const OverviewDashboard: React.FC = () => {
                         <span className="text-xs text-gray-400">
                           {account.platform.toLowerCase() === 'youtube' ? 'Subscribers' : 'Followers'}
                         </span>
-                        <span className="text-sm font-bold text-white">{formatNumber(metrics.subscribers)}</span>
+                        <span className="text-sm font-bold text-white">{formatNumber(metrics.followers)}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
@@ -225,7 +220,8 @@ const OverviewDashboard: React.FC = () => {
                 {formatNumber(getConnectedAccounts().reduce((sum: number, acc: any) => {
                   const platformId = acc.platform.toLowerCase() === 'x/twitter' || acc.platform.toLowerCase() === 'x' ? 'twitter' : acc.platform.toLowerCase();
                   const platformAnalytics = analytics?.[platformId]?.analytics || {};
-                  return sum + (platformAnalytics.followersCount || platformAnalytics.subscriberCount || 0);
+                  const metrics = normalizeAnalytics(platformId, platformAnalytics);
+                  return sum + metrics.followers;
                 }, 0))}
               </div>
             </div>
@@ -238,7 +234,8 @@ const OverviewDashboard: React.FC = () => {
                 {formatNumber(getConnectedAccounts().reduce((sum: number, acc: any) => {
                   const platformId = acc.platform.toLowerCase() === 'x/twitter' || acc.platform.toLowerCase() === 'x' ? 'twitter' : acc.platform.toLowerCase();
                   const platformAnalytics = analytics?.[platformId]?.analytics || {};
-                  return sum + (platformAnalytics.likesCount || platformAnalytics.likeCount || platformAnalytics.likes || 0);
+                  const metrics = normalizeAnalytics(platformId, platformAnalytics);
+                  return sum + metrics.likes;
                 }, 0))}
               </div>
             </div>
@@ -251,7 +248,8 @@ const OverviewDashboard: React.FC = () => {
                 {formatNumber(getConnectedAccounts().reduce((sum: number, acc: any) => {
                   const platformId = acc.platform.toLowerCase() === 'x/twitter' || acc.platform.toLowerCase() === 'x' ? 'twitter' : acc.platform.toLowerCase();
                   const platformAnalytics = analytics?.[platformId]?.analytics || {};
-                  return sum + (platformAnalytics.commentsCount || platformAnalytics.comments || 0);
+                  const metrics = normalizeAnalytics(platformId, platformAnalytics);
+                  return sum + metrics.comments;
                 }, 0))}
               </div>
             </div>

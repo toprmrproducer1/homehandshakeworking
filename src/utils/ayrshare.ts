@@ -128,3 +128,118 @@ export const publishPost = async (profileKey: string, post: string, platforms: s
 
   return response.json();
 };
+
+export const uploadMediaFile = async (file: File, fileName?: string, description?: string) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (fileName) {
+    formData.append('fileName', fileName);
+  }
+  if (description) {
+    formData.append('description', description);
+  }
+
+  const response = await fetch(`${BASE_URL}/media/upload`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || `Failed to upload file: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+export interface NormalizedAnalytics {
+  followers: number;
+  comments: number;
+  likes: number;
+}
+
+export const normalizeAnalytics = (platform: string, analytics: any): NormalizedAnalytics => {
+  if (!analytics) {
+    return { followers: 0, comments: 0, likes: 0 };
+  }
+
+  let followers = 0;
+  let comments = 0;
+  let likes = 0;
+
+  const platformLower = platform.toLowerCase();
+
+  switch (platformLower) {
+    case 'instagram':
+      followers = analytics.followersCount || 0;
+      comments = analytics.commentsCount || 0;
+      likes = analytics.likeCount || 0;
+      break;
+
+    case 'twitter':
+    case 'x':
+    case 'x/twitter':
+      followers = analytics.followersCount || 0;
+      comments = analytics.tweetCount || 0;
+      likes = analytics.likeCount || 0;
+      break;
+
+    case 'youtube':
+      followers = analytics.subscriberCount || 0;
+      comments = analytics.comments || 0;
+      likes = analytics.likes || 0;
+      break;
+
+    case 'tiktok':
+      followers = analytics.followerCount || 0;
+      comments = analytics.commentCountTotal || 0;
+      likes = analytics.likeCountTotal || 0;
+      break;
+
+    case 'facebook':
+      followers = analytics.followersCount || analytics.fanCount || 0;
+      comments = analytics.pagePostEngagements || 0;
+      likes = analytics.reactions?.total || 0;
+      break;
+
+    case 'threads':
+      followers = analytics.followersCount || 0;
+      comments = analytics.replies || 0;
+      likes = analytics.likes || 0;
+      break;
+
+    case 'linkedin':
+      followers = analytics.followers?.totalFollowerCount || 0;
+      comments = analytics.commentCount || 0;
+      likes = analytics.likeCount || 0;
+      break;
+
+    case 'bluesky':
+      followers = analytics.followersCount || 0;
+      comments = 0;
+      likes = 0;
+      break;
+
+    case 'reddit':
+      followers = analytics.friends || 0;
+      comments = analytics.commentKarma || 0;
+      likes = analytics.linkKarma || 0;
+      break;
+
+    case 'pinterest':
+      followers = analytics.board?.followerCount || 0;
+      comments = 0;
+      likes = 0;
+      break;
+
+    default:
+      followers = analytics.followersCount || analytics.followerCount || analytics.subscriberCount || analytics.fanCount || 0;
+      comments = analytics.commentsCount || analytics.comments || analytics.commentCount || 0;
+      likes = analytics.likesCount || analytics.likeCount || analytics.likes || 0;
+  }
+
+  return { followers, comments, likes };
+};

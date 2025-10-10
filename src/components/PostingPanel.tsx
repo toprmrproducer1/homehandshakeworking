@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Send, 
-  Image, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  Send,
+  Image,
+  CheckCircle,
+  AlertCircle,
   RefreshCw,
   Facebook,
   Twitter,
@@ -22,10 +22,12 @@ import {
   Tag,
   Settings,
   Plus,
-  Minus
+  Minus,
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
-import { validatePost, publishPost } from '../utils/ayrshare';
+import { validatePost, publishPost, uploadMediaFile } from '../utils/ayrshare';
 
 interface PlatformOptions {
   [key: string]: any;
@@ -42,6 +44,8 @@ const PostingPanel: React.FC = () => {
   const [validationResult, setValidationResult] = useState<any>(null);
   const [publishResult, setPublishResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingFiles, setUploadingFiles] = useState<{[key: number]: boolean}>({});
+  const [uploadProgress, setUploadProgress] = useState<{[key: number]: number}>({});
 
   const availablePlatforms = [
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'from-blue-500 to-blue-600' },
@@ -175,6 +179,65 @@ const PostingPanel: React.FC = () => {
     setMediaUrls(mediaUrls.filter((_, i) => i !== index));
     setValidationResult(null);
     setPublishResult(null);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 30 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size exceeds 30MB limit');
+      return;
+    }
+
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
+    const isValidType = [...validImageTypes, ...validVideoTypes].includes(file.type);
+
+    if (!isValidType) {
+      setError('Invalid file type. Please upload images (jpg, png, gif, webp) or videos (mp4, mov, avi)');
+      return;
+    }
+
+    try {
+      setUploadingFiles(prev => ({ ...prev, [index]: true }));
+      setUploadProgress(prev => ({ ...prev, [index]: 0 }));
+      setError(null);
+
+      setUploadProgress(prev => ({ ...prev, [index]: 50 }));
+
+      const result = await uploadMediaFile(file, file.name);
+
+      setUploadProgress(prev => ({ ...prev, [index]: 100 }));
+
+      updateMediaUrl(index, result.url);
+
+      setTimeout(() => {
+        setUploadingFiles(prev => {
+          const newState = { ...prev };
+          delete newState[index];
+          return newState;
+        });
+        setUploadProgress(prev => {
+          const newState = { ...prev };
+          delete newState[index];
+          return newState;
+        });
+      }, 1000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload file');
+      setUploadingFiles(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setUploadProgress(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+    }
   };
 
   const addTag = (platform: string) => {
@@ -391,7 +454,8 @@ const PostingPanel: React.FC = () => {
 
   const connectedPlatforms = getConnectedPlatforms();
   const isValidated = validationResult?.status === 'success';
-  const canPublish = isValidated && !validating && !publishing;
+  const isUploading = Object.values(uploadingFiles).some(uploading => uploading);
+  const canPublish = isValidated && !validating && !publishing && !isUploading;
 
   const renderPlatformOptions = (platform: string) => {
     const options = platformOptions[platform] || {};
@@ -989,42 +1053,89 @@ const PostingPanel: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-purple-200">
-                Media URLs (Optional)
+                Media (Optional)
               </label>
               <button
                 type="button"
                 onClick={addMediaUrl}
                 className="text-sm text-purple-400 hover:text-purple-300 flex items-center space-x-1"
               >
-                <Image className="h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 <span>Add Media</span>
               </button>
             </div>
             <div className="space-y-3">
               {mediaUrls.map((url, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <div className="relative flex-1">
-                    <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-400" />
-                    <input
-                      type="url"
-                      value={url}
-                      onChange={(e) => updateMediaUrl(index, e.target.value)}
-                      placeholder="https://example.com/image.jpg or video.mp4"
-                      className="w-full pl-10 pr-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-colors"
-                    />
-                  </div>
-                  {mediaUrls.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeMediaUrl(index)}
-                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="relative flex-1">
+                      <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-400" />
+                      <input
+                        type="url"
+                        value={url}
+                        onChange={(e) => updateMediaUrl(index, e.target.value)}
+                        placeholder="https://example.com/image.jpg or video.mp4"
+                        className="w-full pl-10 pr-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-colors"
+                        disabled={uploadingFiles[index]}
+                      />
+                    </div>
+                    <label
+                      htmlFor={`file-upload-${index}`}
+                      className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                        uploadingFiles[index]
+                          ? 'bg-purple-500/20 text-purple-400 cursor-not-allowed'
+                          : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300'
+                      }`}
+                      title="Upload file"
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                      {uploadingFiles[index] ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4" />
+                      )}
+                      <input
+                        id={`file-upload-${index}`}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/x-msvideo"
+                        onChange={(e) => handleFileUpload(e, index)}
+                        className="hidden"
+                        disabled={uploadingFiles[index]}
+                      />
+                    </label>
+                    {mediaUrls.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeMediaUrl(index)}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors"
+                        disabled={uploadingFiles[index]}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  {uploadingFiles[index] && (
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-purple-900/20 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-purple-500 h-full transition-all duration-300"
+                          style={{ width: `${uploadProgress[index] || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-purple-300">{uploadProgress[index] || 0}%</span>
+                    </div>
+                  )}
+                  {url && !uploadingFiles[index] && (
+                    <div className="flex items-center space-x-2 text-xs text-green-400">
+                      <CheckCircle className="h-3 w-3" />
+                      <span>Media ready</span>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Upload files (max 30MB) or paste URLs. Uploaded files are stored for 90 days.
+            </p>
           </div>
 
           {/* Platform Selection */}
@@ -1074,13 +1185,18 @@ const PostingPanel: React.FC = () => {
             <button
               type="button"
               onClick={handleValidate}
-              disabled={validating || !postContent.trim() || selectedPlatforms.length === 0}
+              disabled={validating || !postContent.trim() || selectedPlatforms.length === 0 || isUploading}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {validating ? (
                 <>
                   <RefreshCw className="h-5 w-5 animate-spin" />
                   <span>Validating...</span>
+                </>
+              ) : isUploading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Uploading...</span>
                 </>
               ) : (
                 <>
@@ -1100,6 +1216,11 @@ const PostingPanel: React.FC = () => {
                 <>
                   <RefreshCw className="h-5 w-5 animate-spin" />
                   <span>Publishing...</span>
+                </>
+              ) : isUploading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Uploading...</span>
                 </>
               ) : (
                 <>
