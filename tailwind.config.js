@@ -14,6 +14,7 @@ export default {
         'glow': 'glow 2s ease-in-out infinite alternate',
         "shimmer-slide": "shimmer-slide var(--speed) ease-in-out infinite alternate",
         "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
+        'blob': 'blob 7s infinite',
       },
       keyframes: {
         "spin-around": {
@@ -72,6 +73,20 @@ export default {
         'glow': {
           'from': { 'box-shadow': '0 0 20px rgba(147, 51, 234, 0.5)' },
           'to': { 'box-shadow': '0 0 30px rgba(147, 51, 234, 0.8)' }
+        },
+        'blob': {
+          '0%': {
+            transform: 'translate(0px, 0px) scale(1)'
+          },
+          '33%': {
+            transform: 'translate(30px, -50px) scale(1.1)'
+          },
+          '66%': {
+            transform: 'translate(-20px, 20px) scale(0.9)'
+          },
+          '100%': {
+            transform: 'translate(0px, 0px) scale(1)'
+          }
         }
       },
       backdropBlur: {

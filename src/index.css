@@ -82,6 +82,8 @@
   .animate-delay-1000 { animation-delay: 1000ms; }
   .animate-delay-1200 { animation-delay: 1200ms; }
   .animate-delay-1400 { animation-delay: 1400ms; }
+  .animation-delay-2000 { animation-delay: 2000ms; }
+  .animation-delay-4000 { animation-delay: 4000ms; }
 
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide::-webkit-scrollbar {
