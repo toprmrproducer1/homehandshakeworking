@@ -5,6 +5,7 @@ export interface VideoUploadResult {
   url: string;
   service: 'supabase' | 'cloudinary';
   size: number;
+  extension: string;
 }
 
 export const getVideoTypeOptions = () => [
@@ -36,6 +37,11 @@ export const uploadVideoForVizard = async (
     throw new Error('File size exceeds 100MB limit. Current size: ' + formatFileSize(file.size));
   }
 
+  const fileExtension = getFileExtension(file.name);
+  if (!fileExtension) {
+    throw new Error('Could not determine file extension');
+  }
+
   if (onProgress) onProgress(5);
 
   try {
@@ -51,6 +57,7 @@ export const uploadVideoForVizard = async (
         url: cloudinaryUrl,
         service: 'cloudinary',
         size: file.size,
+        extension: fileExtension,
       };
     } else {
       if (onProgress) onProgress(10);
@@ -64,6 +71,7 @@ export const uploadVideoForVizard = async (
         url: uploadResult.url,
         service: 'supabase',
         size: file.size,
+        extension: fileExtension,
       };
     }
   } catch (error) {
@@ -79,4 +87,9 @@ const formatFileSize = (bytes: number): string => {
     return (bytes / 1024).toFixed(1) + ' KB';
   }
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
+
+const getFileExtension = (filename: string): string => {
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  return ext;
 };

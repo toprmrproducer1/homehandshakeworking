@@ -136,6 +136,7 @@ const VideoClippingPanel: React.FC = () => {
 
     try {
       let uploadedVideoUrl = videoUrl;
+      let videoExtension = '';
 
       if (videoType === 1 && videoFile) {
         setProcessingStatus('Uploading video to cloud storage...');
@@ -151,8 +152,14 @@ const VideoClippingPanel: React.FC = () => {
           }
         );
         uploadedVideoUrl = uploadResult.url;
+        videoExtension = uploadResult.extension;
         setProcessingStatus(`Upload complete (${uploadResult.service}), preparing for AI processing...`);
         setProcessingPercent(20);
+      } else if (videoType === 1) {
+        throw new Error('Video file is required');
+      } else {
+        const urlExt = uploadedVideoUrl.split('.').pop()?.toLowerCase() || 'mp4';
+        videoExtension = urlExt;
       }
 
       if (!uploadedVideoUrl) {
@@ -172,6 +179,7 @@ const VideoClippingPanel: React.FC = () => {
         headlineSwitch: showHeadline ? 1 : 0,
         emojiSwitch: showEmojis ? 1 : 0,
         projectName: `Clip - ${new Date().toLocaleString()}`,
+        ext: videoExtension,
       };
 
       // Send directly to Vizard for AI processing
