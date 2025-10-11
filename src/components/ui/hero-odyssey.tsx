@@ -1,85 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useClerk } from '@clerk/clerk-react';
-import { ArrowRight, Play, Zap, TrendingUp, CheckCircle } from 'lucide-react';
-
-interface ElasticHueSliderProps {
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-  label?: string;
-}
-
-const ElasticHueSlider: React.FC<ElasticHueSliderProps> = ({
-  value,
-  onChange,
-  min = 0,
-  max = 360,
-  step = 1,
-  label = 'Adjust Hue',
-}) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const sliderRef = useRef<HTMLDivElement>(null);
-
-  const progress = ((value - min) / (max - min));
-  const thumbPosition = progress * 100;
-
-  const handleMouseDown = () => setIsDragging(true);
-  const handleMouseUp = () => setIsDragging(false);
-
-  return (
-    <div className="scale-50 relative w-full max-w-xs flex flex-col items-center" ref={sliderRef}>
-      {label && <label htmlFor="hue-slider-native" className="text-gray-300 text-sm mb-1">{label}</label>}
-      <div className="relative w-full h-5 flex items-center">
-        <input
-          id="hue-slider-native"
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onTouchStart={handleMouseDown}
-          onTouchEnd={handleMouseUp}
-          className="absolute inset-0 w-full h-full appearance-none bg-transparent cursor-pointer z-20"
-          style={{ WebkitAppearance: 'none' }}
-        />
-
-        <div className="absolute left-0 w-full h-1 bg-gray-700 rounded-full z-0"></div>
-
-        <div
-          className="absolute left-0 h-1 bg-blue-500 rounded-full z-10"
-          style={{ width: `${thumbPosition}%` }}
-        ></div>
-
-        <motion.div
-          className="absolute top-1/2 transform -translate-y-1/2 z-30"
-          style={{ left: `${thumbPosition}%` }}
-          animate={{ scale: isDragging ? 1.2 : 1 }}
-          transition={{ type: "spring", stiffness: 500, damping: isDragging ? 20 : 30 }}
-        >
-        </motion.div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={value}
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 5 }}
-          transition={{ duration: 0.2 }}
-          className="text-xs text-gray-500 mt-2"
-        >
-          {value}°
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-};
+import { ArrowRight, Zap } from 'lucide-react';
 
 interface FeatureItemProps {
   name: string;
@@ -311,7 +233,6 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ name, value, position }) => {
 
 export const HeroSection: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [lightningHue, setLightningHue] = useState(270);
   const { openSignIn } = useClerk();
 
   const handleGetStarted = () => {
@@ -366,7 +287,7 @@ export const HeroSection: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button
               onClick={handleGetStarted}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 backdrop-blur-sm rounded-full text-sm hover:from-purple-700 hover:to-pink-700 transition-colors"
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 backdrop-blur-sm rounded-full text-sm hover:from-purple-700 hover:to-purple-900 transition-colors"
             >
               Get Started
             </button>
@@ -408,7 +329,7 @@ export const HeroSection: React.FC = () => {
               <button className="px-6 py-3">About</button>
               <button
                 onClick={handleGetStarted}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 backdrop-blur-sm rounded-full"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 backdrop-blur-sm rounded-full"
               >
                 Get Started
               </button>
@@ -442,18 +363,12 @@ export const HeroSection: React.FC = () => {
           animate="visible"
           className="relative z-30 flex flex-col items-center text-center max-w-4xl mx-auto"
         >
-          <ElasticHueSlider
-            value={lightningHue}
-            onChange={setLightningHue}
-            label="Customize Lightning Color"
-          />
-
           <motion.button
             variants={itemVariants}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleGetStarted}
-            className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6 transition-all duration-300 group"
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 backdrop-blur-sm rounded-full text-sm mb-6 transition-all duration-300 group border border-purple-500/30"
           >
             <span>Start Your Free 14-Day Trial</span>
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" />
@@ -485,7 +400,7 @@ export const HeroSection: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleGetStarted}
-            className="mt-[100px] sm:mt-[100px] px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 backdrop-blur-sm rounded-full hover:from-purple-700 hover:to-pink-700 transition-colors font-semibold"
+            className="mt-[100px] sm:mt-[100px] px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-800 backdrop-blur-sm rounded-full hover:from-purple-700 hover:to-purple-900 transition-colors font-semibold"
           >
             Start Your Free Trial
           </motion.button>
@@ -500,11 +415,11 @@ export const HeroSection: React.FC = () => {
       >
         <div className="absolute inset-0 bg-black/80"></div>
 
-        <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-b from-purple-500/20 to-pink-600/10 blur-3xl"></div>
+        <div className="absolute top-[55%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-b from-purple-600/30 to-purple-900/10 blur-3xl"></div>
 
         <div className="absolute top-0 w-[100%] left-1/2 transform -translate-x-1/2 h-full">
           <Lightning
-            hue={lightningHue}
+            hue={270}
             xOffset={0}
             speed={1.6}
             intensity={0.6}
@@ -512,7 +427,7 @@ export const HeroSection: React.FC = () => {
           />
         </div>
 
-        <div className="z-10 absolute top-[55%] left-1/2 transform -translate-x-1/2 w-[600px] h-[600px] backdrop-blur-3xl rounded-full bg-[radial-gradient(circle_at_25%_90%,_#1e386b_15%,_#000000de_70%,_#000000ed_100%)]"></div>
+        <div className="z-10 absolute top-[55%] left-1/2 transform -translate-x-1/2 w-[600px] h-[600px] backdrop-blur-3xl rounded-full bg-[radial-gradient(circle_at_25%_90%,_#6b21a8_15%,_#000000de_70%,_#000000ed_100%)]"></div>
       </motion.div>
     </div>
   );
