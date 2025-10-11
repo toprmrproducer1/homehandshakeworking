@@ -73,21 +73,22 @@ class JobPollingService {
         return;
       }
 
-      if (result.code === 2000 && result.videos) {
+      if (result.code === 2000 && result.videos && result.videos.length > 0) {
         console.log(`✅ Job ${job.id} completed with ${result.videos.length} clips!`);
 
         const clips = result.videos.map((video, index) => {
           console.log(`Clip ${index + 1}: ${video.title}`);
           console.log(`  - Video URL: ${video.videoUrl}`);
+          console.log(`  - Editor URL: ${video.clipEditorUrl || 'N/A'}`);
           console.log(`  - Duration: ${video.videoMsDuration}ms`);
           console.log(`  - Viral Score: ${video.viralScore}/10`);
 
           return {
-            clipEditorUrl: '',
+            clipEditorUrl: video.clipEditorUrl || '',
             relatedTopic: video.relatedTopic?.join(', ') || null,
             title: video.title,
             transcript: video.transcript || null,
-            videoId: index,
+            videoId: video.videoId || index,
             videoMsDuration: video.videoMsDuration,
             videoUrl: video.videoUrl,
             viralReason: video.viralReason,
@@ -96,25 +97,33 @@ class JobPollingService {
         });
 
         console.log(`Saving ${clips.length} clips to database...`);
-        const savedClips = await saveVizardClips(
-          userId,
-          profileKey,
-          job.vizard_project_id,
-          job.original_video_url,
-          clips,
-          job.config,
-          undefined,
-          job.vizard_share_link
-        );
+        try {
+          const savedClips = await saveVizardClips(
+            userId,
+            profileKey,
+            job.vizard_project_id,
+            job.original_video_url,
+            clips,
+            job.config,
+            undefined,
+            job.vizard_share_link
+          );
 
-        console.log(`✅ Saved ${savedClips.length} clips to database successfully!`);
-        await markJobCompleted(job.id, savedClips.length);
-        console.log(`✅ Marked job ${job.id} as completed`);
+          console.log(`✅ Saved ${savedClips.length} clips to database successfully!`);
+          await markJobCompleted(job.id, savedClips.length);
+          console.log(`✅ Marked job ${job.id} as completed`);
 
-        if (onUpdate) {
-          console.log(`Triggering UI update...`);
-          onUpdate();
+          if (onUpdate) {
+            console.log(`Triggering UI update...`);
+            onUpdate();
+          }
+        } catch (saveError) {
+          console.error(`❌ Failed to save clips for job ${job.id}:`, saveError);
+          throw saveError;
         }
+      } else if (result.code === 2000 && (!result.videos || result.videos.length === 0)) {
+        console.log(`⚠️ Job ${job.id} completed but no videos were generated`);
+        await markJobCompleted(job.id, 0);
       } else if (result.code === 4002) {
         console.log(`❌ Job ${job.id} failed with code 4002`);
         await markJobFailed(job.id, result.msg || 'Video clipping failed');

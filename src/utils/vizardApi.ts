@@ -53,6 +53,8 @@ export interface VizardVideo {
   viralScore: number;
   transcript: string;
   relatedTopic: string[];
+  clipEditorUrl?: string;
+  videoId?: number;
 }
 
 export interface VizardQueryResponse {
