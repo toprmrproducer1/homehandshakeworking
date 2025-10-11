@@ -92,6 +92,7 @@ export const VIZARD_PREFER_LENGTHS = {
 };
 
 export const SUPPORTED_LANGUAGES = [
+  { code: '0', name: 'Auto-detect' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },

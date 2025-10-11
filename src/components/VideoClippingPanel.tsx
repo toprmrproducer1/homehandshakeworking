@@ -56,10 +56,10 @@ const VideoClippingPanel: React.FC = () => {
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [processingPercent, setProcessingPercent] = useState<number>(0);
 
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('0');
   const [preferLengths, setPreferLengths] = useState<number[]>([0]);
   const [aspectRatio, setAspectRatio] = useState(VIZARD_CLIP_RATIOS.VERTICAL_9_16);
-  const [maxClipNumber, setMaxClipNumber] = useState<number>(10);
+  const [maxClipNumber, setMaxClipNumber] = useState<number>(100);
   const [keywords, setKeywords] = useState('');
   const [removeSilence, setRemoveSilence] = useState(true);
   const [showSubtitles, setShowSubtitles] = useState(true);
@@ -209,16 +209,21 @@ const VideoClippingPanel: React.FC = () => {
         preferLength: preferLengths,
         videoUrl: uploadedVideoUrl,
         videoType: videoType,
-        ratioOfClip: aspectRatio,
-        removeSilenceSwitch: removeSilence ? 1 : 0,
         maxClipNumber: maxClipNumber,
-        keywords: keywords || undefined,
-        subtitleSwitch: showSubtitles ? 1 : 0,
-        headlineSwitch: showHeadline ? 1 : 0,
-        emojiSwitch: showEmojis ? 1 : 0,
         projectName: `Clip - ${new Date().toLocaleString()}`,
         ext: videoExtension,
       };
+
+      if (showAdvanced) {
+        config.ratioOfClip = aspectRatio;
+        config.removeSilenceSwitch = removeSilence ? 1 : 0;
+        config.subtitleSwitch = showSubtitles ? 1 : 0;
+        config.headlineSwitch = showHeadline ? 1 : 0;
+        config.emojiSwitch = showEmojis ? 1 : 0;
+        if (keywords && keywords.trim()) {
+          config.keywords = keywords;
+        }
+      }
 
       setProcessingStatus('Validating video URL...');
       console.log('Submitting video to Vizard with URL:', uploadedVideoUrl);
