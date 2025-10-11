@@ -160,6 +160,7 @@ const VideoClippingPanel: React.FC = () => {
     try {
       let uploadedVideoUrl = videoUrl;
       let videoExtension = '';
+      let uploadResult: { url: string; extension: string; service: string } | undefined;
 
       if (videoType === 1 && videoFile) {
         const fileSizeMB = (videoFile.size / (1024 * 1024)).toFixed(1);
@@ -229,7 +230,7 @@ const VideoClippingPanel: React.FC = () => {
       console.log('==========================================');
       console.log('VIZARD SUBMISSION DETAILS:');
       console.log('Video URL:', uploadedVideoUrl);
-      console.log('Video Service:', uploadResult.service);
+      console.log('Video Service:', uploadResult?.service || 'direct-url');
       console.log('File Size:', (videoFile?.size || 0) / (1024 * 1024), 'MB');
       console.log('Extension:', videoExtension);
       console.log('Language:', language);
