@@ -7,6 +7,7 @@ export interface ClippingJob {
   profile_key: string;
   vizard_project_id: string;
   vizard_share_link?: string;
+  task_name?: string;
   original_video_url: string;
   config: VizardClipConfig;
   status: 'processing' | 'completed' | 'failed';
@@ -25,8 +26,11 @@ export const createClippingJob = async (
   vizardProjectId: string,
   originalVideoUrl: string,
   config: VizardClipConfig,
-  vizardShareLink?: string
+  vizardShareLink?: string,
+  taskName?: string
 ): Promise<ClippingJob> => {
+  const defaultTaskName = taskName || config.projectName || `Clip - ${new Date().toLocaleString()}`;
+
   const { data, error } = await supabase
     .from('video_clipping_jobs')
     .insert({
@@ -34,6 +38,7 @@ export const createClippingJob = async (
       profile_key: profileKey,
       vizard_project_id: vizardProjectId,
       vizard_share_link: vizardShareLink,
+      task_name: defaultTaskName,
       original_video_url: originalVideoUrl,
       config: config,
       status: 'processing',
@@ -142,4 +147,40 @@ export const deleteClippingJob = async (jobId: string): Promise<void> => {
   if (error) {
     throw new Error(`Failed to delete clipping job: ${error.message}`);
   }
+};
+
+export const getClippingJobByProjectId = async (
+  profileKey: string,
+  vizardProjectId: string
+): Promise<ClippingJob | null> => {
+  const { data, error } = await supabase
+    .from('video_clipping_jobs')
+    .select('*')
+    .eq('profile_key', profileKey)
+    .eq('vizard_project_id', vizardProjectId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch clipping job: ${error.message}`);
+  }
+
+  return data;
+};
+
+export const getClippingJobsByStatus = async (
+  profileKey: string,
+  status: 'processing' | 'completed' | 'failed'
+): Promise<ClippingJob[]> => {
+  const { data, error } = await supabase
+    .from('video_clipping_jobs')
+    .select('*')
+    .eq('profile_key', profileKey)
+    .eq('status', status)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch clipping jobs by status: ${error.message}`);
+  }
+
+  return data || [];
 };

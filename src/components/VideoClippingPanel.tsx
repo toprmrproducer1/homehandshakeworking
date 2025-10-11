@@ -16,7 +16,8 @@ import {
   Edit,
   Settings,
   Sparkles,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
@@ -37,6 +38,9 @@ import {
 import { validatePost, publishPost } from '../utils/ayrshare';
 import { uploadVideoForVizard } from '../utils/videoClipping';
 import { createClippingJob, getClippingJobs, deleteClippingJob, markJobCompleted, ClippingJob } from '../utils/clippingJobs';
+import { queryTaskById } from '../utils/taskQueryService';
+import TaskIdDropdown from './TaskIdDropdown';
+import TaskHistoryPanel from './TaskHistoryPanel';
 import { queryVizardProject } from '../utils/vizardApi';
 import { saveVizardClips } from '../utils/clippedVideosDb';
 import { jobPollingService } from '../utils/jobPollingService';
@@ -81,6 +85,11 @@ const VideoClippingPanel: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [checkingVizard, setCheckingVizard] = useState(false);
   const [lastManualCheck, setLastManualCheck] = useState<Date | null>(null);
+  const [manualTaskId, setManualTaskId] = useState('');
+  const [queryingTask, setQueryingTask] = useState(false);
+  const [allTasks, setAllTasks] = useState<ClippingJob[]>([]);
+  const [showTaskHistory, setShowTaskHistory] = useState(false);
+  const [lastSubmittedTaskId, setLastSubmittedTaskId] = useState<string | null>(null);
 
   const videoTypeOptions = getVideoTypeOptions();
   const supportedExtensions = getSupportedVideoExtensions();
@@ -89,10 +98,12 @@ const VideoClippingPanel: React.FC = () => {
     if (profileKey && user?.id) {
       loadClippedVideos();
       loadProcessingJobs();
+      loadAllTasks();
 
       jobPollingService.start(profileKey, user.id, () => {
         loadClippedVideos();
         loadProcessingJobs();
+        loadAllTasks();
       });
     }
 
@@ -121,6 +132,17 @@ const VideoClippingPanel: React.FC = () => {
       setProcessingJobs(jobs.filter(job => job.status === 'processing'));
     } catch (err) {
       console.error('Failed to load processing jobs:', err);
+    }
+  };
+
+  const loadAllTasks = async () => {
+    if (!profileKey) return;
+
+    try {
+      const jobs = await getClippingJobs(profileKey);
+      setAllTasks(jobs);
+    } catch (err) {
+      console.error('Failed to load all tasks:', err);
     }
   };
 
@@ -256,11 +278,14 @@ const VideoClippingPanel: React.FC = () => {
         vizardResult.projectId,
         uploadedVideoUrl,
         config,
-        vizardResult.shareLink
+        vizardResult.shareLink,
+        config.projectName
       );
 
-      setSuccess('Video submitted for AI clipping! Processing will take 5-10 minutes.');
+      setLastSubmittedTaskId(vizardResult.projectId);
+      setSuccess(`Video submitted for AI clipping! Task ID: ${vizardResult.projectId}`);
       setProcessingJobs(prev => [job, ...prev]);
+      await loadAllTasks();
 
       setVideoUrl('');
       setVideoFile(null);
@@ -560,6 +585,104 @@ const VideoClippingPanel: React.FC = () => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleQueryTaskById = async () => {
+    if (!manualTaskId.trim() || !profileKey || !user?.id) {
+      setError('Please enter a valid Task ID');
+      return;
+    }
+
+    setQueryingTask(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const result = await queryTaskById(manualTaskId.trim(), profileKey, user.id);
+
+      if (result.success) {
+        setSuccess(result.message);
+
+        if (result.status === 'completed' && result.clips) {
+          await loadClippedVideos();
+          await loadAllTasks();
+        }
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to query task');
+    } finally {
+      setQueryingTask(false);
+    }
+  };
+
+  const handleSelectTask = async (task: ClippingJob) => {
+    if (!profileKey || !user?.id) return;
+
+    setManualTaskId(task.vizard_project_id);
+
+    if (task.status === 'completed') {
+      await loadClippedVideos();
+      setSuccess(`Loaded clips for task: ${task.task_name || task.vizard_project_id}`);
+    } else if (task.status === 'processing') {
+      await handleQueryTaskById();
+    }
+  };
+
+  const handleViewTaskResults = async (task: ClippingJob) => {
+    if (!profileKey || !user?.id) return;
+
+    try {
+      setLoading(true);
+      const result = await queryTaskById(task.vizard_project_id, profileKey, user.id);
+
+      if (result.success && result.clips) {
+        await loadClippedVideos();
+        setSuccess(`Loaded ${result.clipsCount} clips for ${task.task_name}`);
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load task results');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckTaskStatus = async (task: ClippingJob) => {
+    if (!profileKey || !user?.id) return;
+
+    try {
+      setLoading(true);
+      const result = await queryTaskById(task.vizard_project_id, profileKey, user.id);
+
+      if (result.success) {
+        setSuccess(result.message);
+
+        if (result.status === 'completed') {
+          await loadClippedVideos();
+          await loadAllTasks();
+        }
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to check task status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await deleteClippingJob(taskId);
+      await loadAllTasks();
+      await loadProcessingJobs();
+      setSuccess('Task deleted successfully');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete task');
+    }
   };
 
   const selectedOption = videoTypeOptions.find(option => option.value === videoType);
@@ -872,6 +995,41 @@ const VideoClippingPanel: React.FC = () => {
           </form>
         </div>
 
+        {lastSubmittedTaskId && (
+          <div className="bg-gradient-to-br from-green-900/20 to-black rounded-2xl border border-green-500/20 shadow-lg p-6 backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-bold text-green-300">Task Submitted Successfully!</h3>
+              <button
+                onClick={() => setLastSubmittedTaskId(null)}
+                className="text-green-400 hover:text-green-300 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-green-300">Your Task ID:</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(lastSubmittedTaskId);
+                    setSuccess('Task ID copied to clipboard!');
+                  }}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 rounded text-sm text-green-300 transition-colors"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span>Copy ID</span>
+                </button>
+              </div>
+              <div className="font-mono text-sm text-green-200 break-all bg-black/30 px-3 py-2 rounded">
+                {lastSubmittedTaskId}
+              </div>
+              <p className="text-xs text-green-400/70 mt-3">
+                Save this ID to check your video results later!
+              </p>
+            </div>
+          </div>
+        )}
+
         {processingJobs.length > 0 && (
           <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
             <div className="flex items-center space-x-3 mb-6">
@@ -894,7 +1052,7 @@ const VideoClippingPanel: React.FC = () => {
                     shareLink={job.vizard_share_link}
                   />
                   <button
-                    onClick={() => handleDeleteJob(job.id)}
+                    onClick={() => handleDeleteTask(job.id)}
                     className="absolute top-4 right-4 p-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors border border-red-500/30"
                     title="Cancel processing"
                   >
@@ -903,6 +1061,86 @@ const VideoClippingPanel: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        <div className="bg-gradient-to-br from-emerald-900/20 to-black rounded-2xl border border-emerald-500/20 shadow-lg p-8 backdrop-blur-xl">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 p-2 rounded-xl">
+              <Copy className="h-6 w-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
+              Query Task by ID
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm text-emerald-200/80">
+              Enter a Task ID to fetch video outputs. You can use this to check any task from your history or paste an ID you saved earlier.
+            </p>
+
+            <TaskIdDropdown
+              tasks={allTasks}
+              onSelectTask={handleSelectTask}
+              className="mb-4"
+            />
+
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={manualTaskId}
+                  onChange={(e) => setManualTaskId(e.target.value)}
+                  placeholder="Paste Task ID here... (e.g., 24659016)"
+                  className="w-full px-4 py-3 bg-emerald-900/20 border border-emerald-500/30 rounded-xl text-white placeholder-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-400 transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleQueryTaskById();
+                    }
+                  }}
+                />
+              </div>
+              <button
+                onClick={handleQueryTaskById}
+                disabled={queryingTask || !manualTaskId.trim()}
+                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-900 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {queryingTask ? (
+                  <>
+                    <RefreshCw className="h-5 w-5 animate-spin" />
+                    <span>Querying...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-5 w-5" />
+                    <span>Query Task</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {allTasks.length > 0 && (
+          <div>
+            <button
+              onClick={() => setShowTaskHistory(!showTaskHistory)}
+              className="w-full mb-4 px-6 py-3 bg-blue-900/20 border border-blue-500/30 rounded-xl text-blue-200 hover:bg-blue-800/30 transition-colors flex items-center justify-between"
+            >
+              <span className="font-medium">Task History ({allTasks.length})</span>
+              <ChevronDown className={`h-5 w-5 transition-transform ${showTaskHistory ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showTaskHistory && (
+              <TaskHistoryPanel
+                tasks={allTasks}
+                onViewResults={handleViewTaskResults}
+                onCheckStatus={handleCheckTaskStatus}
+                onDeleteTask={handleDeleteTask}
+                loading={loading}
+              />
+            )}
           </div>
         )}
 

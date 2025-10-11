@@ -107,17 +107,23 @@ export const saveVizardClips = async (
 
 export const getClippedVideos = async (
   profileKey: string,
+  vizardProjectId?: string,
   options?: { status?: string; limit?: number }
 ): Promise<ClippedVideo[]> => {
   let query = supabase
     .from('clipped_videos')
     .select('*')
-    .eq('profile_key', profileKey)
-    .order('created_at', { ascending: false });
+    .eq('profile_key', profileKey);
+
+  if (vizardProjectId) {
+    query = query.eq('vizard_project_id', vizardProjectId);
+  }
 
   if (options?.status) {
     query = query.eq('status', options.status);
   }
+
+  query = query.order('created_at', { ascending: false });
 
   if (options?.limit) {
     query = query.limit(options.limit);
