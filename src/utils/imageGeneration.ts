@@ -32,7 +32,8 @@ export const generateImagesBackground = async (
   request: ImageGenerationRequest,
   profileKey: string,
   userId: string,
-  jobId: string
+  jobId: string,
+  inspirationImageUrl?: string
 ): Promise<void> => {
   try {
     await updateImageGenerationJob(jobId, { status: 'processing' });
@@ -74,11 +75,31 @@ export const generateImagesBackground = async (
 
     console.log('Extracted image URLs:', imageUrls);
 
+    if (imageUrls.length === 0) {
+      throw new Error('No valid image URLs received from generation service');
+    }
+
+    // Update the job record with generated images
     await updateImageGenerationJob(jobId, {
       status: 'completed',
       generated_images: imageUrls,
     });
+
+    // Import saveGeneratedImages dynamically to avoid circular dependency
+    const { saveGeneratedImages } = await import('./supabase');
+
+    // Save images to the generated_images table for display in gallery
+    await saveGeneratedImages({
+      user_id: userId,
+      profile_key: profileKey,
+      inspiration_image_url: inspirationImageUrl,
+      prompt: request.prompt,
+      generated_images: imageUrls,
+    });
+
+    console.log('Successfully saved generated images to database');
   } catch (error) {
+    console.error('Error in background image generation:', error);
     await updateImageGenerationJob(jobId, {
       status: 'failed',
       error_message: error instanceof Error ? error.message : 'Unknown error occurred',

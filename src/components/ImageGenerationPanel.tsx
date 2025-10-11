@@ -49,6 +49,70 @@ const ImageGenerationPanel: React.FC = () => {
     return () => stopPolling();
   }, [profileKey, activeJobs.length]);
 
+  // Realtime subscriptions for instant updates
+  useEffect(() => {
+    if (!profileKey || !user?.id) return;
+
+    const { supabase } = require('../utils/supabase');
+
+    // Subscribe to job updates
+    const jobsChannel = supabase
+      .channel(`jobs_${profileKey}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'image_generation_jobs',
+          filter: `profile_key=eq.${profileKey}`,
+        },
+        async (payload: any) => {
+          console.log('Job update received:', payload);
+
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const updatedJob = payload.new;
+
+            if (updatedJob.status === 'completed') {
+              setSuccess('Image generation completed!');
+              await loadGeneratedImages();
+              setTimeout(() => setSuccess(null), 5000);
+            } else if (updatedJob.status === 'failed') {
+              setError(`Image generation failed: ${updatedJob.error_message || 'Unknown error'}`);
+              setTimeout(() => setError(null), 5000);
+            }
+
+            await loadActiveJobs();
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to new generated images
+    const imagesChannel = supabase
+      .channel(`images_${profileKey}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'generated_images',
+          filter: `profile_key=eq.${profileKey}`,
+        },
+        async (payload: any) => {
+          console.log('New images received:', payload);
+          setSuccess('New images added to gallery!');
+          await loadGeneratedImages();
+          setTimeout(() => setSuccess(null), 3000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(jobsChannel);
+      supabase.removeChannel(imagesChannel);
+    };
+  }, [profileKey, user?.id]);
+
   const startPolling = () => {
     if (pollingIntervalRef.current) return;
 
@@ -77,9 +141,13 @@ const ImageGenerationPanel: React.FC = () => {
       const completedJobs = updatedJobs.filter(job => job.status === 'completed');
       const failedJobs = updatedJobs.filter(job => job.status === 'failed');
 
+      // Refresh generated images if there are any status changes
+      if (completedJobs.length > 0 || failedJobs.length > 0) {
+        await loadGeneratedImages();
+      }
+
       if (completedJobs.length > 0) {
         setSuccess(`${completedJobs.length} image generation${completedJobs.length > 1 ? 's' : ''} completed!`);
-        await loadGeneratedImages();
         setTimeout(() => setSuccess(null), 5000);
       }
 
@@ -180,7 +248,7 @@ const ImageGenerationPanel: React.FC = () => {
         prompt: prompt.trim(),
       };
 
-      generateImagesBackground(request, profileKey, user.id, job.id!).catch(err => {
+      generateImagesBackground(request, profileKey, user.id, job.id!, previewUrl || undefined).catch(err => {
         console.error('Background generation error:', err);
       });
 
