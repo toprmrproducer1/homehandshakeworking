@@ -138,17 +138,22 @@ const VideoClippingPanel: React.FC = () => {
       let uploadedVideoUrl = videoUrl;
 
       if (videoType === 1 && videoFile) {
-        setProcessingStatus('Uploading video to cloud storage...');
+        setProcessingStatus('Uploading video to cloud...');
+        setProcessingPercent(5);
 
-        // Upload large videos via webhook (bypasses Supabase 50MB limit)
+        // Upload video via webhook to get publicly accessible URL
         const webhookUrl = await uploadLargeVideoToBigWebhook(
           videoFile,
           (progress) => {
-            setProcessingPercent(progress * 0.2);
+            // Map upload progress to 5-20% of total
+            const mappedProgress = 5 + (progress * 0.15);
+            setProcessingPercent(mappedProgress);
+            setProcessingStatus(`Uploading video... ${Math.round(progress)}%`);
           }
         );
         uploadedVideoUrl = webhookUrl;
-        setProcessingStatus('Video uploaded successfully!');
+        setProcessingStatus('Upload complete, preparing for AI processing...');
+        setProcessingPercent(20);
       }
 
       if (!uploadedVideoUrl) {
@@ -170,12 +175,15 @@ const VideoClippingPanel: React.FC = () => {
         projectName: `Clip - ${new Date().toLocaleString()}`,
       };
 
+      // Send directly to Vizard for AI processing
       const clips = await uploadVideoToVizardAndWait(
         config,
         (status, percent) => {
           setProcessingStatus(status);
           if (percent !== undefined) {
-            setProcessingPercent(percent);
+            // Map Vizard progress (20-100% of total)
+            const mappedPercent = 20 + (percent * 0.8);
+            setProcessingPercent(mappedPercent);
           }
         }
       );

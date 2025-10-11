@@ -182,16 +182,18 @@ export const uploadVideoToVizardAndWait = async (
   onProgress?: (status: string, percent?: number) => void
 ): Promise<VizardClip[]> => {
   try {
-    if (onProgress) onProgress('Submitting video to Vizard...', 0);
+    if (onProgress) onProgress('Submitting video to Vizard...', 5);
 
     const projectId = await submitVideoToVizard(config);
 
-    if (onProgress) onProgress('Processing video...', 10);
+    if (onProgress) onProgress('Video submitted, processing...', 15);
 
     const clips = await pollVizardUntilComplete(
       projectId,
       (percent) => {
-        if (onProgress) onProgress(`Processing video... ${percent}%`, percent);
+        // Map Vizard's progress (0-100) to our range (15-95)
+        const mappedPercent = 15 + (percent * 0.8);
+        if (onProgress) onProgress(`AI analyzing and clipping video... ${Math.round(percent)}%`, mappedPercent);
       }
     );
 
