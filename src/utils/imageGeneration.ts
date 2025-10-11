@@ -56,7 +56,23 @@ export const generateImagesBackground = async (
     }
 
     const result = await response.json();
-    const imageUrls = result.map((item: any) => item.data);
+    console.log('Image generation webhook response:', result);
+
+    // Parse the nested structure: [{ data: [{ data: "url" }, ...] }]
+    let imageUrls: string[] = [];
+
+    if (Array.isArray(result) && result.length > 0) {
+      // Check if it's the nested format
+      if (result[0]?.data && Array.isArray(result[0].data)) {
+        // Extract URLs from nested structure
+        imageUrls = result[0].data.map((item: any) => item.data).filter(Boolean);
+      } else {
+        // Fallback to simple array format
+        imageUrls = result.map((item: any) => item.data).filter(Boolean);
+      }
+    }
+
+    console.log('Extracted image URLs:', imageUrls);
 
     await updateImageGenerationJob(jobId, {
       status: 'completed',
