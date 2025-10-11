@@ -44,10 +44,16 @@ const AnalyticsPanel: React.FC = () => {
   useEffect(() => {
     const connectedPlatforms = getConnectedPlatforms();
     if (connectedPlatforms.length > 0 && selectedPlatforms.length === 0) {
-      setSelectedPlatforms([connectedPlatforms[0]]);
-      loadAnalytics([connectedPlatforms[0]]);
+      const firstPlatform = connectedPlatforms[0];
+      setSelectedPlatforms([firstPlatform]);
+
+      if (profileKey) {
+        fetchSocialAnalytics(profileKey, [firstPlatform])
+          .then(data => setAnalytics(data))
+          .catch(err => setError(err instanceof Error ? err.message : 'Failed to load analytics'));
+      }
     }
-  }, [userProfile]);
+  }, [userProfile, profileKey]);
 
   const loadAnalytics = async (platforms?: string[]) => {
     const platformsToLoad = platforms || selectedPlatforms;
@@ -66,6 +72,8 @@ const AnalyticsPanel: React.FC = () => {
   };
 
   const handlePlatformToggle = async (platformId: string) => {
+    if (!profileKey) return;
+
     const isCurrentlySelected = selectedPlatforms.includes(platformId);
 
     let newSelectedPlatforms: string[];
@@ -76,11 +84,21 @@ const AnalyticsPanel: React.FC = () => {
     }
 
     setSelectedPlatforms(newSelectedPlatforms);
+    setLoading(true);
+    setError(null);
 
     if (newSelectedPlatforms.length > 0) {
-      await loadAnalytics(newSelectedPlatforms);
+      try {
+        const data = await fetchSocialAnalytics(profileKey, newSelectedPlatforms);
+        setAnalytics(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load analytics');
+      } finally {
+        setLoading(false);
+      }
     } else {
       setAnalytics(null);
+      setLoading(false);
     }
   };
 
@@ -178,7 +196,7 @@ const AnalyticsPanel: React.FC = () => {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Social Media Analytics</h2>
           </div>
           <button
-            onClick={loadAnalytics}
+            onClick={() => loadAnalytics()}
             disabled={loading || selectedPlatforms.length === 0}
             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
