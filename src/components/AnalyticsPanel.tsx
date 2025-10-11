@@ -41,6 +41,14 @@ const AnalyticsPanel: React.FC = () => {
       .filter((platform: string) => availablePlatforms.some(p => p.id === platform));
   };
 
+  useEffect(() => {
+    const connectedPlatforms = getConnectedPlatforms();
+    if (connectedPlatforms.length > 0 && selectedPlatforms.length === 0) {
+      setSelectedPlatforms([connectedPlatforms[0]]);
+      loadAnalytics([connectedPlatforms[0]]);
+    }
+  }, [userProfile]);
+
   const loadAnalytics = async (platforms?: string[]) => {
     const platformsToLoad = platforms || selectedPlatforms;
     if (!profileKey || platformsToLoad.length === 0) return;
@@ -59,9 +67,13 @@ const AnalyticsPanel: React.FC = () => {
 
   const handlePlatformToggle = async (platformId: string) => {
     const isCurrentlySelected = selectedPlatforms.includes(platformId);
-    const newSelectedPlatforms = isCurrentlySelected
-      ? selectedPlatforms.filter(id => id !== platformId)
-      : [...selectedPlatforms, platformId];
+
+    let newSelectedPlatforms: string[];
+    if (isCurrentlySelected) {
+      newSelectedPlatforms = selectedPlatforms.filter(id => id !== platformId);
+    } else {
+      newSelectedPlatforms = [platformId];
+    }
 
     setSelectedPlatforms(newSelectedPlatforms);
 
