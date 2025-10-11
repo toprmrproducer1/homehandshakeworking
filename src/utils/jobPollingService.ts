@@ -85,7 +85,7 @@ class JobPollingService {
 
           return {
             clipEditorUrl: video.clipEditorUrl || '',
-            relatedTopic: video.relatedTopic?.join(', ') || null,
+            relatedTopic: Array.isArray(video.relatedTopic) ? video.relatedTopic.join(', ') : (video.relatedTopic || null),
             title: video.title,
             transcript: video.transcript || null,
             videoId: video.videoId || index,

@@ -423,7 +423,7 @@ const VizardDebugPanel: React.FC = () => {
                         </div>
                       )}
 
-                      {video.relatedTopic && video.relatedTopic.length > 0 && (
+                      {video.relatedTopic && Array.isArray(video.relatedTopic) && video.relatedTopic.length > 0 && (
                         <div className="mb-3">
                           <div className="text-xs text-cyan-400 mb-1">Topics:</div>
                           <div className="flex flex-wrap gap-1">

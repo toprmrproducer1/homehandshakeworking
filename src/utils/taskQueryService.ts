@@ -80,7 +80,7 @@ export const queryTaskById = async (
     if (vizardResult.code === 2000 && vizardResult.videos && vizardResult.videos.length > 0) {
       const clips = vizardResult.videos.map((video, index) => ({
         clipEditorUrl: video.clipEditorUrl || '',
-        relatedTopic: video.relatedTopic?.join(', ') || null,
+        relatedTopic: Array.isArray(video.relatedTopic) ? video.relatedTopic.join(', ') : (video.relatedTopic || null),
         title: video.title,
         transcript: video.transcript || null,
         videoId: video.videoId || index,

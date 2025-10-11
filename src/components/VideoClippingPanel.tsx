@@ -37,7 +37,7 @@ import {
 } from '../utils/clippedVideosDb';
 import { validatePost, publishPost } from '../utils/ayrshare';
 import { uploadVideoForVizard } from '../utils/videoClipping';
-import { createClippingJob, getClippingJobs, deleteClippingJob, markJobCompleted, ClippingJob } from '../utils/clippingJobs';
+import { createClippingJob, getClippingJobs, deleteClippingJob, markJobCompleted, markJobFailed, ClippingJob } from '../utils/clippingJobs';
 import { queryTaskById } from '../utils/taskQueryService';
 import TaskIdDropdown from './TaskIdDropdown';
 import TaskHistoryPanel from './TaskHistoryPanel';
@@ -372,7 +372,7 @@ const VideoClippingPanel: React.FC = () => {
               console.log(`  Clip ${index + 1}:`, video.title);
               return {
                 clipEditorUrl: video.clipEditorUrl || '',
-                relatedTopic: video.relatedTopic?.join(', ') || null,
+                relatedTopic: Array.isArray(video.relatedTopic) ? video.relatedTopic.join(', ') : (video.relatedTopic || null),
                 title: video.title,
                 transcript: video.transcript || null,
                 videoId: video.videoId || index,
