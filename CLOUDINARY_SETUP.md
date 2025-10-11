@@ -1,91 +1,121 @@
-# Cloudinary Setup Guide
+# Cloudinary Setup - IMPORTANT!
 
-## What We've Implemented
+## URGENT: Complete This Setup Before Testing
 
-Your platform now uses **Cloudinary** for video uploads instead of Catbox. This provides:
-- Better reliability and performance
-- Professional CDN delivery
-- Automatic video optimization
-- Up to 100MB file uploads (free tier)
+The app is configured but **will not work** until you complete this 2-minute setup.
 
-## Upload Flow
+## Error You're Seeing
 
-1. **Small videos (< 50MB)**: Upload to Supabase Storage
-2. **Large videos (50-100MB)**: Upload to Cloudinary
-3. **Videos uploaded to Cloudinary** are then sent to Vizard for AI clipping
-
-## Required Setup
-
-To make Cloudinary work, you need to create an **unsigned upload preset**:
-
-### Step 1: Go to Cloudinary Settings
-1. Log in to your Cloudinary dashboard: https://cloudinary.com/console
-2. Go to **Settings** → **Upload**
-
-### Step 2: Create Upload Preset
-1. Scroll down to **Upload presets**
-2. Click **Add upload preset**
-3. Set the following:
-   - **Preset name**: `ml_default` (or choose your own name)
-   - **Signing Mode**: Select **Unsigned**
-   - **Folder**: `video-clips` (optional, but recommended for organization)
-   - **Resource type**: `Video`
-   - **Access mode**: `Public`
-
-4. Click **Save**
-
-### Step 3: Update Code (if you used a different preset name)
-If you didn't name your preset `ml_default`, update this file:
-
-**File**: `src/utils/cloudinary.ts`
-
-```typescript
-const CLOUDINARY_UPLOAD_PRESET = 'your-preset-name-here'; // Change this line
+```
+Cloudinary cloud name not configured
 ```
 
-## Environment Variables
+This happens because:
+1. Environment variables need a dev server restart
+2. You need to create an upload preset in Cloudinary
 
-Your `.env` file already has the Cloudinary credentials:
-- `VITE_CLOUDINARY_CLOUD_NAME=dptbywvgi`
-- `VITE_CLOUDINARY_API_KEY=296724783387131`
-- `VITE_CLOUDINARY_API_SECRET=2w1VUlwLX2m0VWryIxdTqxbQQzs`
+## Fix Steps
 
-## Testing
+### Step 1: Restart Dev Server (Required!)
 
-1. Try uploading a video file between 50-100MB
-2. Check the console logs - it should say "using cloud upload"
-3. Verify the video URL starts with `https://res.cloudinary.com/`
+**IMPORTANT**: After adding environment variables, you MUST restart the dev server.
+
+1. Stop the current dev server (if running)
+2. Restart it
+3. The app will now load the Cloudinary credentials
+
+### Step 2: Create Upload Preset (Required!)
+
+**Without this, uploads will fail with "preset not found"**
+
+1. Go to: https://cloudinary.com/console/settings/upload
+2. Log in with your account
+3. Scroll down to **"Upload presets"** section
+4. Click **"Add upload preset"**
+5. Configure exactly as follows:
+   - **Preset name**: `ml_default` (must be exact!)
+   - **Signing Mode**: Select **"Unsigned"** (critical!)
+   - **Folder**: `video-clips` (optional)
+   - **Resource type**: Leave as **"Auto"** or select **"Video"**
+   - **Access mode**: **"Public"**
+6. Click **"Save"**
+
+### Alternative: Use Signed Upload (Advanced)
+
+If you prefer not to use unsigned presets, you can implement signed uploads:
+
+1. Create a backend endpoint that generates signatures
+2. Update `src/utils/cloudinary.ts` to use signed uploads
+3. Pass the signature with each upload request
+
+## Verify Setup
+
+After completing both steps:
+
+1. Refresh your browser
+2. Upload a video file (50-100MB)
+3. Check browser console - should see progress logs
+4. Video should upload successfully to Cloudinary
+
+## Current Configuration
+
+Your `.env` file has:
+```
+VITE_CLOUDINARY_CLOUD_NAME=dptbywvgi
+VITE_CLOUDINARY_API_KEY=296724783387131
+VITE_CLOUDINARY_API_SECRET=2w1VUlwLX2m0VWryIxdTqxbQQzs
+```
+
+## How Video Upload Works
+
+1. **Files < 50MB**: Upload to Supabase Storage (instant, already working)
+2. **Files 50-100MB**: Upload to Cloudinary (needs setup above)
+3. **All videos**: Sent to Vizard API for AI clipping
 
 ## Troubleshooting
 
-### "Upload preset not found" error
-- Make sure you created the unsigned upload preset named `ml_default`
-- Check that the preset is set to **Unsigned** mode
+### "Cloudinary cloud name not configured"
+- ✅ **Solution**: Restart the dev server to load new environment variables
 
-### CORS errors
-- Unsigned presets should work from the browser
-- If you get CORS errors, double-check the preset settings
+### "Upload preset not found" or "Invalid preset"
+- ✅ **Solution**: Create the `ml_default` preset as unsigned (see Step 2)
+- Make sure it's named **exactly** `ml_default`
+- Make sure Signing Mode is **"Unsigned"**
 
-### File size limits
-- Free tier: 100MB per file
-- Paid plans: Higher limits available
-- Current max: 100MB (configurable in code)
+### "Access Denied" or CORS errors
+- ✅ **Solution**: Ensure preset is set to "Public" access mode
+- Unsigned presets should allow browser uploads
 
-## Upgrading File Size Limits
+### Still not working?
+1. Clear browser cache and reload
+2. Check browser console for specific error messages
+3. Verify preset name matches exactly: `ml_default`
+4. Confirm preset Signing Mode is "Unsigned"
 
-To increase the file size limit beyond 100MB:
+## Optional: Increase File Size Limit
 
-1. Upgrade your Cloudinary plan
-2. Update `MAX_CLOUDINARY_SIZE` in `src/utils/videoClipping.ts`:
+Current limit: 100MB (Cloudinary free tier)
+
+To increase:
+1. Upgrade Cloudinary plan for larger limits
+2. Update `src/utils/videoClipping.ts`:
    ```typescript
    const MAX_CLOUDINARY_SIZE = 200 * 1024 * 1024; // 200MB
    ```
 
-## Benefits Over Catbox
+## Benefits of Cloudinary
 
-- ✅ More reliable (enterprise-grade infrastructure)
-- ✅ Faster global CDN delivery
-- ✅ Automatic video optimization
-- ✅ Better error handling and retry logic
-- ✅ Progress tracking during uploads
-- ✅ Professional video transformations (if needed later)
+✅ Enterprise reliability (99.9% uptime)  
+✅ Global CDN for fast video delivery  
+✅ Automatic video optimization  
+✅ Better error handling  
+✅ Real-time upload progress  
+✅ Video transformations available  
+
+## Need Help?
+
+If you're still seeing errors after:
+1. Restarting dev server
+2. Creating the upload preset
+
+Check the browser console for detailed error messages and share them for further debugging.
