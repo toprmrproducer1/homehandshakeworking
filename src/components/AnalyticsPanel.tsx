@@ -13,16 +13,21 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  Youtube
+  Youtube,
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { fetchSocialAnalytics } from '../utils/ayrshare';
+import { generateSocialMediaInsights } from '../utils/openai';
 
 const AnalyticsPanel: React.FC = () => {
   const { profileKey, userProfile } = useUserContext();
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [platformInsights, setPlatformInsights] = useState<{ [key: string]: any }>({});
+  const [loadingInsights, setLoadingInsights] = useState<{ [key: string]: boolean }>({});
 
   const availablePlatforms = [
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'from-blue-500 to-blue-600' },
@@ -61,6 +66,24 @@ const AnalyticsPanel: React.FC = () => {
   useEffect(() => {
     loadAllAnalytics();
   }, [profileKey, userProfile]);
+
+  const loadInsightsForPlatform = async (platform: string) => {
+    if (!profileKey || !analytics?.[platform]) return;
+
+    setLoadingInsights(prev => ({ ...prev, [platform]: true }));
+
+    try {
+      const result = await generateSocialMediaInsights(
+        analytics[platform].analytics,
+        availablePlatforms.find(p => p.id === platform)?.name || platform
+      );
+      setPlatformInsights(prev => ({ ...prev, [platform]: result }));
+    } catch (err) {
+      console.error(`Failed to generate insights for ${platform}:`, err);
+    } finally {
+      setLoadingInsights(prev => ({ ...prev, [platform]: false }));
+    }
+  };
 
   const formatNumber = (num: number | string) => {
     const n = typeof num === 'string' ? parseInt(num) : num;
@@ -202,6 +225,8 @@ const AnalyticsPanel: React.FC = () => {
 
             const metrics = analytics ? getPlatformMetrics(platformId, analytics) : null;
             const PlatformIcon = platform.icon;
+            const insights = platformInsights[platformId];
+            const isLoadingInsights = loadingInsights[platformId];
 
             return (
               <div
@@ -224,26 +249,75 @@ const AnalyticsPanel: React.FC = () => {
                       )}
                     </div>
                   </div>
+                  {!insights && (
+                    <button
+                      onClick={() => loadInsightsForPlatform(platformId)}
+                      disabled={isLoadingInsights}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all duration-200 disabled:opacity-50"
+                    >
+                      {isLoadingInsights ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          <span>Generate AI Insights</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 {/* Metrics Grid */}
                 {metrics && metrics.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {metrics.map((metric, index) => {
-                      const Icon = metric.icon;
-                      return (
-                        <div
-                          key={index}
-                          className="bg-black/30 rounded-xl p-5 text-center border border-purple-500/10 hover:border-purple-500/30 transition-all"
-                        >
-                          <Icon className="h-7 w-7 text-purple-400 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {metric.value}
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {metrics.map((metric, index) => {
+                        const Icon = metric.icon;
+                        return (
+                          <div
+                            key={index}
+                            className="bg-black/30 rounded-xl p-5 text-center border border-purple-500/10 hover:border-purple-500/30 transition-all"
+                          >
+                            <Icon className="h-7 w-7 text-purple-400 mx-auto mb-2" />
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {metric.value}
+                            </div>
+                            <div className="text-xs text-gray-400">{metric.label}</div>
                           </div>
-                          <div className="text-xs text-gray-400">{metric.label}</div>
+                        );
+                      })}
+                    </div>
+
+                    {insights && (
+                      <div className="mt-6 bg-blue-900/10 rounded-xl p-6 border border-blue-500/30">
+                        <div className="flex items-start space-x-3 mb-4">
+                          <Sparkles className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-semibold text-white mb-2">AI-Powered Insights</h4>
+                            <p className="text-sm text-gray-300">{insights.insights}</p>
+                          </div>
                         </div>
-                      );
-                    })}
+                        {insights.recommendations && insights.recommendations.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-blue-500/20">
+                            <h5 className="font-medium text-white mb-3 flex items-center space-x-2">
+                              <TrendingUp className="h-4 w-4 text-green-400" />
+                              <span>Recommendations</span>
+                            </h5>
+                            <ul className="space-y-2">
+                              {insights.recommendations.map((rec: string, idx: number) => (
+                                <li key={idx} className="text-sm text-gray-300 flex items-start space-x-2">
+                                  <span className="text-green-400 mt-0.5">•</span>
+                                  <span>{rec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">

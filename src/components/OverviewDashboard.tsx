@@ -17,20 +17,23 @@ import {
 import { useUserContext } from '../contexts/UserContext';
 import { fetchSocialAnalytics, normalizeAnalytics } from '../utils/ayrshare';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
+import { fetchEngagementHistory, syncEngagementData, getEngagementChartData, fillMissingDates } from '../utils/engagementTracking';
 
 const OverviewDashboard: React.FC = () => {
   const { profileKey, userProfile, loading: profileLoading, refetchProfile } = useUserContext();
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedTimeframe, setSelectedTimeframe] = useState('1 Day');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('7 Days');
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date());
+  const [engagementData, setEngagementData] = useState<any[]>([]);
 
   useEffect(() => {
     if (profileKey && userProfile?.displayNames && userProfile.displayNames.length > 0) {
       loadAnalytics();
+      loadEngagementData();
     }
-  }, [profileKey, userProfile]);
+  }, [profileKey, userProfile, selectedTimeframe]);
 
   const loadAnalytics = async () => {
     if (!profileKey || !userProfile?.displayNames || userProfile.displayNames.length === 0) return;
@@ -48,12 +51,41 @@ const OverviewDashboard: React.FC = () => {
       if (platforms.length > 0) {
         const data = await fetchSocialAnalytics(profileKey, platforms);
         setAnalytics(data);
+
+        await syncEngagementData(profileKey, platforms);
       }
     } catch (err) {
       console.error('Error loading analytics:', err);
       setAnalytics(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEngagementData = async () => {
+    if (!profileKey || !userProfile?.displayNames || userProfile.displayNames.length === 0) return;
+
+    try {
+      const platforms = userProfile.displayNames
+        .map((account: any) => {
+          const platform = account.platform.toLowerCase();
+          if (platform === 'x/twitter' || platform === 'x') return 'twitter';
+          return platform;
+        })
+        .filter((platform: string) => platform);
+
+      const days = selectedTimeframe === '1 Day' ? 1 :
+                   selectedTimeframe === '7 Days' ? 7 :
+                   selectedTimeframe === '30 Days' ? 30 : 90;
+
+      const history = await fetchEngagementHistory(profileKey, platforms, days);
+      const chartData = getEngagementChartData(history, platforms);
+      const filledData = fillMissingDates(chartData, Math.min(days, 11), platforms);
+
+      setEngagementData(filledData);
+    } catch (err) {
+      console.error('Error loading engagement data:', err);
+      setEngagementData([]);
     }
   };
 
@@ -76,25 +108,13 @@ const OverviewDashboard: React.FC = () => {
     return num.toString();
   };
 
-  const engagementData = [
-    { day: '02', instagram: 12000, youtube: 9000, twitter: 8000 },
-    { day: '13', instagram: 14000, youtube: 10000, twitter: 9000 },
-    { day: '14', instagram: 13000, youtube: 9500, twitter: 8500 },
-    { day: '15', instagram: 11000, youtube: 8000, twitter: 7500 },
-    { day: '16', instagram: 9000, youtube: 7000, twitter: 6500 },
-    { day: '17', instagram: 10000, youtube: 8500, twitter: 7000 },
-    { day: '18', instagram: 12000, youtube: 9500, twitter: 8500 },
-    { day: '19', instagram: 11500, youtube: 9000, twitter: 8000 },
-    { day: '20', instagram: 13500, youtube: 11000, twitter: 9500 },
-    { day: '21', instagram: 15000, youtube: 12000, twitter: 10000 },
-    { day: '22', instagram: 14000, youtube: 11500, twitter: 9800 },
-  ];
 
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await refetchProfile();
     await loadAnalytics();
+    await loadEngagementData();
     setLastRefreshTime(new Date());
     setTimeout(() => setRefreshing(false), 1000);
   };
@@ -304,24 +324,41 @@ const OverviewDashboard: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={engagementData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-              <XAxis dataKey="day" stroke="#9ca3af" fontSize={12} />
-              <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(value) => `${value / 1000}k`} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1f2937',
-                  border: '1px solid #4b5563',
-                  borderRadius: '8px',
-                  color: '#fff'
-                }}
-              />
-              <Line type="monotone" dataKey="instagram" stroke="#3b82f6" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="youtube" stroke="#6b7280" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="twitter" stroke="#6b7280" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          {engagementData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={engagementData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
+                <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1f2937',
+                    border: '1px solid #4b5563',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                {getConnectedAccounts().map((account: any, index: number) => {
+                  const platformId = account.platform.toLowerCase() === 'x/twitter' || account.platform.toLowerCase() === 'x' ? 'twitter' : account.platform.toLowerCase();
+                  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+                  return (
+                    <Line
+                      key={platformId}
+                      type="monotone"
+                      dataKey={platformId}
+                      stroke={colors[index % colors.length]}
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-gray-500">
+              <p>Loading engagement data...</p>
+            </div>
+          )}
         </div>
       </div>
 

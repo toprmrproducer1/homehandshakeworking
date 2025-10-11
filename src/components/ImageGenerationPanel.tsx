@@ -5,6 +5,7 @@ import { useUserContext } from '../contexts/UserContext';
 import { generateImages, generateImagesBackground, getSupportedImageFormats, ImageGenerationRequest } from '../utils/imageGeneration';
 import { saveGeneratedImages, getGeneratedImages, deleteGeneratedImage, GeneratedImage } from '../utils/supabase';
 import { createImageGenerationJob, getActiveJobs, pollJobStatus, deleteImageGenerationJob, ImageGenerationJob } from '../utils/imageGenerationJobs';
+import { enhanceImagePrompt } from '../utils/openai';
 
 const ImageGenerationPanel: React.FC = () => {
   const { user } = useUser();
@@ -19,6 +20,9 @@ const ImageGenerationPanel: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [activeJobs, setActiveJobs] = useState<ImageGenerationJob[]>([]);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [enhancing, setEnhancing] = useState(false);
+  const [showOriginalPrompt, setShowOriginalPrompt] = useState(false);
+  const [originalPrompt, setOriginalPrompt] = useState<string>('');
 
   const supportedFormats = getSupportedImageFormats();
 
@@ -205,6 +209,35 @@ const ImageGenerationPanel: React.FC = () => {
     });
   };
 
+  const handleEnhancePrompt = async () => {
+    if (!prompt.trim()) {
+      setError('Please enter a prompt first');
+      return;
+    }
+
+    setEnhancing(true);
+    setError(null);
+
+    try {
+      const result = await enhanceImagePrompt(prompt.trim());
+      setOriginalPrompt(prompt);
+      setPrompt(result.enhancedPrompt);
+      setShowOriginalPrompt(true);
+      setSuccess('Prompt enhanced with AI! Review and edit as needed.');
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to enhance prompt');
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
+  const restoreOriginalPrompt = () => {
+    setPrompt(originalPrompt);
+    setShowOriginalPrompt(false);
+    setOriginalPrompt('');
+  };
+
   return (
     <div className="space-y-8 font-inter">
       {/* Generation Form */}
@@ -267,17 +300,65 @@ const ImageGenerationPanel: React.FC = () => {
 
             {/* Prompt Input */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-purple-200 mb-2">
-                Creative Prompt
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-purple-200">
+                  Creative Prompt
+                </label>
+                <div className="flex items-center space-x-2">
+                  {showOriginalPrompt && (
+                    <button
+                      type="button"
+                      onClick={restoreOriginalPrompt}
+                      className="text-xs text-purple-400 hover:text-purple-300 transition-colors flex items-center space-x-1"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      <span>Restore Original</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleEnhancePrompt}
+                    disabled={enhancing || !prompt.trim()}
+                    className="flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {enhancing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Enhancing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        <span>Enhance with AI</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
               <textarea
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                  if (showOriginalPrompt) {
+                    setShowOriginalPrompt(false);
+                  }
+                }}
                 placeholder="Describe the style, mood, colors, or artistic modifications you want for your generated images..."
                 className="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-xl text-white placeholder-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-colors resize-none"
                 rows={4}
                 required
               />
+              {showOriginalPrompt && originalPrompt && (
+                <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <Sparkles className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-blue-300 mb-1">Original Prompt:</p>
+                      <p className="text-sm text-blue-200 italic">{originalPrompt}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="text-right text-sm text-purple-300 mt-1">
                 {prompt.length} characters
               </div>

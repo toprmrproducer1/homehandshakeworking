@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { fetchPostHistory } from '../utils/ayrshare';
+import { fetchComments, getAllCommentsForPlatform, formatCommentDate, sortCommentsByDate, Comment } from '../utils/comments';
 
 const PostHistoryPanel: React.FC = () => {
   const { profileKey, userProfile } = useUserContext();
@@ -23,6 +24,9 @@ const PostHistoryPanel: React.FC = () => {
   const [postHistory, setPostHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedPost, setExpandedPost] = useState<string | null>(null);
+  const [postComments, setPostComments] = useState<{ [key: string]: Comment[] }>({});
+  const [loadingComments, setLoadingComments] = useState<{ [key: string]: boolean }>({});
 
   const availablePlatforms = [
     { id: 'facebook', name: 'Facebook', color: 'from-blue-500 to-blue-600' },
@@ -141,7 +145,6 @@ const PostHistoryPanel: React.FC = () => {
   };
 
   const getMediaPreview = (post: any, platform: string) => {
-    // Handle different media structures per platform
     if (platform === 'facebook' && post.fullPicture) {
       return post.fullPicture;
     }
@@ -158,6 +161,39 @@ const PostHistoryPanel: React.FC = () => {
       return post.thumbnailUrl;
     }
     return null;
+  };
+
+  const loadCommentsForPost = async (postId: string, platform: string) => {
+    if (!profileKey) return;
+
+    setLoadingComments(prev => ({ ...prev, [postId]: true }));
+
+    try {
+      const response = await fetchComments(profileKey, postId, {
+        searchPlatformId: true,
+        platform: platform,
+      });
+
+      const comments = getAllCommentsForPlatform(response, platform);
+      const sorted = sortCommentsByDate(comments, false);
+      setPostComments(prev => ({ ...prev, [postId]: sorted }));
+    } catch (err) {
+      console.error('Failed to load comments:', err);
+      setPostComments(prev => ({ ...prev, [postId]: [] }));
+    } finally {
+      setLoadingComments(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const togglePostComments = (postId: string, platform: string) => {
+    if (expandedPost === postId) {
+      setExpandedPost(null);
+    } else {
+      setExpandedPost(postId);
+      if (!postComments[postId]) {
+        loadCommentsForPost(postId, platform);
+      }
+    }
   };
 
   const connectedPlatforms = getConnectedPlatforms();
@@ -358,6 +394,72 @@ const PostHistoryPanel: React.FC = () => {
                           </p>
                         </div>
                       )}
+
+                      {/* View Comments Button */}
+                      <div className="mt-4 pt-4 border-t border-purple-500/20">
+                        <button
+                          onClick={() => togglePostComments(post.id, selectedPlatform)}
+                          className="flex items-center space-x-2 text-sm text-purple-400 hover:text-purple-300 transition-colors"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          <span>
+                            {expandedPost === post.id ? 'Hide' : 'View'} Comments
+                            {post.commentsCount !== undefined && ` (${post.commentsCount})`}
+                          </span>
+                          {loadingComments[post.id] && <RefreshCw className="h-3 w-3 animate-spin" />}
+                        </button>
+
+                        {/* Comments Section */}
+                        {expandedPost === post.id && postComments[post.id] && (
+                          <div className="mt-4 space-y-3 max-h-96 overflow-y-auto">
+                            {postComments[post.id].length > 0 ? (
+                              postComments[post.id].map((comment, commentIndex) => (
+                                <div key={commentIndex} className="bg-purple-900/10 rounded-lg p-4 border border-purple-500/20">
+                                  <div className="flex items-start space-x-3">
+                                    <User className="h-8 w-8 text-purple-400 bg-purple-900/30 rounded-full p-1.5 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <span className="text-sm font-medium text-white">
+                                          {comment.from?.name || comment.userName || 'Anonymous'}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {formatCommentDate(comment.created)}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-300">{comment.comment}</p>
+                                      {comment.likeCount !== undefined && comment.likeCount > 0 && (
+                                        <div className="flex items-center space-x-1 mt-2 text-xs text-gray-400">
+                                          <Heart className="h-3 w-3" />
+                                          <span>{comment.likeCount} likes</span>
+                                        </div>
+                                      )}
+                                      {comment.replies && comment.replies.length > 0 && (
+                                        <div className="mt-3 ml-4 space-y-2">
+                                          {comment.replies.map((reply: Comment, replyIndex: number) => (
+                                            <div key={replyIndex} className="bg-purple-900/20 rounded-lg p-3 border border-purple-500/10">
+                                              <div className="flex items-center space-x-2 mb-1">
+                                                <span className="text-xs font-medium text-white">
+                                                  {reply.from?.name || reply.userName || 'Anonymous'}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                  {formatCommentDate(reply.created)}
+                                                </span>
+                                              </div>
+                                              <p className="text-xs text-gray-300">{reply.comment}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-gray-500 text-center py-4">No comments yet</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
