@@ -58,7 +58,8 @@ const AnalyticsPanel: React.FC = () => {
   };
 
   const handlePlatformToggle = async (platformId: string) => {
-    const newSelectedPlatforms = selectedPlatforms.includes(platformId)
+    const isCurrentlySelected = selectedPlatforms.includes(platformId);
+    const newSelectedPlatforms = isCurrentlySelected
       ? selectedPlatforms.filter(id => id !== platformId)
       : [...selectedPlatforms, platformId];
 

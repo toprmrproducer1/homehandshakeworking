@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { validatePost, publishPost, uploadMediaFile } from '../utils/ayrshare';
-import { uploadToCatboxWithFallback, shouldUseCatbox, formatFileSize } from '../utils/catbox';
+import { uploadLargeVideoToBigWebhook } from '../utils/videoClipping';
 
 interface PlatformOptions {
   [key: string]: any;
@@ -201,18 +201,30 @@ const PostingPanel: React.FC = () => {
       setError(null);
 
       const isVideo = validVideoTypes.includes(file.type);
-      const useCatbox = isVideo && shouldUseCatbox(file);
+      const MAX_SIZE_30MB = 30 * 1024 * 1024;
+      const MAX_SIZE_200MB = 200 * 1024 * 1024;
+      const useBigWebhook = isVideo && file.size > MAX_SIZE_30MB;
 
-      if (useCatbox) {
-        console.log(`File size ${formatFileSize(file.size)} exceeds 30MB, using Catbox.moe`);
-        setUploadProgress(prev => ({ ...prev, [index]: 25 }));
+      if (useBigWebhook) {
+        if (file.size > MAX_SIZE_200MB) {
+          setError(`Video file is too large (${formatFileSize(file.size)}). Maximum size is 200MB.`);
+          setUploadingFiles(prev => {
+            const newState = { ...prev };
+            delete newState[index];
+            return newState;
+          });
+          return;
+        }
 
-        const catboxUrl = await uploadToCatboxWithFallback(file, (progress) => {
+        console.log(`File size ${formatFileSize(file.size)} exceeds 30MB, using big video webhook`);
+        setUploadProgress(prev => ({ ...prev, [index]: 10 }));
+
+        const webhookUrl = await uploadLargeVideoToBigWebhook(file, (progress) => {
           setUploadProgress(prev => ({ ...prev, [index]: progress }));
         });
 
-        console.log('Catbox upload successful:', catboxUrl);
-        updateMediaUrl(index, catboxUrl);
+        console.log('Big video webhook upload successful:', webhookUrl);
+        updateMediaUrl(index, webhookUrl);
       } else {
         setUploadProgress(prev => ({ ...prev, [index]: 50 }));
 
@@ -250,6 +262,13 @@ const PostingPanel: React.FC = () => {
         return newState;
       });
     }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const addTag = (platform: string) => {
@@ -1165,7 +1184,7 @@ const PostingPanel: React.FC = () => {
               Upload files or paste URLs. Uploaded files are stored for 90 days.
             </p>
             <p className="text-xs text-blue-300 mt-1">
-              Videos over 30MB will be automatically uploaded to Catbox.moe for compatibility with all platforms.
+              Videos over 30MB (up to 200MB) will be automatically processed through our big video webhook for compatibility with all platforms.
             </p>
           </div>
 

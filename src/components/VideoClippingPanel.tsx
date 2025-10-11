@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Upload, 
-  Video, 
-  Link, 
-  FileVideo, 
-  Play, 
+import {
+  Upload,
+  Video,
+  Link,
+  FileVideo,
+  Play,
   Download,
   RefreshCw,
   AlertCircle,
@@ -12,15 +12,19 @@ import {
   Clock,
   Copy,
   Send,
-  ExternalLink
+  ExternalLink,
+  TrendingUp,
+  Edit
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
-import { 
-  uploadVideoForClipping, 
-  fetchClippedVideos, 
-  getVideoTypeOptions, 
+import {
+  uploadVideoForClipping,
+  fetchClippedVideos,
+  getVideoTypeOptions,
   getSupportedVideoExtensions,
-  VideoClipRequest 
+  VideoClipRequest,
+  ClippedVideoResponse,
+  uploadLargeVideoToBigWebhook
 } from '../utils/videoClipping';
 import { validatePost, publishPost } from '../utils/ayrshare';
 
@@ -31,19 +35,20 @@ const VideoClippingPanel: React.FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [ext, setExt] = useState('mp4');
   const [uploading, setUploading] = useState(false);
-  const [clippedVideos, setClippedVideos] = useState<any[]>([]);
+  const [clippedVideos, setClippedVideos] = useState<ClippedVideoResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedVideoForPost, setSelectedVideoForPost] = useState<any>(null);
+  const [selectedVideoForPost, setSelectedVideoForPost] = useState<ClippedVideoResponse | null>(null);
   const [showPostModal, setShowPostModal] = useState(false);
   const [postText, setPostText] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [validating, setValidating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [validationResult, setValidationResult] = useState<any>(null);
-  const [uploadingToCatbox, setUploadingToCatbox] = useState(false);
-  const [catboxUrls, setCatboxUrls] = useState<{[key: string]: string}>({});
+  const [uploadingToWebhook, setUploadingToWebhook] = useState(false);
+  const [webhookUrls, setWebhookUrls] = useState<{[key: string]: string}>({});
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const videoTypeOptions = getVideoTypeOptions();
   const supportedExtensions = getSupportedVideoExtensions();
@@ -56,12 +61,11 @@ const VideoClippingPanel: React.FC = () => {
 
   const loadClippedVideos = async () => {
     if (!profileKey) return;
-    
+
     try {
       setLoading(true);
       setError(null);
       const response = await fetchClippedVideos(profileKey);
-      // Handle the array response from webhook
       setClippedVideos(Array.isArray(response) ? response : response.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load clipped videos');
@@ -104,15 +108,19 @@ const VideoClippingPanel: React.FC = () => {
         videoFile: videoType === 1 ? videoFile : undefined,
       };
 
-      await uploadVideoForClipping(request, profileKey);
-      setSuccess('Video uploaded successfully for clipping!');
-      
-      // Reset form
+      const result = await uploadVideoForClipping(request, profileKey);
+
+      if (result && result.length > 0) {
+        setClippedVideos(prev => [...result, ...prev]);
+        setSuccess(`Video processing complete! Generated ${result.length} clip${result.length > 1 ? 's' : ''}.`);
+      } else {
+        setSuccess('Video uploaded successfully for clipping!');
+      }
+
       setVideoUrl('');
       setVideoFile(null);
       setExt('mp4');
-      
-      // Reload clipped videos after a short delay
+
       setTimeout(() => {
         loadClippedVideos();
       }, 2000);
@@ -123,54 +131,46 @@ const VideoClippingPanel: React.FC = () => {
     }
   };
 
-  const uploadToCatbox = async (video: any) => {
-    if (!video.mediaLink) return;
+  const uploadToWebhook = async (video: ClippedVideoResponse) => {
+    if (!video.videoUrl) return;
 
     try {
-      setUploadingToCatbox(true);
+      setUploadingToWebhook(true);
       setError(null);
-      
-      // Download the video file as binary
-      const response = await fetch(video.mediaLink);
+      setUploadProgress(0);
+
+      const response = await fetch(video.videoUrl);
       if (!response.ok) {
         throw new Error(`Failed to download video: ${response.statusText}`);
       }
-      
+
+      setUploadProgress(30);
+
       const blob = await response.blob();
-      
-      // Send binary file directly to catbox webhook
-      const formData = new FormData();
-      formData.append('file', blob, `video_${video.id || Date.now()}.mp4`);
-      
-      const catboxResponse = await fetch('https://primary-production-99d7.up.railway.app/webhook/4c77217c-5bef-47e7-9db2-c7277456dc34', {
-        method: 'POST',
-        body: formData,
+      const file = new File([blob], `video_${video.videoId || Date.now()}.mp4`, { type: 'video/mp4' });
+
+      setUploadProgress(50);
+
+      const webhookUrl = await uploadLargeVideoToBigWebhook(file, (progress) => {
+        setUploadProgress(50 + (progress / 2));
       });
-      
-      if (!catboxResponse.ok) {
-        throw new Error(`Catbox upload failed: ${catboxResponse.statusText}`);
-      }
-      
-      // Get the catbox URL from webhook response
-      const result = await catboxResponse.json();
-      const catboxUrl = result.data;
-      
-      if (!catboxUrl || !catboxUrl.startsWith('http')) {
-        throw new Error('Invalid catbox URL received from webhook');
-      }
-      
-      // Store the catbox URL for this video
-      setCatboxUrls(prev => ({
+
+      const videoKey = video.videoId?.toString() || video.videoUrl;
+      setWebhookUrls(prev => ({
         ...prev,
-        [video.id || video.mediaLink]: catboxUrl
+        [videoKey]: webhookUrl
       }));
-      
-      setSuccess(`Video successfully uploaded to catbox.moe!`);
+
+      setSuccess('Video successfully uploaded to big video webhook!');
+      setUploadProgress(100);
+
+      setTimeout(() => setUploadProgress(0), 2000);
     } catch (err) {
-      console.error('Catbox upload error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload video to catbox.moe');
+      console.error('Webhook upload error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload video to webhook');
+      setUploadProgress(0);
     } finally {
-      setUploadingToCatbox(false);
+      setUploadingToWebhook(false);
     }
   };
 
@@ -184,10 +184,10 @@ const VideoClippingPanel: React.FC = () => {
     }
   };
 
-  const openPostModal = (video: any) => {
+  const openPostModal = (video: ClippedVideoResponse) => {
     setSelectedVideoForPost(video);
     setShowPostModal(true);
-    setPostText(`Check out this amazing video! 🎥✨\n\n#video #content #social`);
+    setPostText(video.title ? `${video.title}\n\n#video #content #social` : 'Check out this amazing video! 🎥✨\n\n#video #content #social');
     setSelectedPlatforms([]);
     setValidationResult(null);
   };
@@ -201,12 +201,16 @@ const VideoClippingPanel: React.FC = () => {
   };
 
   const handleValidatePost = async () => {
-    if (!profileKey || !postText.trim() || selectedPlatforms.length === 0) return;
+    if (!profileKey || !postText.trim() || selectedPlatforms.length === 0 || !selectedVideoForPost) return;
 
     try {
       setValidating(true);
       setError(null);
-      const result = await validatePost(profileKey, postText, selectedPlatforms, [selectedVideoForPost.mediaLink]);
+
+      const videoKey = selectedVideoForPost.videoId?.toString() || selectedVideoForPost.videoUrl;
+      const mediaUrl = webhookUrls[videoKey] || selectedVideoForPost.videoUrl;
+
+      const result = await validatePost(profileKey, postText, selectedPlatforms, [mediaUrl]);
       setValidationResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Validation failed');
@@ -216,16 +220,15 @@ const VideoClippingPanel: React.FC = () => {
   };
 
   const handlePublishPost = async () => {
-    if (!profileKey || !postText.trim() || selectedPlatforms.length === 0) return;
+    if (!profileKey || !postText.trim() || selectedPlatforms.length === 0 || !selectedVideoForPost) return;
 
     try {
       setPublishing(true);
       setError(null);
-      
-      // Use catbox URL if available, otherwise use original media link
-      const videoId = selectedVideoForPost.id || selectedVideoForPost.mediaLink;
-      const mediaUrl = catboxUrls[videoId] || selectedVideoForPost.mediaLink;
-      
+
+      const videoKey = selectedVideoForPost.videoId?.toString() || selectedVideoForPost.videoUrl;
+      const mediaUrl = webhookUrls[videoKey] || selectedVideoForPost.videoUrl;
+
       const result = await publishPost(profileKey, postText, selectedPlatforms, [mediaUrl]);
       setSuccess('Post published successfully!');
       closePostModal();
@@ -236,15 +239,16 @@ const VideoClippingPanel: React.FC = () => {
     }
   };
 
-  const formatFileSize = (bytes: string | number) => {
-    const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
-    if (size >= 1024 * 1024) {
-      return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-    }
-    return `${(size / 1024).toFixed(1)} KB`;
+  const formatDuration = (ms?: number) => {
+    if (!ms) return 'Unknown';
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -254,8 +258,8 @@ const VideoClippingPanel: React.FC = () => {
     });
   };
 
-  const getVideoName = (video: any, index: number) => {
-    return video.name || `Clipped Video ${index + 1}`;
+  const getVideoName = (video: ClippedVideoResponse, index: number) => {
+    return video.title || `Clipped Video ${index + 1}`;
   };
 
   const selectedOption = videoTypeOptions.find(option => option.value === videoType);
@@ -263,7 +267,6 @@ const VideoClippingPanel: React.FC = () => {
   return (
     <>
       <div className="space-y-8">
-        {/* Upload Form */}
         <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="flex items-center space-x-3 mb-6">
             <div className="bg-gradient-to-r from-purple-500 to-purple-700 p-2 rounded-xl">
@@ -273,7 +276,6 @@ const VideoClippingPanel: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Video Type Selection */}
             <div>
               <label className="block text-sm font-medium text-purple-200 mb-2">
                 Video Source Type
@@ -291,7 +293,6 @@ const VideoClippingPanel: React.FC = () => {
               </select>
             </div>
 
-            {/* File Upload for videoType 1 */}
             {videoType === 1 && (
               <div className="space-y-4">
                 <div>
@@ -317,27 +318,9 @@ const VideoClippingPanel: React.FC = () => {
                     </label>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    File Extension
-                  </label>
-                  <select
-                    value={ext}
-                    onChange={(e) => setExt(e.target.value)}
-                    className="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-colors"
-                  >
-                    {supportedExtensions.map((extension) => (
-                      <option key={extension} value={extension}>
-                        {extension}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
             )}
 
-            {/* URL Input for other types */}
             {videoType !== 1 && (
               <div>
                 <label className="block text-sm font-medium text-purple-200 mb-2">
@@ -357,7 +340,6 @@ const VideoClippingPanel: React.FC = () => {
               </div>
             )}
 
-            {/* Error/Success Messages */}
             {error && (
               <div className="flex items-center space-x-2 p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
                 <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
@@ -372,7 +354,6 @@ const VideoClippingPanel: React.FC = () => {
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={uploading || !profileKey || (videoType === 1 && !videoFile) || (videoType !== 1 && !videoUrl)}
@@ -381,7 +362,7 @@ const VideoClippingPanel: React.FC = () => {
               {uploading ? (
                 <>
                   <RefreshCw className="h-5 w-5 animate-spin" />
-                  <span>Uploading...</span>
+                  <span>Processing...</span>
                 </>
               ) : (
                 <>
@@ -393,7 +374,6 @@ const VideoClippingPanel: React.FC = () => {
           </form>
         </div>
 
-        {/* Clipped Videos */}
         <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
@@ -420,65 +400,65 @@ const VideoClippingPanel: React.FC = () => {
           ) : clippedVideos.length > 0 ? (
             <div className="grid gap-6">
               {clippedVideos.map((video, index) => (
-                <div key={video.id || index} className="bg-purple-900/10 rounded-xl p-6 hover:bg-purple-800/20 transition-colors border border-purple-500/20">
-                  {/* Vertical Layout */}
+                <div key={video.videoId || index} className="bg-purple-900/10 rounded-xl p-6 hover:bg-purple-800/20 transition-colors border border-purple-500/20">
                   <div className="space-y-4">
-                    {/* Video Preview */}
                     <div className="w-full">
                       <div className="relative bg-black rounded-lg overflow-hidden max-w-xs mx-auto" style={{ aspectRatio: '9/16' }}>
                         <video
-                          src={video.mediaLink}
+                          src={video.videoUrl}
                           controls
                           className="w-full h-full object-cover"
                           preload="metadata"
                         >
                           Your browser does not support the video tag.
                         </video>
-                        <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                          {video.contentType}
-                        </div>
+                        {video.videoMsDuration && (
+                          <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                            {formatDuration(video.videoMsDuration)}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Video Details */}
                     <div className="text-center">
                       <div className="flex items-center justify-center space-x-2 mb-3">
                         <CheckCircle className="h-5 w-5 text-green-500" />
                         <span className="text-sm text-green-600 font-medium">Ready</span>
+                        {video.viralScore && (
+                          <div className="flex items-center space-x-1 ml-4">
+                            <TrendingUp className="h-4 w-4 text-yellow-500" />
+                            <span className="text-sm text-yellow-600 font-medium">Viral Score: {video.viralScore}/10</span>
+                          </div>
+                        )}
                       </div>
-                      
+
                       <h3 className="font-semibold text-white text-lg mb-2">
                         {getVideoName(video, index)}
                       </h3>
-                      
-                      <div className="grid grid-cols-2 gap-4 text-sm text-purple-200 mb-4">
-                        <div>
-                          <span className="font-medium">Created:</span>
-                          <br />
-                          {formatDate(video.timeCreated)}
-                        </div>
-                        <div>
-                          <span className="font-medium">Size:</span>
-                          <br />
-                          {formatFileSize(video.size)}
-                        </div>
-                        <div>
-                          <span className="font-medium">Type:</span>
-                          <br />
-                          {video.contentType}
-                        </div>
-                        <div>
-                          <span className="font-medium">Storage:</span>
-                          <br />
-                          {video.storageClass}
-                        </div>
-                      </div>
 
-                      {/* Action Buttons */}
+                      {video.viralReason && (
+                        <p className="text-sm text-purple-300 mb-3 italic">
+                          {video.viralReason}
+                        </p>
+                      )}
+
+                      {video.relatedTopic && (
+                        <div className="text-sm text-purple-200 mb-2">
+                          <span className="font-medium">Topic:</span> {video.relatedTopic}
+                        </div>
+                      )}
+
+                      {video.transcript && (
+                        <details className="text-sm text-purple-200 mb-4 text-left">
+                          <summary className="cursor-pointer font-medium mb-2">View Transcript</summary>
+                          <p className="pl-4 text-purple-300">{video.transcript}</p>
+                        </details>
+                      )}
+
                       <div className="flex flex-col space-y-3">
-                        <div className="flex justify-center space-x-3">
+                        <div className="flex justify-center space-x-3 flex-wrap gap-2">
                           <a
-                            href={video.mediaLink}
+                            href={video.videoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
@@ -487,39 +467,52 @@ const VideoClippingPanel: React.FC = () => {
                             <span>Play</span>
                             <ExternalLink className="h-3 w-3" />
                           </a>
-                          
+
                           <a
-                            href={video.mediaLink}
+                            href={video.videoUrl}
                             download
                             className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
                           >
                             <Download className="h-4 w-4" />
                             <span>Download</span>
                           </a>
+
+                          {video.clipEditorUrl && (
+                            <a
+                              href={video.clipEditorUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span>Edit Clip</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
                         </div>
-                        
-                        <div className="flex justify-center space-x-3">
+
+                        <div className="flex justify-center space-x-3 flex-wrap gap-2">
                           <button
-                            onClick={() => copyToClipboard(video.mediaLink)}
+                            onClick={() => copyToClipboard(video.videoUrl)}
                             className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
                           >
                             <Copy className="h-4 w-4" />
                             <span>Copy Link</span>
                           </button>
-                          
+
                           <button
-                            onClick={() => uploadToCatbox(video)}
-                            disabled={uploadingToCatbox}
+                            onClick={() => uploadToWebhook(video)}
+                            disabled={uploadingToWebhook}
                             className="px-4 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
                           >
-                            {uploadingToCatbox ? (
+                            {uploadingToWebhook ? (
                               <RefreshCw className="h-4 w-4 animate-spin" />
                             ) : (
                               <Upload className="h-4 w-4" />
                             )}
-                            <span>Upload to Catbox</span>
+                            <span>Upload for Large Platforms</span>
                           </button>
-                          
+
                           <button
                             onClick={() => openPostModal(video)}
                             className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
@@ -528,20 +521,33 @@ const VideoClippingPanel: React.FC = () => {
                             <span>Post to Socials</span>
                           </button>
                         </div>
-                        
-                        {/* Show Catbox URL if available */}
-                        {catboxUrls[video.id || video.mediaLink] && (
+
+                        {uploadingToWebhook && uploadProgress > 0 && (
+                          <div className="mt-3">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="text-sm text-purple-300">Uploading: {uploadProgress}%</span>
+                            </div>
+                            <div className="w-full bg-purple-900/20 rounded-full h-2">
+                              <div
+                                className="bg-purple-500 h-full rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {webhookUrls[video.videoId?.toString() || video.videoUrl] && (
                           <div className="mt-3 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-green-800">Catbox.moe URL:</p>
-                                <p className="text-xs text-green-600 break-all">
-                                  {catboxUrls[video.id || video.mediaLink]}
+                                <p className="text-sm font-medium text-green-400">Webhook URL:</p>
+                                <p className="text-xs text-green-300 break-all">
+                                  {webhookUrls[video.videoId?.toString() || video.videoUrl]}
                                 </p>
                               </div>
                               <button
-                                onClick={() => copyToClipboard(catboxUrls[video.id || video.mediaLink])}
-                                className="ml-2 p-1 text-green-600 hover:text-green-800 transition-colors"
+                                onClick={() => copyToClipboard(webhookUrls[video.videoId?.toString() || video.videoUrl])}
+                                className="ml-2 p-1 text-green-400 hover:text-green-300 transition-colors"
                               >
                                 <Copy className="h-4 w-4" />
                               </button>
@@ -564,7 +570,6 @@ const VideoClippingPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Post Modal */}
       {showPostModal && selectedVideoForPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-purple-900/95 to-black/95 backdrop-blur-xl rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-purple-500/20">
@@ -583,15 +588,20 @@ const VideoClippingPanel: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Video Preview */}
               <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
                 <div className="flex items-center space-x-3 mb-3">
                   <Video className="h-5 w-5 text-purple-400" />
                   <span className="font-medium text-white">{getVideoName(selectedVideoForPost, 0)}</span>
+                  {selectedVideoForPost.viralScore && (
+                    <div className="flex items-center space-x-1 ml-auto">
+                      <TrendingUp className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm text-yellow-600 font-medium">{selectedVideoForPost.viralScore}/10</span>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-black rounded-lg overflow-hidden max-w-xs mx-auto" style={{ aspectRatio: '9/16' }}>
                   <video
-                    src={selectedVideoForPost.mediaLink}
+                    src={selectedVideoForPost.videoUrl}
                     controls
                     className="w-full h-full object-cover"
                     preload="metadata"
@@ -601,7 +611,6 @@ const VideoClippingPanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Post Text */}
               <div>
                 <label className="block text-sm font-medium text-purple-200 mb-2">
                   Post Caption
@@ -618,7 +627,6 @@ const VideoClippingPanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Media URL Selection */}
               <div className="bg-purple-900/20 rounded-xl p-4 border border-purple-500/20">
                 <h4 className="font-medium text-white mb-3">Media URL to Use:</h4>
                 <div className="space-y-2">
@@ -627,42 +635,41 @@ const VideoClippingPanel: React.FC = () => {
                       type="radio"
                       id="original-url"
                       name="media-url"
-                      checked={!catboxUrls[selectedVideoForPost.id || selectedVideoForPost.mediaLink]}
+                      checked={!webhookUrls[selectedVideoForPost.videoId?.toString() || selectedVideoForPost.videoUrl]}
                       readOnly
                       className="text-purple-600"
                     />
                     <label htmlFor="original-url" className="text-sm text-purple-200">
-                      Original URL: <span className="font-mono text-xs break-all">{selectedVideoForPost.mediaLink}</span>
+                      Original URL: <span className="font-mono text-xs break-all">{selectedVideoForPost.videoUrl}</span>
                     </label>
                   </div>
-                  
-                  {catboxUrls[selectedVideoForPost.id || selectedVideoForPost.mediaLink] && (
+
+                  {webhookUrls[selectedVideoForPost.videoId?.toString() || selectedVideoForPost.videoUrl] && (
                     <div className="flex items-center space-x-2">
                       <input
                         type="radio"
-                        id="catbox-url"
+                        id="webhook-url"
                         name="media-url"
                         checked={true}
                         readOnly
                         className="text-purple-600"
                       />
-                      <label htmlFor="catbox-url" className="text-sm text-purple-200">
-                        Catbox.moe URL: <span className="font-mono text-xs break-all text-green-600">
-                          {catboxUrls[selectedVideoForPost.id || selectedVideoForPost.mediaLink]}
+                      <label htmlFor="webhook-url" className="text-sm text-purple-200">
+                        Webhook URL: <span className="font-mono text-xs break-all text-green-400">
+                          {webhookUrls[selectedVideoForPost.videoId?.toString() || selectedVideoForPost.videoUrl]}
                         </span>
                       </label>
                     </div>
                   )}
-                  
-                  {!catboxUrls[selectedVideoForPost.id || selectedVideoForPost.mediaLink] && (
+
+                  {!webhookUrls[selectedVideoForPost.videoId?.toString() || selectedVideoForPost.videoUrl] && (
                     <div className="text-sm text-purple-300 italic">
-                      Upload to Catbox.moe first to get an alternative URL for posting
+                      Use "Upload for Large Platforms" first to get an alternative URL for posting to platforms with size restrictions
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Platform Selection */}
               <div>
                 <label className="block text-sm font-medium text-purple-200 mb-3">
                   Select Platforms
@@ -672,8 +679,8 @@ const VideoClippingPanel: React.FC = () => {
                     <button
                       key={platform}
                       onClick={() => {
-                        setSelectedPlatforms(prev => 
-                          prev.includes(platform) 
+                        setSelectedPlatforms(prev =>
+                          prev.includes(platform)
                             ? prev.filter(p => p !== platform)
                             : [...prev, platform]
                         );
@@ -690,18 +697,17 @@ const VideoClippingPanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Validation Results */}
               {validationResult && (
                 <div className={`p-4 rounded-xl ${
-                  validationResult.status === 'success' 
-                    ? 'bg-green-50 border border-green-200' 
-                    : 'bg-red-50 border border-red-200'
+                  validationResult.status === 'success'
+                    ? 'bg-green-900/20 border border-green-500/30'
+                    : 'bg-red-900/20 border border-red-500/30'
                 }`}>
                   <div className="flex items-center space-x-2">
                     {validationResult.status === 'success' ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-green-400" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-red-600" />
+                      <AlertCircle className="h-5 w-5 text-red-400" />
                     )}
                     <p className={validationResult.status === 'success' ? 'text-green-300' : 'text-red-300'}>
                       {validationResult.message || (validationResult.status === 'success' ? 'Post validation successful!' : 'Validation failed')}
@@ -710,7 +716,6 @@ const VideoClippingPanel: React.FC = () => {
                 </div>
               )}
 
-              {/* Error/Success Messages */}
               {error && (
                 <div className="flex items-center space-x-2 p-4 bg-red-900/20 border border-red-500/30 rounded-xl">
                   <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
@@ -725,7 +730,6 @@ const VideoClippingPanel: React.FC = () => {
                 </div>
               )}
 
-              {/* Action Buttons */}
               <div className="flex space-x-3 pt-4 border-t border-purple-500/20">
                 <button
                   onClick={closePostModal}
@@ -733,7 +737,7 @@ const VideoClippingPanel: React.FC = () => {
                 >
                   Cancel
                 </button>
-                
+
                 <button
                   onClick={handleValidatePost}
                   disabled={validating || !postText.trim() || selectedPlatforms.length === 0}
@@ -751,7 +755,7 @@ const VideoClippingPanel: React.FC = () => {
                     </>
                   )}
                 </button>
-                
+
                 <button
                   onClick={handlePublishPost}
                   disabled={publishing || !postText.trim() || selectedPlatforms.length === 0}
