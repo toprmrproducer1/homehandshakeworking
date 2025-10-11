@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClerk } from '@clerk/clerk-react';
-import { HeroSection } from './ui/hero-odyssey';
+import { HeroLightning } from './ui/hero-lightning';
 import { motion } from 'framer-motion';
 import { TestimonialsColumn } from './ui/testimonials-columns';
 import { PricingWithChart } from './ui/pricing-with-chart';
@@ -117,10 +117,10 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <HeroSection />
+      <HeroLightning />
 
       <main className="relative z-10">
-        <section className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/20 to-black">
+        <section id="features" className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/20 to-black">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -320,7 +320,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/10 to-black">
+        <section id="pricing" className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/10 to-black">
           <PricingWithChart />
         </section>
 
@@ -365,7 +365,7 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <footer className="px-6 py-12 border-t border-purple-900/20">
+        <footer id="contact" className="px-6 py-12 border-t border-purple-900/20">
           <div className="max-w-7xl mx-auto text-center">
             <p className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-transparent">
               🖤 Built for Creators. Powered by AI.
