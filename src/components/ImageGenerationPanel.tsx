@@ -3,7 +3,7 @@ import { Image as ImageIcon, Upload, Wand as Wand2, RefreshCw, CircleAlert as Al
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
 import { generateImages, generateImagesBackground, getSupportedImageFormats, ImageGenerationRequest } from '../utils/imageGeneration';
-import { saveGeneratedImages, getGeneratedImages, deleteGeneratedImage, GeneratedImage } from '../utils/supabase';
+import { saveGeneratedImages, getGeneratedImages, deleteGeneratedImage, GeneratedImage, supabase } from '../utils/supabase';
 import { createImageGenerationJob, getActiveJobs, pollJobStatus, deleteImageGenerationJob, ImageGenerationJob } from '../utils/imageGenerationJobs';
 import { enhanceImagePrompt, BrandGuidelineContext } from '../utils/openai';
 import { BrandGuideline, getDefaultBrandGuideline } from '../utils/brandGuidelines';
@@ -52,8 +52,6 @@ const ImageGenerationPanel: React.FC = () => {
   // Realtime subscriptions for instant updates
   useEffect(() => {
     if (!profileKey || !user?.id) return;
-
-    const { supabase } = require('../utils/supabase');
 
     // Subscribe to job updates
     const jobsChannel = supabase
