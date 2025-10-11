@@ -68,7 +68,41 @@ export const callOpenAI = async (
   }
 };
 
-export const enhanceImagePrompt = async (originalPrompt: string): Promise<{ enhancedPrompt: string; usage: any }> => {
+export interface BrandGuidelineContext {
+  brand_colors?: string[];
+  brand_tone?: string;
+  target_audience?: string;
+  brand_values?: string;
+  style_preferences?: string;
+}
+
+export const enhanceImagePrompt = async (
+  originalPrompt: string,
+  brandGuideline?: BrandGuidelineContext
+): Promise<{ enhancedPrompt: string; usage: any }> => {
+  let brandContext = '';
+  if (brandGuideline) {
+    const parts: string[] = [];
+    if (brandGuideline.brand_colors && brandGuideline.brand_colors.length > 0) {
+      parts.push(`Brand colors: ${brandGuideline.brand_colors.join(', ')}`);
+    }
+    if (brandGuideline.brand_tone) {
+      parts.push(`Brand tone: ${brandGuideline.brand_tone}`);
+    }
+    if (brandGuideline.target_audience) {
+      parts.push(`Target audience: ${brandGuideline.target_audience}`);
+    }
+    if (brandGuideline.brand_values) {
+      parts.push(`Brand values: ${brandGuideline.brand_values}`);
+    }
+    if (brandGuideline.style_preferences) {
+      parts.push(`Style preferences: ${brandGuideline.style_preferences}`);
+    }
+    if (parts.length > 0) {
+      brandContext = `\n\nBrand Guidelines to consider:\n${parts.join('\n')}`;
+    }
+  }
+
   const messages: OpenAIMessage[] = [
     {
       role: 'system',
@@ -83,11 +117,13 @@ Key enhancement areas:
 - Add mood and atmosphere descriptions
 - Specify camera angles or perspectives when relevant
 
+${brandContext ? 'IMPORTANT: Incorporate the brand guidelines provided into your enhancement, ensuring the result aligns with the brand colors, tone, audience, values, and style preferences.' : ''}
+
 Keep the enhanced prompt concise but vivid (under 200 words). Return only the enhanced prompt without explanations.`
     },
     {
       role: 'user',
-      content: `Enhance this image generation prompt: "${originalPrompt}"`
+      content: `Enhance this image generation prompt: "${originalPrompt}"${brandContext}`
     }
   ];
 

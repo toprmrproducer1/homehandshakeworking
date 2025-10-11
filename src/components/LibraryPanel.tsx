@@ -12,7 +12,13 @@ import {
   List,
   Play,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  X
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
@@ -30,6 +36,8 @@ interface ClippedVideo {
   start_time?: number;
   end_time?: number;
   status: string;
+  viral_score?: string;
+  batch_id?: string;
   metadata?: any;
   created_at: string;
   updated_at: string;
@@ -40,7 +48,9 @@ interface GeneratedImage {
   user_id: string;
   profile_key: string;
   prompt: string;
-  image_url: string;
+  generated_images: string[];
+  viral_score?: number;
+  batch_id?: string;
   thumbnail_url?: string;
   width?: number;
   height?: number;
@@ -62,6 +72,8 @@ const LibraryPanel: React.FC = () => {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'date' | 'viral_score'>('date');
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -141,17 +153,35 @@ const LibraryPanel: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || video.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredVideos = videos
+    .filter(video => {
+      const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = filterStatus === 'all' || video.status === filterStatus;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'viral_score') {
+        const scoreA = a.viral_score ? parseFloat(a.viral_score) : 0;
+        const scoreB = b.viral_score ? parseFloat(b.viral_score) : 0;
+        return scoreB - scoreA;
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
-  const filteredImages = images.filter(image => {
-    const matchesSearch = image.prompt.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || image.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredImages = images
+    .filter(image => {
+      const matchesSearch = image.prompt.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = filterStatus === 'all' || image.status === filterStatus;
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'viral_score') {
+        const scoreA = a.viral_score || 0;
+        const scoreB = b.viral_score || 0;
+        return scoreB - scoreA;
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -233,6 +263,15 @@ const LibraryPanel: React.FC = () => {
           </div>
 
           <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as 'date' | 'viral_score')}
+            className="px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
+          >
+            <option value="date">Sort by Date</option>
+            <option value="viral_score">Sort by Viral Score</option>
+          </select>
+
+          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
@@ -298,16 +337,29 @@ const LibraryPanel: React.FC = () => {
                   )}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     {video.clipped_video_url && (
-                      <a
-                        href={video.clipped_video_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setPlayingVideo(playingVideo === video.id ? null : video.id)}
                         className="p-3 bg-purple-600 rounded-full hover:bg-purple-700 transition-colors"
                       >
-                        <Play className="h-6 w-6 text-white" />
-                      </a>
+                        {playingVideo === video.id ? (
+                          <X className="h-6 w-6 text-white" />
+                        ) : (
+                          <Play className="h-6 w-6 text-white" />
+                        )}
+                      </button>
                     )}
                   </div>
+                  {playingVideo === video.id && video.clipped_video_url && (
+                    <div className="absolute inset-0 bg-black z-10">
+                      <video
+                        src={video.clipped_video_url}
+                        controls
+                        autoPlay
+                        className="w-full h-full"
+                        onEnded={() => setPlayingVideo(null)}
+                      />
+                    </div>
+                  )}
                   {video.duration && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 rounded text-xs text-white">
                       {formatDuration(video.duration)}
@@ -315,7 +367,15 @@ const LibraryPanel: React.FC = () => {
                   )}
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-white mb-2 line-clamp-2">{video.title}</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-white line-clamp-2 flex-1">{video.title}</h3>
+                    {video.viral_score && parseFloat(video.viral_score) > 0 && (
+                      <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full ml-2">
+                        <TrendingUp className="h-3 w-3" />
+                        <span className="text-xs font-semibold">{video.viral_score}/10</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
@@ -364,13 +424,13 @@ const LibraryPanel: React.FC = () => {
               >
                 <div className="relative aspect-square bg-purple-900/10">
                   <img
-                    src={image.thumbnail_url || image.image_url}
+                    src={image.thumbnail_url || (image.generated_images && image.generated_images[0])}
                     alt={image.prompt}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <a
-                      href={image.image_url}
+                      href={image.generated_images && image.generated_images[0]}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 bg-purple-600 rounded-full hover:bg-purple-700 transition-colors"
@@ -378,9 +438,22 @@ const LibraryPanel: React.FC = () => {
                       <ImageIcon className="h-5 w-5 text-white" />
                     </a>
                   </div>
+                  {image.generated_images && image.generated_images.length > 1 && (
+                    <div className="absolute top-2 right-2 px-2 py-1 bg-black/80 rounded text-xs text-white">
+                      +{image.generated_images.length - 1} more
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
-                  <p className="text-sm text-gray-300 mb-2 line-clamp-2">{image.prompt}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-300 line-clamp-2 flex-1">{image.prompt}</p>
+                    {image.viral_score && image.viral_score > 0 && (
+                      <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full ml-2">
+                        <TrendingUp className="h-3 w-3" />
+                        <span className="text-xs font-semibold">{image.viral_score}/10</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
@@ -396,14 +469,16 @@ const LibraryPanel: React.FC = () => {
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <a
-                      href={image.image_url}
-                      download
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Download</span>
-                    </a>
+                    {image.generated_images && image.generated_images.length > 0 && (
+                      <a
+                        href={image.generated_images[0]}
+                        download
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Download</span>
+                      </a>
+                    )}
                     <button
                       onClick={() => handleDelete(image.id, 'image')}
                       className="p-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 rounded-lg transition-colors"

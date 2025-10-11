@@ -16,6 +16,8 @@ export interface GeneratedImage {
   inspiration_image_url?: string;
   prompt: string;
   generated_images: string[];
+  viral_score?: number;
+  batch_id?: string;
   created_at?: string;
   updated_at?: string;
 }

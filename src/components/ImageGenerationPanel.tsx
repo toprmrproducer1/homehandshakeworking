@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Upload, Wand as Wand2, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Download, Copy, Trash2, Eye, ExternalLink, Sparkles, Star, Zap, Palette, Magnet as Magic, Clock, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Upload, Wand as Wand2, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Download, Copy, Trash2, Eye, ExternalLink, Sparkles, Star, Zap, Palette, Magnet as Magic, Clock, Loader2, Bookmark, TrendingUp } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
 import { generateImages, generateImagesBackground, getSupportedImageFormats, ImageGenerationRequest } from '../utils/imageGeneration';
 import { saveGeneratedImages, getGeneratedImages, deleteGeneratedImage, GeneratedImage } from '../utils/supabase';
 import { createImageGenerationJob, getActiveJobs, pollJobStatus, deleteImageGenerationJob, ImageGenerationJob } from '../utils/imageGenerationJobs';
-import { enhanceImagePrompt } from '../utils/openai';
+import { enhanceImagePrompt, BrandGuidelineContext } from '../utils/openai';
+import { BrandGuideline, getDefaultBrandGuideline } from '../utils/brandGuidelines';
+import BrandGuidelinesModal from './BrandGuidelinesModal';
 
 const ImageGenerationPanel: React.FC = () => {
   const { user } = useUser();
@@ -23,15 +25,19 @@ const ImageGenerationPanel: React.FC = () => {
   const [enhancing, setEnhancing] = useState(false);
   const [showOriginalPrompt, setShowOriginalPrompt] = useState(false);
   const [originalPrompt, setOriginalPrompt] = useState<string>('');
+  const [selectedBrandGuideline, setSelectedBrandGuideline] = useState<BrandGuideline | null>(null);
+  const [showBrandGuidelinesModal, setShowBrandGuidelinesModal] = useState(false);
+  const [sortBy, setSortBy] = useState<'date' | 'viral_score'>('date');
 
   const supportedFormats = getSupportedImageFormats();
 
   useEffect(() => {
-    if (profileKey) {
+    if (profileKey && user?.id) {
       loadGeneratedImages();
       loadActiveJobs();
+      loadDefaultBrandGuideline();
     }
-  }, [profileKey]);
+  }, [profileKey, user?.id]);
 
   useEffect(() => {
     if (profileKey && activeJobs.length > 0) {
@@ -48,7 +54,7 @@ const ImageGenerationPanel: React.FC = () => {
 
     pollingIntervalRef.current = setInterval(async () => {
       await checkJobStatuses();
-    }, 5000);
+    }, 3000);
   };
 
   const stopPolling = () => {
@@ -96,6 +102,19 @@ const ImageGenerationPanel: React.FC = () => {
       setActiveJobs(jobs);
     } catch (err) {
       console.error('Error loading active jobs:', err);
+    }
+  };
+
+  const loadDefaultBrandGuideline = async () => {
+    if (!profileKey || !user?.id) return;
+
+    try {
+      const defaultGuideline = await getDefaultBrandGuideline(profileKey, user.id);
+      if (defaultGuideline) {
+        setSelectedBrandGuideline(defaultGuideline);
+      }
+    } catch (err) {
+      console.error('Error loading default brand guideline:', err);
     }
   };
 
@@ -219,11 +238,20 @@ const ImageGenerationPanel: React.FC = () => {
     setError(null);
 
     try {
-      const result = await enhanceImagePrompt(prompt.trim());
+      const brandContext: BrandGuidelineContext | undefined = selectedBrandGuideline ? {
+        brand_colors: selectedBrandGuideline.brand_colors,
+        brand_tone: selectedBrandGuideline.brand_tone,
+        target_audience: selectedBrandGuideline.target_audience,
+        brand_values: selectedBrandGuideline.brand_values,
+        style_preferences: selectedBrandGuideline.style_preferences,
+      } : undefined;
+
+      const result = await enhanceImagePrompt(prompt.trim(), brandContext);
       setOriginalPrompt(prompt);
       setPrompt(result.enhancedPrompt);
       setShowOriginalPrompt(true);
-      setSuccess('Prompt enhanced with AI! Review and edit as needed.');
+      const brandNote = selectedBrandGuideline ? ' (with brand guidelines)' : '';
+      setSuccess(`Prompt enhanced with AI${brandNote}! Review and edit as needed.`);
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to enhance prompt');
@@ -296,6 +324,51 @@ const ImageGenerationPanel: React.FC = () => {
                     )}
                   </label>
               </div>
+            </div>
+
+            {/* Brand Guidelines Selection */}
+            <div className="space-y-3 p-4 bg-purple-900/10 border border-purple-500/20 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Palette className="h-5 w-5 text-purple-400" />
+                  <span className="text-sm font-medium text-purple-200">Brand Guidelines</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowBrandGuidelinesModal(true)}
+                  className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-200 text-sm rounded-lg transition-colors flex items-center space-x-1"
+                >
+                  <Bookmark className="h-4 w-4" />
+                  <span>Manage</span>
+                </button>
+              </div>
+              {selectedBrandGuideline ? (
+                <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-500/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-purple-200 font-medium">{selectedBrandGuideline.guideline_name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBrandGuideline(null)}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  {selectedBrandGuideline.brand_colors && selectedBrandGuideline.brand_colors.length > 0 && (
+                    <div className="flex space-x-1">
+                      {selectedBrandGuideline.brand_colors.map((color, idx) => (
+                        <div
+                          key={idx}
+                          className="w-6 h-6 rounded border border-purple-400/30"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-purple-300">No brand guideline selected. AI will use general creative prompts.</p>
+              )}
             </div>
 
             {/* Prompt Input */}
@@ -463,14 +536,24 @@ const ImageGenerationPanel: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Generated Gallery</h2>
           </div>
-          <button
-            onClick={loadGeneratedImages}
-            disabled={loading}
-            className="px-4 py-2 bg-purple-900/20 hover:bg-purple-800/30 text-purple-200 rounded-lg transition-colors flex items-center space-x-2 border border-purple-500/20 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'viral_score')}
+              className="px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-purple-200 focus:outline-none focus:border-purple-400 text-sm"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="viral_score">Sort by Viral Score</option>
+            </select>
+            <button
+              onClick={loadGeneratedImages}
+              disabled={loading}
+              className="px-4 py-2 bg-purple-900/20 hover:bg-purple-800/30 text-purple-200 rounded-lg transition-colors flex items-center space-x-2 border border-purple-500/20 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -480,7 +563,16 @@ const ImageGenerationPanel: React.FC = () => {
           </div>
         ) : generatedImages.length > 0 ? (
           <div className="space-y-8">
-            {generatedImages.map((imageSet) => (
+            {generatedImages
+              .sort((a, b) => {
+                if (sortBy === 'viral_score') {
+                  const scoreA = a.viral_score || 0;
+                  const scoreB = b.viral_score || 0;
+                  return scoreB - scoreA;
+                }
+                return new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime();
+              })
+              .map((imageSet) => (
               <div key={imageSet.id} className="bg-purple-900/10 rounded-xl p-6 border border-purple-500/20 hover:border-purple-400/50 transition-all">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1 space-y-3">
@@ -488,6 +580,12 @@ const ImageGenerationPanel: React.FC = () => {
                       <span className="font-semibold text-white">
                         Generated on {formatDate(imageSet.created_at!)}
                       </span>
+                      {imageSet.viral_score && imageSet.viral_score > 0 && (
+                        <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full">
+                          <TrendingUp className="h-4 w-4" />
+                          <span className="text-xs font-semibold">{imageSet.viral_score}/10</span>
+                        </div>
+                      )}
                     </div>
                     <div className="bg-purple-900/20 p-3 rounded-lg border border-purple-500/20">
                       <p className="text-purple-200 text-sm">
@@ -583,6 +681,15 @@ const ImageGenerationPanel: React.FC = () => {
           </div>
         )}
       </div>
+
+      <BrandGuidelinesModal
+        isOpen={showBrandGuidelinesModal}
+        onClose={() => setShowBrandGuidelinesModal(false)}
+        onSelectGuideline={(guideline) => {
+          setSelectedBrandGuideline(guideline);
+          setShowBrandGuidelinesModal(false);
+        }}
+      />
     </div>
   );
 };
