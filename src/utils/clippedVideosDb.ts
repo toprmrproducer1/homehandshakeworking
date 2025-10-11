@@ -26,6 +26,11 @@ export interface ClippedVideo {
   vizard_config?: any;
   catbox_url?: string;
   file_size?: number;
+  mux_playback_id?: string;
+  mux_asset_id?: string;
+  mux_stream_url?: string;
+  mux_thumbnail_url?: string;
+  upload_service?: 'supabase' | 'cloudinary' | 'mux';
   created_at?: string;
   updated_at?: string;
 }

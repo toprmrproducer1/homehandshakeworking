@@ -104,80 +104,155 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'hi', name: 'Hindi' },
 ];
 
-export const submitVideoToVizard = async (config: VizardClipConfig): Promise<string> => {
+export const submitVideoToVizard = async (config: VizardClipConfig, retries: number = 3): Promise<string> => {
+  if (!config.videoUrl || config.videoUrl.trim() === '') {
+    throw new Error('Video URL is required for Vizard processing');
+  }
+
+  try {
+    new URL(config.videoUrl);
+  } catch {
+    throw new Error('Invalid video URL format. Please provide a valid URL.');
+  }
+
   console.log('Submitting to Vizard with config:', {
     ...config,
     videoUrl: config.videoUrl.substring(0, 100) + '...',
   });
 
-  const response = await fetch(`${VIZARD_API_BASE}/project/create`, {
-    method: 'POST',
-    headers: {
-      'VIZARDAI_API_KEY': VIZARD_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(config),
-  });
+  let lastError: Error | null = null;
 
-  let responseText = '';
-  try {
-    responseText = await response.text();
-  } catch (e) {
-    console.error('Failed to read response text:', e);
-  }
-
-  console.log('Vizard API response status:', response.status);
-  console.log('Vizard API response:', responseText);
-
-  if (!response.ok) {
-    let errorMsg = `Vizard API error (${response.status}): ${response.statusText}`;
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const errorData = JSON.parse(responseText);
-      if (errorData.message) {
-        errorMsg = errorData.message;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(`${VIZARD_API_BASE}/project/create`, {
+        method: 'POST',
+        headers: {
+          'VIZARDAI_API_KEY': VIZARD_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      let responseText = '';
+      try {
+        responseText = await response.text();
+      } catch (e) {
+        console.error('Failed to read response text:', e);
+        throw new Error('Failed to read Vizard API response');
       }
-    } catch {
-      if (responseText) {
-        errorMsg = responseText;
+
+      console.log('Vizard API response status:', response.status);
+      console.log('Vizard API response:', responseText);
+
+      if (!response.ok) {
+        let errorMsg = `Vizard API error (${response.status}): ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(responseText);
+          if (errorData.message) {
+            errorMsg = errorData.message;
+          }
+        } catch {
+          if (responseText) {
+            errorMsg = responseText;
+          }
+        }
+
+        if (response.status >= 500 && attempt < retries - 1) {
+          console.log(`Vizard server error, retrying... (${attempt + 1}/${retries})`);
+          await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
+          continue;
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      let result: VizardCreateResponse;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error('Failed to parse Vizard response: ' + responseText.substring(0, 200));
+      }
+
+      if (!result.success || !result.data?.projectId) {
+        throw new Error(result.message || 'Failed to create Vizard project');
+      }
+
+      console.log('Vizard project created successfully:', result.data.projectId);
+      return result.data.projectId;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('Vizard API request timeout');
+        lastError = new Error('Vizard API request timed out. Please try again.');
+      }
+
+      if (attempt < retries - 1) {
+        console.log(`Retrying Vizard submission... (${attempt + 1}/${retries})`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
+        continue;
       }
     }
-    throw new Error(errorMsg);
   }
 
-  let result: VizardCreateResponse;
-  try {
-    result = JSON.parse(responseText);
-  } catch (e) {
-    throw new Error('Failed to parse Vizard response: ' + responseText.substring(0, 200));
-  }
-
-  if (!result.success || !result.data?.projectId) {
-    throw new Error(result.message || 'Failed to create Vizard project');
-  }
-
-  console.log('Vizard project created successfully:', result.data.projectId);
-  return result.data.projectId;
+  throw lastError || new Error('Failed to submit video to Vizard after retries');
 };
 
-export const queryVizardProject = async (projectId: string): Promise<VizardProjectStatus> => {
-  const response = await fetch(`${VIZARD_API_BASE}/project/query/${projectId}`, {
-    method: 'GET',
-    headers: {
-      'VIZARDAI_API_KEY': VIZARD_API_KEY,
-    },
-  });
+export const queryVizardProject = async (projectId: string, retries: number = 2): Promise<VizardProjectStatus> => {
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    throw new Error(`Vizard query error: ${response.statusText}`);
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      const response = await fetch(`${VIZARD_API_BASE}/project/query/${projectId}`, {
+        method: 'GET',
+        headers: {
+          'VIZARDAI_API_KEY': VIZARD_API_KEY,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status >= 500 && attempt < retries - 1) {
+          console.log(`Vizard query error, retrying... (${attempt + 1}/${retries})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(`Vizard query error: ${response.statusText}`);
+      }
+
+      const result: VizardProjectStatus = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to query Vizard project');
+      }
+
+      return result;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        lastError = new Error('Vizard query timed out');
+      }
+
+      if (attempt < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        continue;
+      }
+    }
   }
 
-  const result: VizardProjectStatus = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.message || 'Failed to query Vizard project');
-  }
-
-  return result;
+  throw lastError || new Error('Failed to query Vizard project status');
 };
 
 export const pollVizardUntilComplete = async (

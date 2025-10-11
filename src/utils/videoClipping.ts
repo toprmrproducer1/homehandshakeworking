@@ -1,11 +1,13 @@
 import { uploadVideoToStorage } from './videoStorage';
 import { uploadVideoToCloudinaryWithRetry, isValidCloudinarySize } from './cloudinary';
+import { uploadVideoToMuxComplete, MuxVideoUrls } from './mux';
 
 export interface VideoUploadResult {
   url: string;
-  service: 'supabase' | 'cloudinary';
+  service: 'supabase' | 'cloudinary' | 'mux';
   size: number;
   extension: string;
+  muxVideoUrls?: MuxVideoUrls;
 }
 
 export const getVideoTypeOptions = () => [
@@ -31,10 +33,10 @@ export const uploadVideoForVizard = async (
   onProgress?: (progress: number) => void
 ): Promise<VideoUploadResult> => {
   const MAX_SUPABASE_SIZE = 50 * 1024 * 1024;
-  const MAX_CLOUDINARY_SIZE = 100 * 1024 * 1024;
+  const MAX_MUX_SIZE = 200 * 1024 * 1024 * 1024;
 
-  if (file.size > MAX_CLOUDINARY_SIZE) {
-    throw new Error('File size exceeds 100MB limit. Current size: ' + formatFileSize(file.size));
+  if (file.size > MAX_MUX_SIZE) {
+    throw new Error('File size exceeds 200GB limit. Current size: ' + formatFileSize(file.size));
   }
 
   const fileExtension = getFileExtension(file.name);
@@ -45,19 +47,24 @@ export const uploadVideoForVizard = async (
   if (onProgress) onProgress(5);
 
   try {
-    if (file.size > MAX_SUPABASE_SIZE && isValidCloudinarySize(file, MAX_CLOUDINARY_SIZE)) {
+    if (file.size > MAX_SUPABASE_SIZE) {
       if (onProgress) onProgress(10);
-      const cloudinaryUrl = await uploadVideoToCloudinaryWithRetry(file, (progress) => {
-        if (onProgress) onProgress(10 + (progress * 0.8));
+
+      const muxResult = await uploadVideoToMuxComplete(file, (status, progress) => {
+        if (onProgress && progress) {
+          const mappedProgress = 10 + (progress * 0.9);
+          onProgress(mappedProgress);
+        }
       });
 
       if (onProgress) onProgress(100);
 
       return {
-        url: cloudinaryUrl,
-        service: 'cloudinary',
+        url: muxResult.url,
+        service: 'mux',
         size: file.size,
         extension: fileExtension,
+        muxVideoUrls: muxResult.videoUrls,
       };
     } else {
       if (onProgress) onProgress(10);
