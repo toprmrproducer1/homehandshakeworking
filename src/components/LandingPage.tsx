@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClerk } from '@clerk/clerk-react';
-import { HeroLightning } from './ui/hero-lightning';
+import { HeroSection } from './ui/hero-odyssey';
 import { motion } from 'framer-motion';
 import { TestimonialsColumn } from './ui/testimonials-columns';
 import { PricingWithChart } from './ui/pricing-with-chart';
@@ -117,7 +117,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <HeroLightning />
+      <HeroSection />
 
       <main className="relative z-10">
         <section id="features" className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/20 to-black">
