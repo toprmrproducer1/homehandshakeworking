@@ -26,15 +26,17 @@ import {
   Upload,
   Loader2
 } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
 import { validatePost, publishPost, uploadMediaFile } from '../utils/ayrshare';
-import { uploadLargeVideoToBigWebhook } from '../utils/videoClipping';
+import { uploadVideoForVizard } from '../utils/videoClipping';
 
 interface PlatformOptions {
   [key: string]: any;
 }
 
 const PostingPanel: React.FC = () => {
+  const { user } = useUser();
   const { profileKey, userProfile } = useUserContext();
   const [postContent, setPostContent] = useState('');
   const [mediaUrls, setMediaUrls] = useState<string[]>(['']);
@@ -216,15 +218,19 @@ const PostingPanel: React.FC = () => {
           return;
         }
 
-        console.log(`File size ${formatFileSize(file.size)} exceeds 30MB, using big video webhook`);
+        if (!user?.id) {
+          throw new Error('User not authenticated');
+        }
+
+        console.log(`File size ${formatFileSize(file.size)} exceeds 30MB, using cloud upload`);
         setUploadProgress(prev => ({ ...prev, [index]: 10 }));
 
-        const webhookUrl = await uploadLargeVideoToBigWebhook(file, (progress) => {
+        const uploadResult = await uploadVideoForVizard(file, user.id, (progress) => {
           setUploadProgress(prev => ({ ...prev, [index]: progress }));
         });
 
-        console.log('Big video webhook upload successful:', webhookUrl);
-        updateMediaUrl(index, webhookUrl);
+        console.log(`Video upload successful (${uploadResult.service}):`, uploadResult.url);
+        updateMediaUrl(index, uploadResult.url);
       } else {
         setUploadProgress(prev => ({ ...prev, [index]: 50 }));
 

@@ -1,74 +1,11 @@
-const UPLOAD_WEBHOOK = 'https://n8n.srv834400.hstgr.cloud/webhook/4d8f013f-2026-45d0-be1d-b915e16de3fa';
-const FETCH_WEBHOOK = 'https://n8n.srv834400.hstgr.cloud/webhook/bcd49dcb-3103-4152-aefc-32c7d8c552fe';
-const BIG_VIDEO_WEBHOOK = 'https://n8n.srv834400.hstgr.cloud/webhook/bigvideo';
+import { uploadVideoToStorage } from './videoStorage';
+import { uploadToCatboxWithFallback, shouldUseCatbox } from './catbox';
 
-export interface VideoClipRequest {
-  videoType: number;
-  videoUrl?: string;
-  ext?: string;
-  videoFile?: File;
+export interface VideoUploadResult {
+  url: string;
+  service: 'supabase' | 'catbox';
+  size: number;
 }
-
-export interface ClippedVideoResponse {
-  viralScore?: string;
-  relatedTopic?: string | null;
-  transcript?: string | null;
-  videoUrl: string;
-  clipEditorUrl?: string;
-  videoMsDuration?: number;
-  videoId?: number;
-  title?: string;
-  viralReason?: string;
-}
-
-export const uploadVideoForClipping = async (request: VideoClipRequest, profileKey: string): Promise<ClippedVideoResponse[]> => {
-  const headers: Record<string, string> = {
-    'profile-key': profileKey,
-  };
-
-  let body: FormData | string;
-
-  if (request.videoType === 1 && request.videoFile) {
-    const formData = new FormData();
-    formData.append('video', request.videoFile);
-    body = formData;
-  } else if (request.videoUrl) {
-    const formData = new FormData();
-    formData.append('url', request.videoUrl);
-    body = formData;
-  } else {
-    throw new Error('Either videoFile or videoUrl must be provided');
-  }
-
-  const response = await fetch(UPLOAD_WEBHOOK, {
-    method: 'POST',
-    headers,
-    body,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to upload video for clipping: ${response.statusText}`);
-  }
-
-  const result = await response.json();
-
-  return Array.isArray(result) ? result : [result];
-};
-
-export const fetchClippedVideos = async (profileKey: string) => {
-  const response = await fetch(FETCH_WEBHOOK, {
-    method: 'GET',
-    headers: {
-      'profile-key': profileKey,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch clipped videos: ${response.statusText}`);
-  }
-
-  return response.json();
-};
 
 export const getVideoTypeOptions = () => [
   { value: 1, label: 'Remote video file', requiresFile: true },
@@ -87,52 +24,53 @@ export const getVideoTypeOptions = () => [
 
 export const getSupportedVideoExtensions = () => ['mp4', '3gp', 'avi', 'mov'];
 
-export const uploadLargeVideoToBigWebhook = async (
+export const uploadVideoForVizard = async (
   file: File,
+  userId: string,
   onProgress?: (progress: number) => void
-): Promise<string> => {
-  const MAX_SIZE = 200 * 1024 * 1024;
+): Promise<VideoUploadResult> => {
+  const MAX_SUPABASE_SIZE = 50 * 1024 * 1024;
+  const MAX_CATBOX_SIZE = 200 * 1024 * 1024;
 
-  if (file.size > MAX_SIZE) {
+  if (file.size > MAX_CATBOX_SIZE) {
     throw new Error(`File size exceeds 200MB limit. Current size: ${formatFileSize(file.size)}`);
   }
 
-  if (onProgress) {
-    onProgress(10);
-  }
+  if (onProgress) onProgress(5);
 
-  const formData = new FormData();
-  formData.append('file', file);
+  try {
+    if (shouldUseCatbox(file, MAX_SUPABASE_SIZE)) {
+      if (onProgress) onProgress(10);
+      const catboxUrl = await uploadToCatboxWithFallback(file, (progress) => {
+        if (onProgress) onProgress(10 + (progress * 0.8));
+      });
 
-  if (onProgress) {
-    onProgress(30);
-  }
+      if (onProgress) onProgress(100);
 
-  const response = await fetch(BIG_VIDEO_WEBHOOK, {
-    method: 'POST',
-    body: formData,
-  });
+      return {
+        url: catboxUrl,
+        service: 'catbox',
+        size: file.size,
+      };
+    } else {
+      if (onProgress) onProgress(10);
+      const uploadResult = await uploadVideoToStorage(file, userId, (progress) => {
+        if (onProgress) onProgress(10 + (progress * 0.8));
+      });
 
-  if (!response.ok) {
-    throw new Error(`Big video webhook upload failed: ${response.statusText}`);
-  }
+      if (onProgress) onProgress(100);
 
-  if (onProgress) {
-    onProgress(80);
-  }
-
-  const result = await response.json();
-
-  if (onProgress) {
-    onProgress(100);
-  }
-
-  if (Array.isArray(result) && result.length > 0 && result[0].videoUrl) {
-    return result[0].videoUrl;
-  } else if (result.videoUrl) {
-    return result.videoUrl;
-  } else {
-    throw new Error('Invalid response from big video webhook: no videoUrl found');
+      return {
+        url: uploadResult.url,
+        service: 'supabase',
+        size: file.size,
+      };
+    }
+  } catch (error) {
+    console.error('Video upload error:', error);
+    throw new Error(
+      `Failed to upload video: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 };
 

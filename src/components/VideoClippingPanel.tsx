@@ -34,7 +34,7 @@ import {
   ClippedVideo,
 } from '../utils/clippedVideosDb';
 import { validatePost, publishPost } from '../utils/ayrshare';
-import { uploadLargeVideoToBigWebhook } from '../utils/videoClipping';
+import { uploadVideoForVizard } from '../utils/videoClipping';
 
 const VideoClippingPanel: React.FC = () => {
   const { user } = useUser();
@@ -138,21 +138,20 @@ const VideoClippingPanel: React.FC = () => {
       let uploadedVideoUrl = videoUrl;
 
       if (videoType === 1 && videoFile) {
-        setProcessingStatus('Uploading video to cloud...');
+        setProcessingStatus('Uploading video to cloud storage...');
         setProcessingPercent(5);
 
-        // Upload video via webhook to get publicly accessible URL
-        const webhookUrl = await uploadLargeVideoToBigWebhook(
+        const uploadResult = await uploadVideoForVizard(
           videoFile,
+          user.id,
           (progress) => {
-            // Map upload progress to 5-20% of total
             const mappedProgress = 5 + (progress * 0.15);
             setProcessingPercent(mappedProgress);
-            setProcessingStatus(`Uploading video... ${Math.round(progress)}%`);
+            setProcessingStatus(`Uploading video to ${progress < 50 ? 'storage' : 'cloud'}... ${Math.round(progress)}%`);
           }
         );
-        uploadedVideoUrl = webhookUrl;
-        setProcessingStatus('Upload complete, preparing for AI processing...');
+        uploadedVideoUrl = uploadResult.url;
+        setProcessingStatus(`Upload complete (${uploadResult.service}), preparing for AI processing...`);
         setProcessingPercent(20);
       }
 
@@ -222,12 +221,14 @@ const VideoClippingPanel: React.FC = () => {
   };
 
   const uploadToWebhook = async (video: ClippedVideo) => {
-    if (!video.clipped_video_url) return;
+    if (!video.clipped_video_url || !user?.id) return;
 
     try {
       setUploadingToWebhook(true);
       setError(null);
       setUploadProgress(0);
+
+      setUploadProgress(10);
 
       const response = await fetch(video.clipped_video_url);
       if (!response.ok) {
@@ -239,25 +240,25 @@ const VideoClippingPanel: React.FC = () => {
       const blob = await response.blob();
       const file = new File([blob], `video_${video.id || Date.now()}.mp4`, { type: 'video/mp4' });
 
-      setUploadProgress(50);
+      setUploadProgress(40);
 
-      const webhookUrl = await uploadLargeVideoToBigWebhook(file, (progress) => {
-        setUploadProgress(50 + (progress / 2));
+      const uploadResult = await uploadVideoForVizard(file, user.id, (progress) => {
+        setUploadProgress(40 + (progress * 0.5));
       });
 
       const videoKey = video.id || video.clipped_video_url;
       setWebhookUrls(prev => ({
         ...prev,
-        [videoKey]: webhookUrl
+        [videoKey]: uploadResult.url
       }));
 
-      setSuccess('Video successfully uploaded for large platforms!');
+      setSuccess(`Video successfully re-uploaded to ${uploadResult.service} for large platforms!`);
       setUploadProgress(100);
 
       setTimeout(() => setUploadProgress(0), 2000);
     } catch (err) {
-      console.error('Webhook upload error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload video to webhook');
+      console.error('Video re-upload error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to re-upload video');
       setUploadProgress(0);
     } finally {
       setUploadingToWebhook(false);
