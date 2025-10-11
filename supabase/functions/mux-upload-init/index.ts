@@ -22,8 +22,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const MUX_TOKEN_ID = Deno.env.get("MUX_TOKEN_ID") || "e0ad890a-61fc-4ef1-af65-a314b1ed09ec";
-    const MUX_TOKEN_SECRET = Deno.env.get("MUX_TOKEN_SECRET") || "MQYd4LZutmsW+67iD6WVUKtQ//P8fGXtT1DcBBxY+g0dWGoOyj9dMKQjIPqbLl+nAri5xA8q8xU";
+    const MUX_TOKEN_ID = Deno.env.get("MUX_TOKEN_ID");
+    const MUX_TOKEN_SECRET = Deno.env.get("MUX_TOKEN_SECRET");
 
     if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET) {
       throw new Error("Mux credentials not configured");
@@ -40,11 +40,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         new_asset_settings: {
           playback_policy: ["public"],
-          video_quality: "basic",
-          static_renditions: [
-            { resolution: "highest" },
-            { resolution: "audio-only" }
-          ],
+          mp4_support: "standard",
         },
         cors_origin: "*",
       }),

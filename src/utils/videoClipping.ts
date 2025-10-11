@@ -48,6 +48,7 @@ export const uploadVideoForVizard = async (
 
   try {
     if (file.size > MAX_SUPABASE_SIZE) {
+      console.log(`File size ${formatFileSize(file.size)} exceeds Supabase limit, using Mux for upload`);
       if (onProgress) onProgress(10);
 
       try {
@@ -60,30 +61,37 @@ export const uploadVideoForVizard = async (
 
         if (onProgress) onProgress(100);
 
+        console.log('Mux upload complete. Using download URL:', muxResult.url);
+
+        const videoUrl = muxResult.videoUrls.mp4Download || muxResult.videoUrls.mp4Highest;
+
+        if (!videoUrl) {
+          throw new Error('No downloadable video URL available from Mux');
+        }
+
         return {
-          url: muxResult.videoUrls.mp4Highest,
+          url: videoUrl,
           service: 'mux',
           size: file.size,
           extension: fileExtension,
           muxVideoUrls: muxResult.videoUrls,
         };
       } catch (muxError) {
-        console.warn('Mux upload failed, falling back to Supabase storage:', muxError);
+        console.error('Mux upload failed:', muxError);
+        const errorMsg = muxError instanceof Error ? muxError.message : 'Unknown error';
 
-        const uploadResult = await uploadVideoToStorage(file, userId, (progress) => {
-          if (onProgress) onProgress(10 + (progress * 0.8));
-        });
+        if (errorMsg.includes('timeout')) {
+          throw new Error(
+            `Mux video processing is taking longer than expected. This is normal for large files (${formatFileSize(file.size)}). ` +
+            'The video is still being processed. Please try submitting to Vizard again in a few minutes, ' +
+            'or use a smaller video file.'
+          );
+        }
 
-        if (onProgress) onProgress(100);
-
-        return {
-          url: uploadResult.url,
-          service: 'supabase',
-          size: file.size,
-          extension: fileExtension,
-        };
+        throw new Error(`Failed to upload large video to Mux: ${errorMsg}`);
       }
     } else {
+      console.log(`File size ${formatFileSize(file.size)} within Supabase limit, using Supabase storage`);
       if (onProgress) onProgress(10);
       const uploadResult = await uploadVideoToStorage(file, userId, (progress) => {
         if (onProgress) onProgress(10 + (progress * 0.8));

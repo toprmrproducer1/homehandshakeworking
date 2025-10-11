@@ -119,9 +119,10 @@ export const getVizardErrorMessage = (code: number, defaultMsg?: string): string
     4005: 'The video file appears to be corrupted or broken. Please try a different video.',
     4006: 'Invalid parameters provided. Please check your video settings.',
     4007: 'Insufficient account minutes. Please upgrade your Vizard plan or wait for reset.',
-    4008: 'Cannot download video from the provided URL. Please verify the URL is accessible.',
+    4008: 'Cannot download video from the provided URL. The video may still be processing. Please wait a few minutes and try again, or verify the URL is publicly accessible.',
     4009: 'Invalid video URL format. Please provide a valid, publicly accessible video URL.',
     4010: 'Cannot detect spoken language in video. Try selecting a specific language instead of auto-detect, or use a video with clearer audio.',
+    4011: 'Video processing is taking longer than expected. Please try again in a few minutes.',
   };
 
   return errorMessages[code] || defaultMsg || `Vizard API error (code: ${code})`;
@@ -145,6 +146,7 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
   console.log('Submitting to Vizard with config:', {
     ...config,
     videoUrl: config.videoUrl.substring(0, 100) + '...',
+    videoUrlFull: config.videoUrl,
   });
 
   let lastError: Error | null = null;

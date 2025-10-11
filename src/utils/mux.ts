@@ -124,30 +124,46 @@ export const getMuxUploadStatus = async (uploadId: string): Promise<MuxUploadSta
 export const pollMuxUploadUntilReady = async (
   uploadId: string,
   onProgress?: (status: string) => void,
-  maxWaitTime: number = 600000,
+  maxWaitTime: number = 900000,
   pollInterval: number = 5000
 ): Promise<MuxVideoUrls> => {
   const startTime = Date.now();
+  let waitingForRenditions = false;
 
   while (Date.now() - startTime < maxWaitTime) {
     const status = await getMuxUploadStatus(uploadId);
-
-    if (onProgress) {
-      onProgress(`Processing: ${status.status}`);
-    }
-
-    if (status.status === 'asset_created' && status.videoUrls) {
-      return status.videoUrls;
-    }
 
     if (status.status === 'errored' || status.status === 'cancelled' || status.status === 'timed_out') {
       throw new Error(`Upload ${status.status}`);
     }
 
+    if (status.status === 'asset_created' && status.videoUrls) {
+      if (!status.videoUrls.staticRenditionsReady) {
+        if (!waitingForRenditions) {
+          console.log('Mux asset created, waiting for static renditions to be ready...');
+          waitingForRenditions = true;
+        }
+        if (onProgress) {
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          onProgress(`Processing video for download (${elapsed}s elapsed)...`);
+        }
+      } else {
+        if (onProgress) {
+          onProgress('Video processing complete!');
+        }
+        console.log('Mux static renditions ready, returning URLs');
+        return status.videoUrls;
+      }
+    } else {
+      if (onProgress) {
+        onProgress(`Uploading: ${status.status}`);
+      }
+    }
+
     await new Promise(resolve => setTimeout(resolve, pollInterval));
   }
 
-  throw new Error('Upload processing timeout');
+  throw new Error('Mux processing timeout - video may still be encoding. Please try again in a few minutes.');
 };
 
 export const uploadVideoToMuxComplete = async (
@@ -162,23 +178,24 @@ export const uploadVideoToMuxComplete = async (
     if (onProgress) onProgress('Uploading to Mux...', 10);
 
     await uploadVideoToMux(uploadUrl, file, (progress) => {
-      const mappedProgress = 10 + (progress * 0.4);
+      const mappedProgress = 10 + (progress * 0.3);
       if (onProgress) onProgress(`Uploading... ${Math.round(progress)}%`, mappedProgress);
     });
 
-    if (onProgress) onProgress('Upload complete, processing video...', 50);
+    if (onProgress) onProgress('Upload complete, processing video...', 40);
 
     const videoUrls = await pollMuxUploadUntilReady(
       uploadId,
       (status) => {
-        if (onProgress) onProgress(status, 60);
+        const progressPercent = 40 + Math.min(50, Math.floor((Date.now() % 300000) / 6000));
+        if (onProgress) onProgress(status, progressPercent);
       }
     );
 
-    if (onProgress) onProgress('Video ready!', 100);
+    if (onProgress) onProgress('Video ready for download!', 100);
 
     return {
-      url: videoUrls.streamUrl,
+      url: videoUrls.mp4Download,
       videoUrls,
     };
   } catch (error) {

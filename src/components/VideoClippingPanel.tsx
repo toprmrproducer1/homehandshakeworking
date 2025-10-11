@@ -162,7 +162,14 @@ const VideoClippingPanel: React.FC = () => {
       let videoExtension = '';
 
       if (videoType === 1 && videoFile) {
-        setProcessingStatus('Uploading video to cloud storage...');
+        const fileSizeMB = (videoFile.size / (1024 * 1024)).toFixed(1);
+        const isLargeFile = videoFile.size > 50 * 1024 * 1024;
+
+        if (isLargeFile) {
+          setProcessingStatus(`Uploading ${fileSizeMB}MB video to Mux (this may take several minutes)...`);
+        } else {
+          setProcessingStatus('Uploading video to cloud storage...');
+        }
         setProcessingPercent(5);
 
         const uploadResult = await uploadVideoForVizard(
@@ -171,12 +178,20 @@ const VideoClippingPanel: React.FC = () => {
           (progress) => {
             const mappedProgress = 5 + (progress * 0.95);
             setProcessingPercent(mappedProgress);
-            setProcessingStatus(`Uploading video... ${Math.round(progress)}%`);
+
+            if (progress < 40) {
+              setProcessingStatus(`Uploading video... ${Math.round(progress)}%`);
+            } else if (progress < 90) {
+              setProcessingStatus(`Processing video for download... ${Math.round(progress)}%`);
+            } else {
+              setProcessingStatus(`Finalizing... ${Math.round(progress)}%`);
+            }
           }
         );
         uploadedVideoUrl = uploadResult.url;
         videoExtension = uploadResult.extension;
-        setProcessingStatus('Upload complete!');
+        console.log(`Upload complete via ${uploadResult.service}:`, uploadedVideoUrl);
+        setProcessingStatus(`Upload complete via ${uploadResult.service.toUpperCase()}!`);
         setProcessingPercent(100);
       } else if (videoType === 1) {
         throw new Error('Video file is required');
@@ -204,6 +219,15 @@ const VideoClippingPanel: React.FC = () => {
         projectName: `Clip - ${new Date().toLocaleString()}`,
         ext: videoExtension,
       };
+
+      setProcessingStatus('Validating video URL...');
+      console.log('Submitting video to Vizard with URL:', uploadedVideoUrl);
+
+      try {
+        new URL(uploadedVideoUrl);
+      } catch (urlError) {
+        throw new Error('Invalid video URL generated. Please try again.');
+      }
 
       setProcessingStatus('Submitting to Vizard AI...');
       const vizardResult = await submitVideoToVizard(config);

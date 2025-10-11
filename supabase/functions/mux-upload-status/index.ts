@@ -20,6 +20,7 @@ interface MuxAsset {
     policy: string;
   }>;
   status: string;
+  mp4_support?: string;
   static_renditions?: {
     status: string;
     files?: Array<{
@@ -48,8 +49,8 @@ Deno.serve(async (req: Request) => {
       throw new Error("uploadId parameter is required");
     }
 
-    const MUX_TOKEN_ID = Deno.env.get("MUX_TOKEN_ID") || "e0ad890a-61fc-4ef1-af65-a314b1ed09ec";
-    const MUX_TOKEN_SECRET = Deno.env.get("MUX_TOKEN_SECRET") || "MQYd4LZutmsW+67iD6WVUKtQ//P8fGXtT1DcBBxY+g0dWGoOyj9dMKQjIPqbLl+nAri5xA8q8xU";
+    const MUX_TOKEN_ID = Deno.env.get("MUX_TOKEN_ID");
+    const MUX_TOKEN_SECRET = Deno.env.get("MUX_TOKEN_SECRET");
 
     if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET) {
       throw new Error("Mux credentials not configured");
@@ -89,6 +90,10 @@ Deno.serve(async (req: Request) => {
         const playbackId = asset.playback_ids?.[0]?.id;
 
         if (playbackId) {
+          const mp4Ready = asset.mp4_support === "standard" &&
+                           (asset.static_renditions?.status === "ready" ||
+                            asset.status === "ready");
+
           videoUrls = {
             playbackId,
             assetId: asset.id,
@@ -98,8 +103,10 @@ Deno.serve(async (req: Request) => {
             audioOnly: `https://stream.mux.com/${playbackId}/audio.m4a`,
             thumbnail: `https://image.mux.com/${playbackId}/thumbnail.jpg`,
             animatedGif: `https://image.mux.com/${playbackId}/animated.gif`,
-            staticRenditionsReady: asset.static_renditions?.status === "ready",
+            staticRenditionsReady: mp4Ready,
           };
+
+          console.log(`Asset ${asset.id} status: ${asset.status}, mp4_support: ${asset.mp4_support}, static_renditions: ${asset.static_renditions?.status}, MP4 ready: ${mp4Ready}`);
         }
       }
     }
