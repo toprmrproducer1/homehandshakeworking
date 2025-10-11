@@ -33,7 +33,7 @@ import {
   saveVizardClips,
   ClippedVideo,
 } from '../utils/clippedVideosDb';
-import { uploadToCatboxWithFallback } from '../utils/catbox';
+import { uploadVideoToStorage } from '../utils/videoStorage';
 import { validatePost, publishPost } from '../utils/ayrshare';
 import { uploadLargeVideoToBigWebhook } from '../utils/videoClipping';
 
@@ -43,6 +43,7 @@ const VideoClippingPanel: React.FC = () => {
   const [videoType, setVideoType] = useState<number>(1);
   const [videoUrl, setVideoUrl] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [clippedVideos, setClippedVideos] = useState<ClippedVideo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -104,9 +105,19 @@ const VideoClippingPanel: React.FC = () => {
       if (fileExt && supportedExtensions.includes(fileExt)) {
         setVideoFile(file);
         setError(null);
+
+        if (videoPreviewUrl) {
+          URL.revokeObjectURL(videoPreviewUrl);
+        }
+        const previewUrl = URL.createObjectURL(file);
+        setVideoPreviewUrl(previewUrl);
       } else {
         setError(`Unsupported file type. Please use: ${supportedExtensions.join(', ')}`);
         setVideoFile(null);
+        if (videoPreviewUrl) {
+          URL.revokeObjectURL(videoPreviewUrl);
+          setVideoPreviewUrl(null);
+        }
       }
     }
   };
@@ -128,8 +139,16 @@ const VideoClippingPanel: React.FC = () => {
       let uploadedVideoUrl = videoUrl;
 
       if (videoType === 1 && videoFile) {
-        setProcessingStatus('Uploading video file...');
-        uploadedVideoUrl = await uploadToCatboxWithFallback(videoFile);
+        setProcessingStatus('Uploading video to storage...');
+        const uploadResult = await uploadVideoToStorage(
+          videoFile,
+          user.id,
+          (progress) => {
+            setProcessingPercent(progress * 0.2);
+          }
+        );
+        uploadedVideoUrl = uploadResult.url;
+        setProcessingStatus('Video uploaded successfully!');
       }
 
       if (!uploadedVideoUrl) {
@@ -176,6 +195,10 @@ const VideoClippingPanel: React.FC = () => {
       setVideoUrl('');
       setVideoFile(null);
       setKeywords('');
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+        setVideoPreviewUrl(null);
+      }
 
       setTimeout(() => {
         loadClippedVideos();
@@ -395,6 +418,22 @@ const VideoClippingPanel: React.FC = () => {
                     </p>
                   </label>
                 </div>
+
+                {videoPreviewUrl && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-blue-200 mb-2">Preview:</p>
+                    <div className="relative bg-black rounded-lg overflow-hidden max-w-md mx-auto">
+                      <video
+                        src={videoPreviewUrl}
+                        controls
+                        className="w-full h-auto"
+                        preload="metadata"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
