@@ -312,7 +312,7 @@ const ImageGenerationPanel: React.FC = () => {
               ) : (
                 <>
                   <Sparkles className="h-5 w-5" />
-                  <span>Generate 5 Images</span>
+                  <span>Generate 3 Images</span>
                 </>
               )}
             </button>
@@ -422,7 +422,7 @@ const ImageGenerationPanel: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {imageSet.generated_images.map((imageUrl, index) => (
                     <div key={index} className="group/image relative">
                       <div className="bg-purple-900/20 rounded-xl overflow-hidden border border-purple-500/20 hover:border-purple-400/50 transition-all transform hover:scale-105">

@@ -36,7 +36,9 @@ import {
 } from '../utils/clippedVideosDb';
 import { validatePost, publishPost } from '../utils/ayrshare';
 import { uploadVideoForVizard } from '../utils/videoClipping';
-import { createClippingJob, getClippingJobs, deleteClippingJob, ClippingJob } from '../utils/clippingJobs';
+import { createClippingJob, getClippingJobs, deleteClippingJob, markJobCompleted, ClippingJob } from '../utils/clippingJobs';
+import { queryVizardProject } from '../utils/vizardApi';
+import { saveVizardClips } from '../utils/clippedVideosDb';
 import { jobPollingService } from '../utils/jobPollingService';
 import VideoProcessingLoader from './VideoProcessingLoader';
 
@@ -77,6 +79,8 @@ const VideoClippingPanel: React.FC = () => {
   const [uploadingToWebhook, setUploadingToWebhook] = useState(false);
   const [webhookUrls, setWebhookUrls] = useState<{[key: string]: string}>({});
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [checkingVizard, setCheckingVizard] = useState(false);
+  const [lastManualCheck, setLastManualCheck] = useState<Date | null>(null);
 
   const videoTypeOptions = getVideoTypeOptions();
   const supportedExtensions = getSupportedVideoExtensions();
@@ -294,6 +298,84 @@ const VideoClippingPanel: React.FC = () => {
       setSuccess('Processing job cancelled');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete job');
+    }
+  };
+
+  const handleManualCheck = async () => {
+    if (!profileKey || !user?.id) return;
+
+    setCheckingVizard(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const jobs = await getClippingJobs(profileKey);
+      const processingJobsList = jobs.filter(job => job.status === 'processing');
+
+      if (processingJobsList.length === 0) {
+        setSuccess('No processing jobs to check');
+        setLastManualCheck(new Date());
+        return;
+      }
+
+      let completedCount = 0;
+      let stillProcessingCount = 0;
+
+      for (const job of processingJobsList) {
+        try {
+          const result = await queryVizardProject(job.vizard_project_id);
+
+          if (result.code === 2000 && result.videos) {
+            console.log(`Manually found completed job: ${job.id}`);
+
+            const clips = result.videos.map((video, index) => ({
+              clipEditorUrl: '',
+              relatedTopic: video.relatedTopic?.join(', ') || null,
+              title: video.title,
+              transcript: video.transcript || null,
+              videoId: index,
+              videoMsDuration: video.videoMsDuration,
+              videoUrl: video.videoUrl,
+              viralReason: video.viralReason,
+              viralScore: String(video.viralScore),
+            }));
+
+            await saveVizardClips(
+              user.id,
+              profileKey,
+              job.vizard_project_id,
+              job.original_video_url,
+              clips,
+              job.config,
+              undefined,
+              job.vizard_share_link
+            );
+
+            await markJobCompleted(job.id, clips.length);
+            completedCount++;
+          } else if (result.code === 1000) {
+            stillProcessingCount++;
+          }
+        } catch (err) {
+          console.error(`Error checking job ${job.id}:`, err);
+        }
+      }
+
+      if (completedCount > 0) {
+        setSuccess(`Found and imported ${completedCount} completed video${completedCount > 1 ? 's' : ''}!`);
+        await loadClippedVideos();
+        await loadProcessingJobs();
+      } else if (stillProcessingCount > 0) {
+        setSuccess(`All ${stillProcessingCount} job${stillProcessingCount > 1 ? 's are' : ' is'} still processing in Vizard`);
+      } else {
+        setSuccess('No new completed videos found');
+      }
+
+      setLastManualCheck(new Date());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to check for completed videos');
+    } finally {
+      setCheckingVizard(false);
     }
   };
 
@@ -781,17 +863,42 @@ const VideoClippingPanel: React.FC = () => {
               </div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">Clipped Videos</h2>
             </div>
-            <button
-              onClick={() => {
-                loadClippedVideos();
-                loadProcessingJobs();
-              }}
-              disabled={loading}
-              className="px-4 py-2 bg-blue-900/20 hover:bg-blue-800/30 text-blue-200 rounded-lg transition-colors flex items-center space-x-2 border border-blue-500/20"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              {lastManualCheck && (
+                <div className="text-sm text-blue-300">
+                  Last checked: {lastManualCheck.toLocaleTimeString()}
+                </div>
+              )}
+              <button
+                onClick={handleManualCheck}
+                disabled={checkingVizard || loading}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
+                title="Manually check Vizard for completed videos"
+              >
+                {checkingVizard ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    <span>Checking...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Check Vizard</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  loadClippedVideos();
+                  loadProcessingJobs();
+                }}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-900/20 hover:bg-blue-800/30 text-blue-200 rounded-lg transition-colors flex items-center space-x-2 border border-blue-500/20"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
           </div>
 
           {clippedVideos.length > 0 ? (

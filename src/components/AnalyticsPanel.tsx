@@ -195,7 +195,7 @@ const AnalyticsPanel: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="grid gap-6">
+        <div className="space-y-6">
           {connectedPlatforms.map((platformId) => {
             const platform = availablePlatforms.find(p => p.id === platformId);
             if (!platform) return null;
