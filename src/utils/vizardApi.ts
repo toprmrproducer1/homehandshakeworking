@@ -41,19 +41,20 @@ export interface VizardClip {
   viralScore: string;
 }
 
-export interface VizardProjectStatus {
+export interface VizardVideo {
+  videoUrl: string;
+  videoMsDuration: number;
+  title: string;
+  viralReason: string;
+  viralScore: number;
+  transcript: string;
+  relatedTopic: string[];
+}
+
+export interface VizardQueryResponse {
   code: number;
-  data: {
-    clips: VizardClip[];
-    finishPercent: number;
-    projectId: string;
-    projectName: string;
-    projectStatus: number;
-    videoUrl: string;
-  } | null;
-  message: string;
-  serverTime: number;
-  success: boolean;
+  videos?: VizardVideo[];
+  msg?: string;
 }
 
 export const VIZARD_VIDEO_TYPES = {
@@ -203,7 +204,7 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
   throw lastError || new Error('Failed to submit video to Vizard after retries');
 };
 
-export const queryVizardProject = async (projectId: string, retries: number = 2): Promise<VizardProjectStatus> => {
+export const queryVizardProject = async (projectId: string, retries: number = 2): Promise<VizardQueryResponse> => {
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -230,11 +231,8 @@ export const queryVizardProject = async (projectId: string, retries: number = 2)
         throw new Error(`Vizard query error: ${response.statusText}`);
       }
 
-      const result: VizardProjectStatus = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to query Vizard project');
-      }
+      const result: VizardQueryResponse = await response.json();
+      console.log('Vizard query response:', result);
 
       return result;
     } catch (error) {
@@ -259,22 +257,23 @@ export const pollVizardUntilComplete = async (
   onProgress?: (percent: number) => void,
   maxWaitTime: number = 600000,
   pollInterval: number = 5000
-): Promise<VizardClip[]> => {
+): Promise<VizardVideo[]> => {
   const startTime = Date.now();
 
   while (Date.now() - startTime < maxWaitTime) {
-    const status = await queryVizardProject(projectId);
+    const result = await queryVizardProject(projectId);
 
-    if (onProgress && status.data) {
-      onProgress(status.data.finishPercent);
+    if (result.code === 2000 && result.videos) {
+      if (onProgress) onProgress(100);
+      return result.videos;
     }
 
-    if (status.data?.projectStatus === 2) {
-      return status.data.clips || [];
+    if (result.code === 4002) {
+      throw new Error('Video clipping failed: ' + (result.msg || 'Unknown error'));
     }
 
-    if (status.data?.projectStatus === 3) {
-      throw new Error('Video clipping failed');
+    if (result.code === 1000) {
+      console.log('Video still processing...');
     }
 
     await new Promise(resolve => setTimeout(resolve, pollInterval));
@@ -286,7 +285,7 @@ export const pollVizardUntilComplete = async (
 export const uploadVideoToVizardAndWait = async (
   config: VizardClipConfig,
   onProgress?: (status: string, percent?: number) => void
-): Promise<VizardClip[]> => {
+): Promise<VizardVideo[]> => {
   try {
     if (onProgress) onProgress('Submitting video to Vizard...', 5);
 
@@ -294,10 +293,9 @@ export const uploadVideoToVizardAndWait = async (
 
     if (onProgress) onProgress('Video submitted, processing...', 15);
 
-    const clips = await pollVizardUntilComplete(
+    const videos = await pollVizardUntilComplete(
       projectId,
       (percent) => {
-        // Map Vizard's progress (0-100) to our range (15-95)
         const mappedPercent = 15 + (percent * 0.8);
         if (onProgress) onProgress(`AI analyzing and clipping video... ${Math.round(percent)}%`, mappedPercent);
       }
@@ -305,7 +303,7 @@ export const uploadVideoToVizardAndWait = async (
 
     if (onProgress) onProgress('Clipping complete!', 100);
 
-    return clips;
+    return videos;
   } catch (error) {
     console.error('Vizard upload error:', error);
     throw error;

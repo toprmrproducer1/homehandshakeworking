@@ -5,12 +5,14 @@ interface VideoProcessingLoaderProps {
   progress?: number;
   projectId?: string;
   estimatedTime?: string;
+  videoUrl?: string;
 }
 
 const VideoProcessingLoader: React.FC<VideoProcessingLoaderProps> = ({
   progress = 0,
   projectId,
   estimatedTime = '5-10 minutes',
+  videoUrl,
 }) => {
   return (
     <div className="relative bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-8 border border-blue-500/30 backdrop-blur-xl overflow-hidden">
@@ -92,6 +94,20 @@ const VideoProcessingLoader: React.FC<VideoProcessingLoaderProps> = ({
             <div className="flex items-center justify-between text-xs">
               <span className="text-blue-400/70">Project ID:</span>
               <span className="text-blue-300/70 font-mono">{projectId}</span>
+            </div>
+          )}
+
+          {videoUrl && (
+            <div className="flex flex-col space-y-1 text-xs">
+              <span className="text-blue-400/70">Video URL:</span>
+              <a
+                href={videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-300/70 font-mono break-all hover:text-blue-200 transition-colors underline"
+              >
+                {videoUrl}
+              </a>
             </div>
           )}
         </div>

@@ -698,6 +698,7 @@ const VideoClippingPanel: React.FC = () => {
                     progress={job.progress_percent}
                     projectId={job.vizard_project_id}
                     estimatedTime="5-10 minutes"
+                    videoUrl={job.original_video_url}
                   />
                   <button
                     onClick={() => handleDeleteJob(job.id)}

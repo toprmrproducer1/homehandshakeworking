@@ -63,21 +63,27 @@ class JobPollingService {
     onUpdate?: () => void
   ) {
     try {
-      const status = await queryVizardProject(job.vizard_project_id);
+      const result = await queryVizardProject(job.vizard_project_id);
 
-      if (!status.data) {
+      if (result.code === 1000) {
+        console.log(`Job ${job.id} still processing...`);
         return;
       }
 
-      const progress = status.data.finishPercent || 0;
-      if (progress !== job.progress_percent) {
-        await updateClippingJobProgress(job.id, progress);
-        console.log(`Job ${job.id} progress: ${progress}%`);
-      }
-
-      if (status.data.projectStatus === 2) {
+      if (result.code === 2000 && result.videos) {
         console.log(`Job ${job.id} completed!`);
-        const clips = status.data.clips || [];
+
+        const clips = result.videos.map((video, index) => ({
+          clipEditorUrl: '',
+          relatedTopic: video.relatedTopic?.join(', ') || null,
+          title: video.title,
+          transcript: video.transcript || null,
+          videoId: index,
+          videoMsDuration: video.videoMsDuration,
+          videoUrl: video.videoUrl,
+          viralReason: video.viralReason,
+          viralScore: String(video.viralScore),
+        }));
 
         const savedClips = await saveVizardClips(
           userId,
@@ -93,9 +99,9 @@ class JobPollingService {
         if (onUpdate) {
           onUpdate();
         }
-      } else if (status.data.projectStatus === 3) {
+      } else if (result.code === 4002) {
         console.log(`Job ${job.id} failed`);
-        await markJobFailed(job.id, 'Video clipping failed');
+        await markJobFailed(job.id, result.msg || 'Video clipping failed');
 
         if (onUpdate) {
           onUpdate();
