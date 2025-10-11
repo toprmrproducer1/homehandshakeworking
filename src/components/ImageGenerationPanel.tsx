@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, Upload, Wand as Wand2, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Download, Copy, Trash2, Eye, ExternalLink, Sparkles, Star, Zap, Palette, Magnet as Magic } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Image as ImageIcon, Upload, Wand as Wand2, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Download, Copy, Trash2, Eye, ExternalLink, Sparkles, Star, Zap, Palette, Magnet as Magic, Clock, Loader2 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
-import { generateImages, getSupportedImageFormats, ImageGenerationRequest } from '../utils/imageGeneration';
+import { generateImages, generateImagesBackground, getSupportedImageFormats, ImageGenerationRequest } from '../utils/imageGeneration';
 import { saveGeneratedImages, getGeneratedImages, deleteGeneratedImage, GeneratedImage } from '../utils/supabase';
+import { createImageGenerationJob, getActiveJobs, pollJobStatus, deleteImageGenerationJob, ImageGenerationJob } from '../utils/imageGenerationJobs';
 
 const ImageGenerationPanel: React.FC = () => {
   const { user } = useUser();
@@ -16,14 +17,83 @@ const ImageGenerationPanel: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [activeJobs, setActiveJobs] = useState<ImageGenerationJob[]>([]);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const supportedFormats = getSupportedImageFormats();
 
   useEffect(() => {
     if (profileKey) {
       loadGeneratedImages();
+      loadActiveJobs();
     }
   }, [profileKey]);
+
+  useEffect(() => {
+    if (profileKey && activeJobs.length > 0) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+
+    return () => stopPolling();
+  }, [profileKey, activeJobs.length]);
+
+  const startPolling = () => {
+    if (pollingIntervalRef.current) return;
+
+    pollingIntervalRef.current = setInterval(async () => {
+      await checkJobStatuses();
+    }, 5000);
+  };
+
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
+
+  const checkJobStatuses = async () => {
+    if (!profileKey) return;
+
+    try {
+      const jobs = await getActiveJobs(profileKey);
+
+      const updatedJobs = await Promise.all(
+        jobs.map(job => pollJobStatus(job.id!))
+      );
+
+      const completedJobs = updatedJobs.filter(job => job.status === 'completed');
+      const failedJobs = updatedJobs.filter(job => job.status === 'failed');
+
+      if (completedJobs.length > 0) {
+        setSuccess(`${completedJobs.length} image generation${completedJobs.length > 1 ? 's' : ''} completed!`);
+        await loadGeneratedImages();
+        setTimeout(() => setSuccess(null), 5000);
+      }
+
+      if (failedJobs.length > 0) {
+        setError(`${failedJobs.length} image generation${failedJobs.length > 1 ? 's' : ''} failed.`);
+        setTimeout(() => setError(null), 5000);
+      }
+
+      setActiveJobs(updatedJobs.filter(job => job.status === 'pending' || job.status === 'processing'));
+    } catch (err) {
+      console.error('Error checking job statuses:', err);
+    }
+  };
+
+  const loadActiveJobs = async () => {
+    if (!profileKey) return;
+
+    try {
+      const jobs = await getActiveJobs(profileKey);
+      setActiveJobs(jobs);
+    } catch (err) {
+      console.error('Error loading active jobs:', err);
+    }
+  };
 
   const loadGeneratedImages = async () => {
     if (!profileKey) return;
@@ -71,37 +141,33 @@ const ImageGenerationPanel: React.FC = () => {
     setSuccess(null);
 
     try {
+      const job = await createImageGenerationJob({
+        user_id: user.id,
+        profile_key: profileKey,
+        inspiration_image_url: previewUrl || undefined,
+        prompt: prompt.trim(),
+      });
+
+      setActiveJobs(prev => [...prev, job]);
+
+      setSuccess('Image generation started! You can navigate away and it will complete in the background.');
+
       const request: ImageGenerationRequest = {
         inspirationImage,
         prompt: prompt.trim(),
       };
 
-      // Generate images via webhook
-      const response = await generateImages(request, profileKey);
-      
-      // Extract image URLs from the webhook response format
-      const imageUrls = response.map((item: any) => item.data);
-      
-      // Save to database
-      const savedData = await saveGeneratedImages({
-        user_id: user.id,
-        profile_key: profileKey,
-        inspiration_image_url: previewUrl,
-        prompt: prompt.trim(),
-        generated_images: imageUrls,
+      generateImagesBackground(request, profileKey, user.id, job.id!).catch(err => {
+        console.error('Background generation error:', err);
       });
 
-      setSuccess(`Successfully generated ${imageUrls.length} premium images!`);
-      
-      // Reset form
       setPrompt('');
       setInspirationImage(null);
       setPreviewUrl(null);
-      
-      // Reload generated images
-      await loadGeneratedImages();
+
+      setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate images');
+      setError(err instanceof Error ? err.message : 'Failed to start image generation');
     } finally {
       setGenerating(false);
     }
@@ -252,6 +318,60 @@ const ImageGenerationPanel: React.FC = () => {
             </button>
           </form>
       </div>
+
+      {/* Active Jobs Section */}
+      {activeJobs.length > 0 && (
+        <div className="bg-gradient-to-br from-blue-900/20 to-black rounded-2xl border border-blue-500/20 shadow-lg p-6 backdrop-blur-xl">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-2 rounded-xl">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Active Generations</h3>
+            <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded-full">
+              {activeJobs.length} in progress
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {activeJobs.map((job) => (
+              <div key={job.id} className="bg-blue-900/10 rounded-xl p-4 border border-blue-500/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+                      <span className="text-white font-medium capitalize">{job.status}</span>
+                      <span className="text-blue-300 text-sm">
+                        {new Date(job.created_at!).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-blue-200 text-sm line-clamp-2">{job.prompt}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await deleteImageGenerationJob(job.id!);
+                      setActiveJobs(prev => prev.filter(j => j.id !== job.id));
+                    }}
+                    className="ml-4 p-2 text-blue-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="mt-3 bg-blue-900/20 rounded-full h-2 overflow-hidden">
+                  <div className="bg-blue-500 h-full w-full animate-pulse" style={{
+                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                  }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-blue-300 text-sm mt-4 flex items-center space-x-2">
+            <Sparkles className="h-4 w-4" />
+            <span>Generations will complete in the background. You can navigate away freely!</span>
+          </p>
+        </div>
+      )}
 
       {/* Generated Images Gallery */}
       <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">

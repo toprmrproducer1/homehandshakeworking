@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { validatePost, publishPost, uploadMediaFile } from '../utils/ayrshare';
+import { uploadToCatboxWithFallback, shouldUseCatbox, formatFileSize } from '../utils/catbox';
 
 interface PlatformOptions {
   [key: string]: any;
@@ -185,12 +186,6 @@ const PostingPanel: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 30 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError('File size exceeds 30MB limit');
-      return;
-    }
-
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
     const isValidType = [...validImageTypes, ...validVideoTypes].includes(file.type);
@@ -205,13 +200,28 @@ const PostingPanel: React.FC = () => {
       setUploadProgress(prev => ({ ...prev, [index]: 0 }));
       setError(null);
 
-      setUploadProgress(prev => ({ ...prev, [index]: 50 }));
+      const isVideo = validVideoTypes.includes(file.type);
+      const useCatbox = isVideo && shouldUseCatbox(file);
 
-      const result = await uploadMediaFile(file, file.name);
+      if (useCatbox) {
+        console.log(`File size ${formatFileSize(file.size)} exceeds 30MB, using Catbox.moe`);
+        setUploadProgress(prev => ({ ...prev, [index]: 25 }));
 
-      setUploadProgress(prev => ({ ...prev, [index]: 100 }));
+        const catboxUrl = await uploadToCatboxWithFallback(file, (progress) => {
+          setUploadProgress(prev => ({ ...prev, [index]: progress }));
+        });
 
-      updateMediaUrl(index, result.url);
+        console.log('Catbox upload successful:', catboxUrl);
+        updateMediaUrl(index, catboxUrl);
+      } else {
+        setUploadProgress(prev => ({ ...prev, [index]: 50 }));
+
+        const result = await uploadMediaFile(file, file.name);
+
+        setUploadProgress(prev => ({ ...prev, [index]: 100 }));
+
+        updateMediaUrl(index, result.url);
+      }
 
       setTimeout(() => {
         setUploadingFiles(prev => {
@@ -226,7 +236,9 @@ const PostingPanel: React.FC = () => {
         });
       }, 1000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload file');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload file';
+      console.error('Upload error:', errorMessage, err);
+      setError(errorMessage);
       setUploadingFiles(prev => {
         const newState = { ...prev };
         delete newState[index];
@@ -422,25 +434,41 @@ const PostingPanel: React.FC = () => {
 
     try {
       const payload = buildPostPayload();
+
+      console.log('Publishing post with payload:', {
+        ...payload,
+        platforms: payload.platforms,
+        mediaUrls: payload.mediaUrls,
+        hasTwitterOptions: !!payload.twitterOptions,
+        hasFacebookOptions: !!payload.faceBookOptions,
+      });
+
       const result = await publishPost(
-        profileKey, 
-        payload.post, 
+        profileKey,
+        payload.post,
         payload.platforms,
         payload.mediaUrls,
         payload
       );
+
+      console.log('Publish result:', result);
+
       setPublishResult(result);
-      
+
       if (result.status === 'success') {
-        // Reset form on successful publish
         setPostContent('');
         setMediaUrls(['']);
         setSelectedPlatforms([]);
         setPlatformOptions({});
         setValidationResult(null);
+      } else if (result.errors && result.errors.length > 0) {
+        const errorMessages = result.errors.map((e: any) => `${e.platform}: ${e.message}`).join(', ');
+        console.error('Publish errors:', errorMessages);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to publish post');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to publish post';
+      console.error('Publish error:', errorMessage, err);
+      setError(errorMessage);
     } finally {
       setPublishing(false);
     }
@@ -1133,8 +1161,11 @@ const PostingPanel: React.FC = () => {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              Upload files (max 30MB) or paste URLs. Uploaded files are stored for 90 days.
+            <p className="text-xs text-purple-300 mt-2">
+              Upload files or paste URLs. Uploaded files are stored for 90 days.
+            </p>
+            <p className="text-xs text-blue-300 mt-1">
+              Videos over 30MB will be automatically uploaded to Catbox.moe for compatibility with all platforms.
             </p>
           </div>
 

@@ -30,27 +30,25 @@ const AnalyticsPanel: React.FC = () => {
     { id: 'tiktok', name: 'TikTok', color: 'from-gray-800 to-black' },
   ];
 
-  useEffect(() => {
-    if (userProfile?.displayNames) {
-      const connectedPlatforms = userProfile.displayNames
-        .map((account: any) => {
-          const platform = account.platform.toLowerCase();
-          // Map x/twitter to twitter for consistency
-          if (platform === 'x/twitter' || platform === 'x') return 'twitter';
-          return platform;
-        })
-        .filter((platform: string) => availablePlatforms.some(p => p.id === platform));
-      setSelectedPlatforms(connectedPlatforms);
-    }
-  }, [userProfile]);
+  const getConnectedPlatforms = () => {
+    if (!userProfile?.displayNames) return [];
+    return userProfile.displayNames
+      .map((account: any) => {
+        const platform = account.platform.toLowerCase();
+        if (platform === 'x/twitter' || platform === 'x') return 'twitter';
+        return platform;
+      })
+      .filter((platform: string) => availablePlatforms.some(p => p.id === platform));
+  };
 
-  const loadAnalytics = async () => {
-    if (!profileKey || selectedPlatforms.length === 0) return;
+  const loadAnalytics = async (platforms?: string[]) => {
+    const platformsToLoad = platforms || selectedPlatforms;
+    if (!profileKey || platformsToLoad.length === 0) return;
 
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchSocialAnalytics(profileKey, selectedPlatforms);
+      const data = await fetchSocialAnalytics(profileKey, platformsToLoad);
       setAnalytics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load analytics');
@@ -59,18 +57,18 @@ const AnalyticsPanel: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (selectedPlatforms.length > 0) {
-      loadAnalytics();
-    }
-  }, [selectedPlatforms, profileKey]);
+  const handlePlatformToggle = async (platformId: string) => {
+    const newSelectedPlatforms = selectedPlatforms.includes(platformId)
+      ? selectedPlatforms.filter(id => id !== platformId)
+      : [...selectedPlatforms, platformId];
 
-  const handlePlatformToggle = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId) 
-        ? prev.filter(id => id !== platformId)
-        : [...prev, platformId]
-    );
+    setSelectedPlatforms(newSelectedPlatforms);
+
+    if (newSelectedPlatforms.length > 0) {
+      await loadAnalytics(newSelectedPlatforms);
+    } else {
+      setAnalytics(null);
+    }
   };
 
   const formatNumber = (num: number | string) => {
@@ -181,9 +179,8 @@ const AnalyticsPanel: React.FC = () => {
           <h3 className="text-lg font-semibold text-purple-200 mb-4">Select Platforms</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {availablePlatforms.map((platform) => {
-              const isConnected = userProfile?.displayNames?.some((account: any) =>
-                account.platform.toLowerCase() === platform.id
-              );
+              const connectedPlatforms = getConnectedPlatforms();
+              const isConnected = connectedPlatforms.includes(platform.id);
               const isSelected = selectedPlatforms.includes(platform.id);
 
               return (
@@ -200,6 +197,9 @@ const AnalyticsPanel: React.FC = () => {
                   }`}
                 >
                   {platform.name}
+                  {isConnected && (
+                    <div className="text-xs mt-1">Connected</div>
+                  )}
                   {!isConnected && (
                     <div className="text-xs mt-1">Not connected</div>
                   )}

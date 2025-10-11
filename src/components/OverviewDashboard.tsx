@@ -27,26 +27,31 @@ const OverviewDashboard: React.FC = () => {
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date());
 
   useEffect(() => {
-    if (profileKey && userProfile?.displayNames) {
+    if (profileKey && userProfile?.displayNames && userProfile.displayNames.length > 0) {
       loadAnalytics();
     }
   }, [profileKey, userProfile]);
 
   const loadAnalytics = async () => {
-    if (!profileKey || !userProfile?.displayNames) return;
+    if (!profileKey || !userProfile?.displayNames || userProfile.displayNames.length === 0) return;
 
     try {
       setLoading(true);
-      const platforms = userProfile.displayNames.map((account: any) => {
-        const platform = account.platform.toLowerCase();
-        if (platform === 'x/twitter' || platform === 'x') return 'twitter';
-        return platform;
-      });
+      const platforms = userProfile.displayNames
+        .map((account: any) => {
+          const platform = account.platform.toLowerCase();
+          if (platform === 'x/twitter' || platform === 'x') return 'twitter';
+          return platform;
+        })
+        .filter((platform: string) => platform);
 
-      const data = await fetchSocialAnalytics(profileKey, platforms);
-      setAnalytics(data);
+      if (platforms.length > 0) {
+        const data = await fetchSocialAnalytics(profileKey, platforms);
+        setAnalytics(data);
+      }
     } catch (err) {
       console.error('Error loading analytics:', err);
+      setAnalytics(null);
     } finally {
       setLoading(false);
     }
