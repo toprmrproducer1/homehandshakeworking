@@ -226,7 +226,15 @@ const VideoClippingPanel: React.FC = () => {
       }
 
       setProcessingStatus('Validating video URL...');
-      console.log('Submitting video to Vizard with URL:', uploadedVideoUrl);
+      console.log('==========================================');
+      console.log('VIZARD SUBMISSION DETAILS:');
+      console.log('Video URL:', uploadedVideoUrl);
+      console.log('Video Service:', uploadResult.service);
+      console.log('File Size:', (videoFile?.size || 0) / (1024 * 1024), 'MB');
+      console.log('Extension:', videoExtension);
+      console.log('Language:', language);
+      console.log('Max Clips:', maxClipNumber);
+      console.log('==========================================');
 
       try {
         new URL(uploadedVideoUrl);
@@ -436,6 +444,13 @@ const VideoClippingPanel: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-sm text-blue-200">
+                <strong>Quality Note:</strong> Clips will maintain the same resolution as your source video (up to 4K supported).
+                Upload high-quality videos for best results.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-blue-200 mb-2">
@@ -790,7 +805,8 @@ const VideoClippingPanel: React.FC = () => {
                             src={video.clipped_video_url}
                             controls
                             className="w-full h-full object-cover"
-                            preload="metadata"
+                            preload="auto"
+                            playsInline
                           >
                             Your browser does not support the video tag.
                           </video>
@@ -864,9 +880,10 @@ const VideoClippingPanel: React.FC = () => {
                               href={video.clipped_video_url}
                               download
                               className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
+                              title="Download original quality video"
                             >
                               <Download className="h-4 w-4" />
-                              <span>Download</span>
+                              <span>Download HQ</span>
                             </a>
 
                             {video.clip_editor_url && (

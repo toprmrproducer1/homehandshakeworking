@@ -71,19 +71,26 @@ class JobPollingService {
       }
 
       if (result.code === 2000 && result.videos) {
-        console.log(`Job ${job.id} completed!`);
+        console.log(`Job ${job.id} completed with ${result.videos.length} clips!`);
 
-        const clips = result.videos.map((video, index) => ({
-          clipEditorUrl: '',
-          relatedTopic: video.relatedTopic?.join(', ') || null,
-          title: video.title,
-          transcript: video.transcript || null,
-          videoId: index,
-          videoMsDuration: video.videoMsDuration,
-          videoUrl: video.videoUrl,
-          viralReason: video.viralReason,
-          viralScore: String(video.viralScore),
-        }));
+        const clips = result.videos.map((video, index) => {
+          console.log(`Clip ${index + 1}: ${video.title}`);
+          console.log(`  - Video URL: ${video.videoUrl}`);
+          console.log(`  - Duration: ${video.videoMsDuration}ms`);
+          console.log(`  - Viral Score: ${video.viralScore}/10`);
+
+          return {
+            clipEditorUrl: '',
+            relatedTopic: video.relatedTopic?.join(', ') || null,
+            title: video.title,
+            transcript: video.transcript || null,
+            videoId: index,
+            videoMsDuration: video.videoMsDuration,
+            videoUrl: video.videoUrl,
+            viralReason: video.viralReason,
+            viralScore: String(video.viralScore),
+          };
+        });
 
         const savedClips = await saveVizardClips(
           userId,

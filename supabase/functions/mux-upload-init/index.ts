@@ -41,6 +41,7 @@ Deno.serve(async (req: Request) => {
         new_asset_settings: {
           playback_policy: ["public"],
           mp4_support: "standard",
+          encoding_tier: "smart",
         },
         cors_origin: "*",
       }),
