@@ -302,7 +302,14 @@ const VideoClippingPanel: React.FC = () => {
   };
 
   const handleManualCheck = async () => {
-    if (!profileKey || !user?.id) return;
+    if (!profileKey || !user?.id) {
+      console.error('Manual check failed: Missing profileKey or user.id');
+      return;
+    }
+
+    console.log('=== MANUAL VIZARD CHECK STARTED ===');
+    console.log('Profile Key:', profileKey);
+    console.log('User ID:', user.id);
 
     setCheckingVizard(true);
     setError(null);
@@ -310,11 +317,15 @@ const VideoClippingPanel: React.FC = () => {
 
     try {
       const jobs = await getClippingJobs(profileKey);
+      console.log(`Total jobs found: ${jobs.length}`);
+
       const processingJobsList = jobs.filter(job => job.status === 'processing');
+      console.log(`Processing jobs: ${processingJobsList.length}`);
 
       if (processingJobsList.length === 0) {
         setSuccess('No processing jobs to check');
         setLastManualCheck(new Date());
+        console.log('=== MANUAL CHECK COMPLETE: No jobs to check ===');
         return;
       }
 
@@ -323,24 +334,30 @@ const VideoClippingPanel: React.FC = () => {
 
       for (const job of processingJobsList) {
         try {
+          console.log(`\nChecking job ${job.id} (Vizard Project: ${job.vizard_project_id})...`);
           const result = await queryVizardProject(job.vizard_project_id);
+          console.log(`Vizard response code: ${result.code}`);
 
           if (result.code === 2000 && result.videos) {
-            console.log(`Manually found completed job: ${job.id}`);
+            console.log(`✅ Job ${job.id} is COMPLETED! Found ${result.videos.length} videos`);
 
-            const clips = result.videos.map((video, index) => ({
-              clipEditorUrl: '',
-              relatedTopic: video.relatedTopic?.join(', ') || null,
-              title: video.title,
-              transcript: video.transcript || null,
-              videoId: index,
-              videoMsDuration: video.videoMsDuration,
-              videoUrl: video.videoUrl,
-              viralReason: video.viralReason,
-              viralScore: String(video.viralScore),
-            }));
+            const clips = result.videos.map((video, index) => {
+              console.log(`  Clip ${index + 1}:`, video.title);
+              return {
+                clipEditorUrl: '',
+                relatedTopic: video.relatedTopic?.join(', ') || null,
+                title: video.title,
+                transcript: video.transcript || null,
+                videoId: index,
+                videoMsDuration: video.videoMsDuration,
+                videoUrl: video.videoUrl,
+                viralReason: video.viralReason,
+                viralScore: String(video.viralScore),
+              };
+            });
 
-            await saveVizardClips(
+            console.log(`Saving ${clips.length} clips to database...`);
+            const savedClips = await saveVizardClips(
               user.id,
               profileKey,
               job.vizard_project_id,
@@ -350,21 +367,28 @@ const VideoClippingPanel: React.FC = () => {
               undefined,
               job.vizard_share_link
             );
+            console.log(`✅ Saved ${savedClips.length} clips to database`);
 
             await markJobCompleted(job.id, clips.length);
+            console.log(`✅ Marked job ${job.id} as completed`);
             completedCount++;
           } else if (result.code === 1000) {
+            console.log(`⏳ Job ${job.id} still processing in Vizard`);
             stillProcessingCount++;
+          } else {
+            console.log(`⚠️ Job ${job.id} returned unexpected code: ${result.code}, msg: ${result.msg}`);
           }
         } catch (err) {
-          console.error(`Error checking job ${job.id}:`, err);
+          console.error(`❌ Error checking job ${job.id}:`, err);
         }
       }
 
       if (completedCount > 0) {
         setSuccess(`Found and imported ${completedCount} completed video${completedCount > 1 ? 's' : ''}!`);
+        console.log(`Reloading clipped videos and processing jobs...`);
         await loadClippedVideos();
         await loadProcessingJobs();
+        console.log(`✅ Data reloaded successfully`);
       } else if (stillProcessingCount > 0) {
         setSuccess(`All ${stillProcessingCount} job${stillProcessingCount > 1 ? 's are' : ' is'} still processing in Vizard`);
       } else {
@@ -372,7 +396,9 @@ const VideoClippingPanel: React.FC = () => {
       }
 
       setLastManualCheck(new Date());
+      console.log('=== MANUAL CHECK COMPLETE ===\n');
     } catch (err) {
+      console.error('❌ Manual check error:', err);
       setError(err instanceof Error ? err.message : 'Failed to check for completed videos');
     } finally {
       setCheckingVizard(false);

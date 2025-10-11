@@ -11,7 +11,7 @@ import {
 class JobPollingService {
   private pollingInterval: NodeJS.Timeout | null = null;
   private isPolling = false;
-  private pollIntervalMs = 30000;
+  private pollIntervalMs = 60000;
 
   start(profileKey: string, userId: string, onUpdate?: () => void) {
     if (this.isPolling) {
@@ -63,15 +63,18 @@ class JobPollingService {
     onUpdate?: () => void
   ) {
     try {
+      console.log(`Checking status for job ${job.id} (Project: ${job.vizard_project_id})...`);
       const result = await queryVizardProject(job.vizard_project_id);
 
+      console.log(`Vizard response for job ${job.id}: code ${result.code}`);
+
       if (result.code === 1000) {
-        console.log(`Job ${job.id} still processing...`);
+        console.log(`Job ${job.id} still processing in Vizard...`);
         return;
       }
 
       if (result.code === 2000 && result.videos) {
-        console.log(`Job ${job.id} completed with ${result.videos.length} clips!`);
+        console.log(`✅ Job ${job.id} completed with ${result.videos.length} clips!`);
 
         const clips = result.videos.map((video, index) => {
           console.log(`Clip ${index + 1}: ${video.title}`);
@@ -92,6 +95,7 @@ class JobPollingService {
           };
         });
 
+        console.log(`Saving ${clips.length} clips to database...`);
         const savedClips = await saveVizardClips(
           userId,
           profileKey,
@@ -103,25 +107,29 @@ class JobPollingService {
           job.vizard_share_link
         );
 
+        console.log(`✅ Saved ${savedClips.length} clips to database successfully!`);
         await markJobCompleted(job.id, savedClips.length);
+        console.log(`✅ Marked job ${job.id} as completed`);
 
         if (onUpdate) {
+          console.log(`Triggering UI update...`);
           onUpdate();
         }
       } else if (result.code === 4002) {
-        console.log(`Job ${job.id} failed`);
+        console.log(`❌ Job ${job.id} failed with code 4002`);
         await markJobFailed(job.id, result.msg || 'Video clipping failed');
 
         if (onUpdate) {
           onUpdate();
         }
+      } else {
+        console.log(`⚠️ Unexpected Vizard response code: ${result.code}, msg: ${result.msg}`);
       }
     } catch (error) {
-      console.error(`Error checking job ${job.id}:`, error);
+      console.error(`❌ Error checking job ${job.id}:`, error);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      if (errorMessage.includes('timeout') || errorMessage.includes('failed')) {
-      }
+      console.error(`Error details: ${errorMessage}`);
     }
   }
 
