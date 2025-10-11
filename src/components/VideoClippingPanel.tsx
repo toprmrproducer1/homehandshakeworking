@@ -33,7 +33,6 @@ import {
   saveVizardClips,
   ClippedVideo,
 } from '../utils/clippedVideosDb';
-import { uploadVideoToStorage } from '../utils/videoStorage';
 import { validatePost, publishPost } from '../utils/ayrshare';
 import { uploadLargeVideoToBigWebhook } from '../utils/videoClipping';
 
@@ -139,15 +138,16 @@ const VideoClippingPanel: React.FC = () => {
       let uploadedVideoUrl = videoUrl;
 
       if (videoType === 1 && videoFile) {
-        setProcessingStatus('Uploading video to storage...');
-        const uploadResult = await uploadVideoToStorage(
+        setProcessingStatus('Uploading video to cloud storage...');
+
+        // Upload large videos via webhook (bypasses Supabase 50MB limit)
+        const webhookUrl = await uploadLargeVideoToBigWebhook(
           videoFile,
-          user.id,
           (progress) => {
             setProcessingPercent(progress * 0.2);
           }
         );
-        uploadedVideoUrl = uploadResult.url;
+        uploadedVideoUrl = webhookUrl;
         setProcessingStatus('Video uploaded successfully!');
       }
 
