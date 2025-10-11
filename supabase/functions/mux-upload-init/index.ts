@@ -40,7 +40,11 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         new_asset_settings: {
           playback_policy: ["public"],
-          mp4_support: "standard",
+          video_quality: "basic",
+          static_renditions: [
+            { resolution: "highest" },
+            { resolution: "audio-only" }
+          ],
         },
         cors_origin: "*",
       }),

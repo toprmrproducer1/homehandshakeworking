@@ -7,11 +7,12 @@ export interface MuxVideoUrls {
   playbackId: string;
   assetId: string;
   streamUrl: string;
-  mp4High: string;
-  mp4Medium: string;
-  mp4Low: string;
+  mp4Highest: string;
+  mp4Download: string;
+  audioOnly: string;
   thumbnail: string;
   animatedGif: string;
+  staticRenditionsReady: boolean;
 }
 
 export interface MuxUploadStatus {

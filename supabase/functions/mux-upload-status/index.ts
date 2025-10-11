@@ -20,6 +20,16 @@ interface MuxAsset {
     policy: string;
   }>;
   status: string;
+  static_renditions?: {
+    status: string;
+    files?: Array<{
+      name: string;
+      ext: string;
+      bitrate?: number;
+      width?: number;
+      height?: number;
+    }>;
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -83,11 +93,12 @@ Deno.serve(async (req: Request) => {
             playbackId,
             assetId: asset.id,
             streamUrl: `https://stream.mux.com/${playbackId}.m3u8`,
-            mp4High: `https://stream.mux.com/${playbackId}/high.mp4`,
-            mp4Medium: `https://stream.mux.com/${playbackId}/medium.mp4`,
-            mp4Low: `https://stream.mux.com/${playbackId}/low.mp4`,
+            mp4Highest: `https://stream.mux.com/${playbackId}/highest.mp4`,
+            mp4Download: `https://stream.mux.com/${playbackId}/highest.mp4?download=video`,
+            audioOnly: `https://stream.mux.com/${playbackId}/audio.m4a`,
             thumbnail: `https://image.mux.com/${playbackId}/thumbnail.jpg`,
             animatedGif: `https://image.mux.com/${playbackId}/animated.gif`,
+            staticRenditionsReady: asset.static_renditions?.status === "ready",
           };
         }
       }
