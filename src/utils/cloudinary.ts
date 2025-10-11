@@ -47,6 +47,11 @@ export const uploadVideoToCloudinary = async (
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText);
+            console.log('Cloudinary upload successful:', {
+              url: response.url,
+              secureUrl: response.secure_url,
+              publicId: response.public_id,
+            });
 
             if (onProgress) onProgress(100);
 
@@ -110,6 +115,7 @@ export const uploadVideoToCloudinaryWithRetry = async (
         onProgress(100);
       }
 
+      console.log('Using Cloudinary URL for Vizard:', result.secureUrl);
       return result.secureUrl;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');

@@ -105,6 +105,11 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 export const submitVideoToVizard = async (config: VizardClipConfig): Promise<string> => {
+  console.log('Submitting to Vizard with config:', {
+    ...config,
+    videoUrl: config.videoUrl.substring(0, 100) + '...',
+  });
+
   const response = await fetch(`${VIZARD_API_BASE}/project/create`, {
     method: 'POST',
     headers: {
@@ -114,16 +119,43 @@ export const submitVideoToVizard = async (config: VizardClipConfig): Promise<str
     body: JSON.stringify(config),
   });
 
-  if (!response.ok) {
-    throw new Error(`Vizard API error: ${response.statusText}`);
+  let responseText = '';
+  try {
+    responseText = await response.text();
+  } catch (e) {
+    console.error('Failed to read response text:', e);
   }
 
-  const result: VizardCreateResponse = await response.json();
+  console.log('Vizard API response status:', response.status);
+  console.log('Vizard API response:', responseText);
+
+  if (!response.ok) {
+    let errorMsg = `Vizard API error (${response.status}): ${response.statusText}`;
+    try {
+      const errorData = JSON.parse(responseText);
+      if (errorData.message) {
+        errorMsg = errorData.message;
+      }
+    } catch {
+      if (responseText) {
+        errorMsg = responseText;
+      }
+    }
+    throw new Error(errorMsg);
+  }
+
+  let result: VizardCreateResponse;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error('Failed to parse Vizard response: ' + responseText.substring(0, 200));
+  }
 
   if (!result.success || !result.data?.projectId) {
     throw new Error(result.message || 'Failed to create Vizard project');
   }
 
+  console.log('Vizard project created successfully:', result.data.projectId);
   return result.data.projectId;
 };
 
