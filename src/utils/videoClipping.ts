@@ -1,9 +1,9 @@
 import { uploadVideoToStorage } from './videoStorage';
-import { uploadToCatboxWithFallback, shouldUseCatbox } from './catbox';
+import { uploadVideoToCloudinaryWithRetry, isValidCloudinarySize } from './cloudinary';
 
 export interface VideoUploadResult {
   url: string;
-  service: 'supabase' | 'catbox';
+  service: 'supabase' | 'cloudinary';
   size: number;
 }
 
@@ -30,26 +30,26 @@ export const uploadVideoForVizard = async (
   onProgress?: (progress: number) => void
 ): Promise<VideoUploadResult> => {
   const MAX_SUPABASE_SIZE = 50 * 1024 * 1024;
-  const MAX_CATBOX_SIZE = 200 * 1024 * 1024;
+  const MAX_CLOUDINARY_SIZE = 100 * 1024 * 1024;
 
-  if (file.size > MAX_CATBOX_SIZE) {
-    throw new Error(`File size exceeds 200MB limit. Current size: ${formatFileSize(file.size)}`);
+  if (file.size > MAX_CLOUDINARY_SIZE) {
+    throw new Error('File size exceeds 100MB limit. Current size: ' + formatFileSize(file.size));
   }
 
   if (onProgress) onProgress(5);
 
   try {
-    if (shouldUseCatbox(file, MAX_SUPABASE_SIZE)) {
+    if (file.size > MAX_SUPABASE_SIZE && isValidCloudinarySize(file, MAX_CLOUDINARY_SIZE)) {
       if (onProgress) onProgress(10);
-      const catboxUrl = await uploadToCatboxWithFallback(file, (progress) => {
+      const cloudinaryUrl = await uploadVideoToCloudinaryWithRetry(file, (progress) => {
         if (onProgress) onProgress(10 + (progress * 0.8));
       });
 
       if (onProgress) onProgress(100);
 
       return {
-        url: catboxUrl,
-        service: 'catbox',
+        url: cloudinaryUrl,
+        service: 'cloudinary',
         size: file.size,
       };
     } else {
@@ -69,14 +69,14 @@ export const uploadVideoForVizard = async (
   } catch (error) {
     console.error('Video upload error:', error);
     throw new Error(
-      `Failed to upload video: ${error instanceof Error ? error.message : 'Unknown error'}`
+      'Failed to upload video: ' + (error instanceof Error ? error.message : 'Unknown error')
     );
   }
 };
 
 const formatFileSize = (bytes: number): string => {
   if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
+    return (bytes / 1024).toFixed(1) + ' KB';
   }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
