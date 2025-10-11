@@ -50,22 +50,39 @@ export const uploadVideoForVizard = async (
     if (file.size > MAX_SUPABASE_SIZE) {
       if (onProgress) onProgress(10);
 
-      const muxResult = await uploadVideoToMuxComplete(file, (status, progress) => {
-        if (onProgress && progress) {
-          const mappedProgress = 10 + (progress * 0.9);
-          onProgress(mappedProgress);
-        }
-      });
+      try {
+        const muxResult = await uploadVideoToMuxComplete(file, (status, progress) => {
+          if (onProgress && progress) {
+            const mappedProgress = 10 + (progress * 0.9);
+            onProgress(mappedProgress);
+          }
+        });
 
-      if (onProgress) onProgress(100);
+        if (onProgress) onProgress(100);
 
-      return {
-        url: muxResult.url,
-        service: 'mux',
-        size: file.size,
-        extension: fileExtension,
-        muxVideoUrls: muxResult.videoUrls,
-      };
+        return {
+          url: muxResult.url,
+          service: 'mux',
+          size: file.size,
+          extension: fileExtension,
+          muxVideoUrls: muxResult.videoUrls,
+        };
+      } catch (muxError) {
+        console.warn('Mux upload failed, falling back to Supabase storage:', muxError);
+
+        const uploadResult = await uploadVideoToStorage(file, userId, (progress) => {
+          if (onProgress) onProgress(10 + (progress * 0.8));
+        });
+
+        if (onProgress) onProgress(100);
+
+        return {
+          url: uploadResult.url,
+          service: 'supabase',
+          size: file.size,
+          extension: fileExtension,
+        };
+      }
     } else {
       if (onProgress) onProgress(10);
       const uploadResult = await uploadVideoToStorage(file, userId, (progress) => {

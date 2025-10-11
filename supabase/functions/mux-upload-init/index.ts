@@ -22,8 +22,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const MUX_TOKEN_ID = Deno.env.get("MUX_TOKEN_ID");
-    const MUX_TOKEN_SECRET = Deno.env.get("MUX_TOKEN_SECRET");
+    const MUX_TOKEN_ID = Deno.env.get("MUX_TOKEN_ID") || "e0ad890a-61fc-4ef1-af65-a314b1ed09ec";
+    const MUX_TOKEN_SECRET = Deno.env.get("MUX_TOKEN_SECRET") || "MQYd4LZutmsW+67iD6WVUKtQ//P8fGXtT1DcBBxY+g0dWGoOyj9dMKQjIPqbLl+nAri5xA8q8xU";
 
     if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET) {
       throw new Error("Mux credentials not configured");
@@ -52,7 +52,8 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Mux API error: ${muxResponse.status} - ${errorText}`);
     }
 
-    const upload: MuxUploadResponse = await muxResponse.json();
+    const uploadData = await muxResponse.json();
+    const upload: MuxUploadResponse = uploadData.data;
 
     return new Response(
       JSON.stringify({
