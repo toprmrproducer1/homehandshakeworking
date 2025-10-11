@@ -15,12 +15,13 @@ import {
   TrendingUp,
   Edit,
   Settings,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import { useUserContext } from '../contexts/UserContext';
 import {
-  uploadVideoToVizardAndWait,
+  submitVideoToVizard,
   getVideoTypeOptions,
   getSupportedVideoExtensions,
   VIZARD_CLIP_RATIOS,
@@ -30,11 +31,13 @@ import {
 } from '../utils/vizardApi';
 import {
   getClippedVideos,
-  saveVizardClips,
   ClippedVideo,
 } from '../utils/clippedVideosDb';
 import { validatePost, publishPost } from '../utils/ayrshare';
 import { uploadVideoForVizard } from '../utils/videoClipping';
+import { createClippingJob, getClippingJobs, deleteClippingJob, ClippingJob } from '../utils/clippingJobs';
+import { jobPollingService } from '../utils/jobPollingService';
+import VideoProcessingLoader from './VideoProcessingLoader';
 
 const VideoClippingPanel: React.FC = () => {
   const { user } = useUser();
@@ -45,7 +48,8 @@ const VideoClippingPanel: React.FC = () => {
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [clippedVideos, setClippedVideos] = useState<ClippedVideo[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [processingJobs, setProcessingJobs] = useState<ClippingJob[]>([]);
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState<string>('');
@@ -77,23 +81,41 @@ const VideoClippingPanel: React.FC = () => {
   const supportedExtensions = getSupportedVideoExtensions();
 
   useEffect(() => {
-    if (profileKey) {
+    if (profileKey && user?.id) {
       loadClippedVideos();
+      loadProcessingJobs();
+
+      jobPollingService.start(profileKey, user.id, () => {
+        loadClippedVideos();
+        loadProcessingJobs();
+      });
     }
-  }, [profileKey]);
+
+    return () => {
+      jobPollingService.stop();
+    };
+  }, [profileKey, user?.id]);
 
   const loadClippedVideos = async () => {
     if (!profileKey) return;
 
     try {
-      setLoading(true);
       setError(null);
       const videos = await getClippedVideos(profileKey);
       setClippedVideos(videos);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load clipped videos');
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const loadProcessingJobs = async () => {
+    if (!profileKey) return;
+
+    try {
+      const jobs = await getClippingJobs(profileKey);
+      setProcessingJobs(jobs.filter(job => job.status === 'processing'));
+    } catch (err) {
+      console.error('Failed to load processing jobs:', err);
     }
   };
 
@@ -146,15 +168,15 @@ const VideoClippingPanel: React.FC = () => {
           videoFile,
           user.id,
           (progress) => {
-            const mappedProgress = 5 + (progress * 0.15);
+            const mappedProgress = 5 + (progress * 0.95);
             setProcessingPercent(mappedProgress);
-            setProcessingStatus(`Uploading video to ${progress < 50 ? 'storage' : 'cloud'}... ${Math.round(progress)}%`);
+            setProcessingStatus(`Uploading video... ${Math.round(progress)}%`);
           }
         );
         uploadedVideoUrl = uploadResult.url;
         videoExtension = uploadResult.extension;
-        setProcessingStatus(`Upload complete (${uploadResult.service}), preparing for AI processing...`);
-        setProcessingPercent(20);
+        setProcessingStatus('Upload complete!');
+        setProcessingPercent(100);
       } else if (videoType === 1) {
         throw new Error('Video file is required');
       } else {
@@ -182,30 +204,19 @@ const VideoClippingPanel: React.FC = () => {
         ext: videoExtension,
       };
 
-      // Send directly to Vizard for AI processing
-      const clips = await uploadVideoToVizardAndWait(
-        config,
-        (status, percent) => {
-          setProcessingStatus(status);
-          if (percent !== undefined) {
-            // Map Vizard progress (20-100% of total)
-            const mappedPercent = 20 + (percent * 0.8);
-            setProcessingPercent(mappedPercent);
-          }
-        }
-      );
+      setProcessingStatus('Submitting to Vizard AI...');
+      const vizardProjectId = await submitVideoToVizard(config);
 
-      const savedClips = await saveVizardClips(
+      const job = await createClippingJob(
         user.id,
         profileKey,
-        'vizard-project-' + Date.now(),
+        vizardProjectId,
         uploadedVideoUrl,
-        clips,
         config
       );
 
-      setSuccess(`Successfully created ${clips.length} clip${clips.length > 1 ? 's' : ''}!`);
-      setClippedVideos(prev => [...savedClips, ...prev]);
+      setSuccess('Video submitted for AI clipping! Processing will take 5-10 minutes.');
+      setProcessingJobs(prev => [job, ...prev]);
 
       setVideoUrl('');
       setVideoFile(null);
@@ -214,10 +225,6 @@ const VideoClippingPanel: React.FC = () => {
         URL.revokeObjectURL(videoPreviewUrl);
         setVideoPreviewUrl(null);
       }
-
-      setTimeout(() => {
-        loadClippedVideos();
-      }, 1000);
     } catch (err) {
       console.error('Video clipping error:', err);
       setError(err instanceof Error ? err.message : 'Failed to process video');
@@ -225,6 +232,16 @@ const VideoClippingPanel: React.FC = () => {
       setUploading(false);
       setProcessingStatus('');
       setProcessingPercent(0);
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    try {
+      await deleteClippingJob(jobId);
+      setProcessingJobs(prev => prev.filter(job => job.id !== jobId));
+      setSuccess('Processing job cancelled');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete job');
     }
   };
 
@@ -663,6 +680,38 @@ const VideoClippingPanel: React.FC = () => {
           </form>
         </div>
 
+        {processingJobs.length > 0 && (
+          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 shadow-lg p-8 backdrop-blur-xl">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-purple-700 p-2 rounded-xl">
+                <Sparkles className="h-6 w-6 text-white animate-pulse" />
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                Processing Videos ({processingJobs.length})
+              </h2>
+            </div>
+
+            <div className="grid gap-6">
+              {processingJobs.map((job) => (
+                <div key={job.id} className="relative">
+                  <VideoProcessingLoader
+                    progress={job.progress_percent}
+                    projectId={job.vizard_project_id}
+                    estimatedTime="5-10 minutes"
+                  />
+                  <button
+                    onClick={() => handleDeleteJob(job.id)}
+                    className="absolute top-4 right-4 p-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors border border-red-500/30"
+                    title="Cancel processing"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="bg-gradient-to-br from-blue-900/20 to-black rounded-2xl border border-blue-500/20 shadow-lg p-8 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
@@ -672,7 +721,10 @@ const VideoClippingPanel: React.FC = () => {
               <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">Clipped Videos</h2>
             </div>
             <button
-              onClick={loadClippedVideos}
+              onClick={() => {
+                loadClippedVideos();
+                loadProcessingJobs();
+              }}
               disabled={loading}
               className="px-4 py-2 bg-blue-900/20 hover:bg-blue-800/30 text-blue-200 rounded-lg transition-colors flex items-center space-x-2 border border-blue-500/20"
             >
@@ -681,12 +733,7 @@ const VideoClippingPanel: React.FC = () => {
             </button>
           </div>
 
-          {loading ? (
-            <div className="text-center py-12">
-              <RefreshCw className="h-8 w-8 text-blue-400 mx-auto mb-4 animate-spin" />
-              <p className="text-blue-200">Loading clipped videos...</p>
-            </div>
-          ) : clippedVideos.length > 0 ? (
+          {clippedVideos.length > 0 ? (
             <div className="grid gap-6">
               {clippedVideos.map((video, index) => (
                 <div key={video.id || index} className="bg-blue-900/10 rounded-xl p-6 hover:bg-blue-800/20 transition-colors border border-blue-500/20">
