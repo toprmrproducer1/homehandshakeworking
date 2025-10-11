@@ -61,7 +61,7 @@ export const uploadVideoForVizard = async (
         if (onProgress) onProgress(100);
 
         return {
-          url: muxResult.url,
+          url: muxResult.videoUrls.mp4Highest,
           service: 'mux',
           size: file.size,
           extension: fileExtension,
