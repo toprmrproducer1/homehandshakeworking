@@ -15,6 +15,7 @@ export interface ClippedVideo {
   status: 'processing' | 'completed' | 'failed';
   metadata?: any;
   vizard_project_id?: string;
+  vizard_share_link?: string;
   viral_score?: number;
   viral_reason?: string;
   related_topic?: string;
@@ -58,7 +59,8 @@ export const saveVizardClips = async (
   originalVideoUrl: string,
   clips: VizardClip[],
   vizardConfig?: any,
-  parentUploadId?: string
+  parentUploadId?: string,
+  vizardShareLink?: string
 ): Promise<ClippedVideo[]> => {
   const savedClips: ClippedVideo[] = [];
 
@@ -74,6 +76,7 @@ export const saveVizardClips = async (
       duration: clip.videoMsDuration ? Math.floor(clip.videoMsDuration / 1000) : undefined,
       status: 'completed',
       vizard_project_id: vizardProjectId,
+      vizard_share_link: vizardShareLink,
       viral_score: clip.viralScore ? parseInt(clip.viralScore) : undefined,
       viral_reason: clip.viralReason,
       related_topic: clip.relatedTopic,

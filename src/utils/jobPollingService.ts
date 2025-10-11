@@ -91,7 +91,9 @@ class JobPollingService {
           job.vizard_project_id,
           job.original_video_url,
           clips,
-          job.config
+          job.config,
+          undefined,
+          job.vizard_share_link
         );
 
         await markJobCompleted(job.id, savedClips.length);

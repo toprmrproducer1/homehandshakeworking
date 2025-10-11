@@ -1,5 +1,9 @@
 const VIZARD_API_BASE = 'https://elb-api.vizard.ai/hvizard-server-front/open-api/v1';
-const VIZARD_API_KEY = '9c7070b36ebb479c822aa3eef07474f5';
+const VIZARD_API_KEY = import.meta.env.VITE_VIZARD_API_KEY;
+
+if (!VIZARD_API_KEY) {
+  console.error('VITE_VIZARD_API_KEY is not set in environment variables');
+}
 
 export interface VizardClipConfig {
   lang: string;
@@ -104,7 +108,30 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'hi', name: 'Hindi' },
 ];
 
-export const submitVideoToVizard = async (config: VizardClipConfig, retries: number = 3): Promise<string> => {
+export const getVizardErrorMessage = (code: number, defaultMsg?: string): string => {
+  const errorMessages: { [key: number]: string } = {
+    1000: 'Video is still processing. Please wait...',
+    2000: 'Success',
+    4001: 'Invalid API key or unauthorized access. Please check your Vizard API configuration.',
+    4002: 'Video clipping failed. Please try again with a different video.',
+    4003: 'Rate limit exceeded. Please wait a few minutes before trying again.',
+    4004: 'Unsupported video format. Please use MP4, AVI, MOV, or 3GP format.',
+    4005: 'The video file appears to be corrupted or broken. Please try a different video.',
+    4006: 'Invalid parameters provided. Please check your video settings.',
+    4007: 'Insufficient account minutes. Please upgrade your Vizard plan or wait for reset.',
+    4008: 'Cannot download video from the provided URL. Please verify the URL is accessible.',
+    4009: 'Invalid video URL format. Please provide a valid, publicly accessible video URL.',
+    4010: 'Cannot detect spoken language in video. Try selecting a specific language instead of auto-detect, or use a video with clearer audio.',
+  };
+
+  return errorMessages[code] || defaultMsg || `Vizard API error (code: ${code})`;
+};
+
+export const submitVideoToVizard = async (config: VizardClipConfig, retries: number = 3): Promise<{ projectId: string; shareLink?: string }> => {
+  if (!VIZARD_API_KEY) {
+    throw new Error('Vizard API key is not configured. Please add VITE_VIZARD_API_KEY to your environment variables.');
+  }
+
   if (!config.videoUrl || config.videoUrl.trim() === '') {
     throw new Error('Video URL is required for Vizard processing');
   }
@@ -152,9 +179,14 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
 
       if (!response.ok) {
         let errorMsg = `Vizard API error (${response.status}): ${response.statusText}`;
+        let errorCode: number | null = null;
+
         try {
           const errorData = JSON.parse(responseText);
-          if (errorData.message) {
+          if (errorData.code) {
+            errorCode = errorData.code;
+            errorMsg = getVizardErrorMessage(errorData.code, errorData.errMsg || errorData.message);
+          } else if (errorData.message) {
             errorMsg = errorData.message;
           }
         } catch {
@@ -180,11 +212,16 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
       }
 
       if (result.code !== 2000 || !result.projectId) {
-        throw new Error(result.message || 'Failed to create Vizard project');
+        throw new Error(getVizardErrorMessage(result.code, result.message || 'Failed to create Vizard project'));
       }
 
       console.log('Vizard project created successfully:', result.projectId);
-      return result.projectId;
+      console.log('Vizard share link:', result.shareLink);
+
+      return {
+        projectId: result.projectId,
+        shareLink: result.shareLink,
+      };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
 

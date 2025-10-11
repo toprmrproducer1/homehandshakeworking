@@ -28,6 +28,7 @@ import {
   VIZARD_PREFER_LENGTHS,
   SUPPORTED_LANGUAGES,
   VizardClipConfig,
+  getVizardErrorMessage,
 } from '../utils/vizardApi';
 import {
   getClippedVideos,
@@ -205,14 +206,15 @@ const VideoClippingPanel: React.FC = () => {
       };
 
       setProcessingStatus('Submitting to Vizard AI...');
-      const vizardProjectId = await submitVideoToVizard(config);
+      const vizardResult = await submitVideoToVizard(config);
 
       const job = await createClippingJob(
         user.id,
         profileKey,
-        vizardProjectId,
+        vizardResult.projectId,
         uploadedVideoUrl,
-        config
+        config,
+        vizardResult.shareLink
       );
 
       setSuccess('Video submitted for AI clipping! Processing will take 5-10 minutes.');
@@ -227,7 +229,19 @@ const VideoClippingPanel: React.FC = () => {
       }
     } catch (err) {
       console.error('Video clipping error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process video');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process video';
+
+      if (errorMessage.includes('code:') || errorMessage.includes('API error')) {
+        const codeMatch = errorMessage.match(/code:\s*(\d+)/);
+        if (codeMatch) {
+          const errorCode = parseInt(codeMatch[1]);
+          setError(getVizardErrorMessage(errorCode, errorMessage));
+        } else {
+          setError(errorMessage);
+        }
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setUploading(false);
       setProcessingStatus('');
@@ -699,6 +713,7 @@ const VideoClippingPanel: React.FC = () => {
                     projectId={job.vizard_project_id}
                     estimatedTime="5-10 minutes"
                     videoUrl={job.original_video_url}
+                    shareLink={job.vizard_share_link}
                   />
                   <button
                     onClick={() => handleDeleteJob(job.id)}
@@ -834,6 +849,19 @@ const VideoClippingPanel: React.FC = () => {
                               >
                                 <Edit className="h-4 w-4" />
                                 <span>Edit</span>
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+
+                            {video.vizard_share_link && (
+                              <a
+                                href={video.vizard_share_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors flex items-center space-x-2 shadow-lg"
+                              >
+                                <Sparkles className="h-4 w-4" />
+                                <span>View in Vizard</span>
                                 <ExternalLink className="h-3 w-3" />
                               </a>
                             )}

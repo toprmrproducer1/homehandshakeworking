@@ -1,11 +1,12 @@
 import React from 'react';
-import { Sparkles, Film, Scissors, Wand2 } from 'lucide-react';
+import { Sparkles, Film, Scissors, Wand2, ExternalLink } from 'lucide-react';
 
 interface VideoProcessingLoaderProps {
   progress?: number;
   projectId?: string;
   estimatedTime?: string;
   videoUrl?: string;
+  shareLink?: string;
 }
 
 const VideoProcessingLoader: React.FC<VideoProcessingLoaderProps> = ({
@@ -13,6 +14,7 @@ const VideoProcessingLoader: React.FC<VideoProcessingLoaderProps> = ({
   projectId,
   estimatedTime = '5-10 minutes',
   videoUrl,
+  shareLink,
 }) => {
   return (
     <div className="relative bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-8 border border-blue-500/30 backdrop-blur-xl overflow-hidden">
@@ -111,6 +113,27 @@ const VideoProcessingLoader: React.FC<VideoProcessingLoaderProps> = ({
             </div>
           )}
         </div>
+
+        {shareLink && (
+          <div className="p-4 bg-gradient-to-r from-green-900/20 to-emerald-900/20 rounded-xl border border-green-500/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-green-300">View in Vizard Dashboard</span>
+              <ExternalLink className="h-4 w-4 text-green-400" />
+            </div>
+            <a
+              href={shareLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full justify-center"
+            >
+              <span>Open Project in Vizard</span>
+              <ExternalLink className="h-4 w-4" />
+            </a>
+            <p className="text-xs text-green-400/70 mt-2 text-center">
+              View and edit your clips in Vizard's web editor
+            </p>
+          </div>
+        )}
 
         <div className="text-center">
           <p className="text-sm text-blue-300/70">

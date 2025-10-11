@@ -6,6 +6,7 @@ export interface ClippingJob {
   user_id: string;
   profile_key: string;
   vizard_project_id: string;
+  vizard_share_link?: string;
   original_video_url: string;
   config: VizardClipConfig;
   status: 'processing' | 'completed' | 'failed';
@@ -23,7 +24,8 @@ export const createClippingJob = async (
   profileKey: string,
   vizardProjectId: string,
   originalVideoUrl: string,
-  config: VizardClipConfig
+  config: VizardClipConfig,
+  vizardShareLink?: string
 ): Promise<ClippingJob> => {
   const { data, error } = await supabase
     .from('video_clipping_jobs')
@@ -31,6 +33,7 @@ export const createClippingJob = async (
       user_id: userId,
       profile_key: profileKey,
       vizard_project_id: vizardProjectId,
+      vizard_share_link: vizardShareLink,
       original_video_url: originalVideoUrl,
       config: config,
       status: 'processing',
