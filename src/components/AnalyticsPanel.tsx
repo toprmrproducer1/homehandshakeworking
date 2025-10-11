@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Eye, 
-  Heart, 
+import {
+  BarChart3,
+  Users,
+  Eye,
+  Heart,
   MessageCircle,
   Share,
   RefreshCw,
   AlertCircle,
   Calendar,
-  Globe
+  Globe,
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube
 } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { fetchSocialAnalytics } from '../utils/ayrshare';
@@ -20,14 +23,12 @@ const AnalyticsPanel: React.FC = () => {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   const availablePlatforms = [
-    { id: 'facebook', name: 'Facebook', color: 'from-blue-500 to-blue-600' },
-    { id: 'instagram', name: 'Instagram', color: 'from-pink-500 to-purple-600' },
-    { id: 'twitter', name: 'X/Twitter', color: 'from-sky-500 to-sky-600' },
-    { id: 'youtube', name: 'YouTube', color: 'from-red-500 to-red-600' },
-    { id: 'tiktok', name: 'TikTok', color: 'from-gray-800 to-black' },
+    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'from-blue-500 to-blue-600' },
+    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'from-pink-500 to-purple-600' },
+    { id: 'twitter', name: 'X/Twitter', icon: Twitter, color: 'from-sky-500 to-sky-600' },
+    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'from-red-500 to-red-600' },
   ];
 
   const getConnectedPlatforms = () => {
@@ -41,28 +42,14 @@ const AnalyticsPanel: React.FC = () => {
       .filter((platform: string) => availablePlatforms.some(p => p.id === platform));
   };
 
-  useEffect(() => {
+  const loadAllAnalytics = async () => {
     const connectedPlatforms = getConnectedPlatforms();
-    if (connectedPlatforms.length > 0 && selectedPlatforms.length === 0) {
-      const firstPlatform = connectedPlatforms[0];
-      setSelectedPlatforms([firstPlatform]);
-
-      if (profileKey) {
-        fetchSocialAnalytics(profileKey, [firstPlatform])
-          .then(data => setAnalytics(data))
-          .catch(err => setError(err instanceof Error ? err.message : 'Failed to load analytics'));
-      }
-    }
-  }, [userProfile, profileKey]);
-
-  const loadAnalytics = async (platforms?: string[]) => {
-    const platformsToLoad = platforms || selectedPlatforms;
-    if (!profileKey || platformsToLoad.length === 0) return;
+    if (!profileKey || connectedPlatforms.length === 0) return;
 
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchSocialAnalytics(profileKey, platformsToLoad);
+      const data = await fetchSocialAnalytics(profileKey, connectedPlatforms);
       setAnalytics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load analytics');
@@ -71,36 +58,9 @@ const AnalyticsPanel: React.FC = () => {
     }
   };
 
-  const handlePlatformToggle = async (platformId: string) => {
-    if (!profileKey) return;
-
-    const isCurrentlySelected = selectedPlatforms.includes(platformId);
-
-    let newSelectedPlatforms: string[];
-    if (isCurrentlySelected) {
-      newSelectedPlatforms = selectedPlatforms.filter(id => id !== platformId);
-    } else {
-      newSelectedPlatforms = [platformId];
-    }
-
-    setSelectedPlatforms(newSelectedPlatforms);
-    setLoading(true);
-    setError(null);
-
-    if (newSelectedPlatforms.length > 0) {
-      try {
-        const data = await fetchSocialAnalytics(profileKey, newSelectedPlatforms);
-        setAnalytics(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load analytics');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setAnalytics(null);
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    loadAllAnalytics();
+  }, [profileKey, userProfile]);
 
   const formatNumber = (num: number | string) => {
     const n = typeof num === 'string' ? parseInt(num) : num;
@@ -115,129 +75,93 @@ const AnalyticsPanel: React.FC = () => {
     const analytics = data[platform].analytics;
     const metrics = [];
 
-    // Common metrics across platforms
-    if (analytics.followersCount !== undefined) {
-      metrics.push({ label: 'Followers', value: formatNumber(analytics.followersCount), icon: Users });
-    }
-    if (analytics.views !== undefined) {
-      metrics.push({ label: 'Views', value: formatNumber(analytics.views), icon: Eye });
-    }
-    if (analytics.viewCount !== undefined) {
-      metrics.push({ label: 'Views', value: formatNumber(analytics.viewCount), icon: Eye });
-    }
-    if (analytics.likes !== undefined) {
-      metrics.push({ label: 'Likes', value: formatNumber(analytics.likes), icon: Heart });
-    }
-    if (analytics.likeCount !== undefined) {
-      metrics.push({ label: 'Likes', value: formatNumber(analytics.likeCount), icon: Heart });
-    }
-    if (analytics.comments !== undefined) {
-      metrics.push({ label: 'Comments', value: formatNumber(analytics.comments), icon: MessageCircle });
-    }
-    if (analytics.commentsCount !== undefined) {
-      metrics.push({ label: 'Comments', value: formatNumber(analytics.commentsCount), icon: MessageCircle });
-    }
-    if (analytics.shares !== undefined) {
-      metrics.push({ label: 'Shares', value: formatNumber(analytics.shares), icon: Share });
-    }
-    if (analytics.shareCount !== undefined) {
-      metrics.push({ label: 'Shares', value: formatNumber(analytics.shareCount), icon: Share });
-    }
-
-    // Platform-specific metrics
     if (platform === 'facebook') {
-      if (analytics.pageImpressions) {
+      if (analytics.fanCount !== undefined) {
+        metrics.push({ label: 'Page Likes', value: formatNumber(analytics.fanCount), icon: Heart });
+      }
+      if (analytics.followersCount !== undefined) {
+        metrics.push({ label: 'Followers', value: formatNumber(analytics.followersCount), icon: Users });
+      }
+      if (analytics.pageImpressions !== undefined) {
         metrics.push({ label: 'Impressions', value: formatNumber(analytics.pageImpressions), icon: Eye });
       }
-      if (analytics.fanCount) {
-        metrics.push({ label: 'Page Likes', value: formatNumber(analytics.fanCount), icon: Heart });
+      if (analytics.pageEngagement !== undefined) {
+        metrics.push({ label: 'Engagement', value: formatNumber(analytics.pageEngagement), icon: Heart });
       }
     }
 
     if (platform === 'instagram') {
-      if (analytics.reachCount) {
+      if (analytics.followersCount !== undefined) {
+        metrics.push({ label: 'Followers', value: formatNumber(analytics.followersCount), icon: Users });
+      }
+      if (analytics.likeCount !== undefined) {
+        metrics.push({ label: 'Likes', value: formatNumber(analytics.likeCount), icon: Heart });
+      }
+      if (analytics.commentsCount !== undefined) {
+        metrics.push({ label: 'Comments', value: formatNumber(analytics.commentsCount), icon: MessageCircle });
+      }
+      if (analytics.reachCount !== undefined) {
         metrics.push({ label: 'Reach', value: formatNumber(analytics.reachCount), icon: Globe });
       }
-      if (analytics.mediaCount) {
-        metrics.push({ label: 'Posts', value: formatNumber(analytics.mediaCount), icon: BarChart3 });
+    }
+
+    if (platform === 'twitter') {
+      if (analytics.followersCount !== undefined) {
+        metrics.push({ label: 'Followers', value: formatNumber(analytics.followersCount), icon: Users });
+      }
+      if (analytics.likeCount !== undefined) {
+        metrics.push({ label: 'Likes', value: formatNumber(analytics.likeCount), icon: Heart });
+      }
+      if (analytics.retweetCount !== undefined) {
+        metrics.push({ label: 'Retweets', value: formatNumber(analytics.retweetCount), icon: Share });
+      }
+      if (analytics.impressions !== undefined) {
+        metrics.push({ label: 'Impressions', value: formatNumber(analytics.impressions), icon: Eye });
       }
     }
 
     if (platform === 'youtube') {
-      if (analytics.subscriberCount) {
+      if (analytics.subscriberCount !== undefined) {
         metrics.push({ label: 'Subscribers', value: formatNumber(analytics.subscriberCount), icon: Users });
       }
-      if (analytics.estimatedMinutesWatched) {
-        metrics.push({ label: 'Watch Time (min)', value: formatNumber(analytics.estimatedMinutesWatched), icon: Eye });
+      if (analytics.viewCount !== undefined) {
+        metrics.push({ label: 'Views', value: formatNumber(analytics.viewCount), icon: Eye });
+      }
+      if (analytics.likeCount !== undefined) {
+        metrics.push({ label: 'Likes', value: formatNumber(analytics.likeCount), icon: Heart });
+      }
+      if (analytics.commentCount !== undefined) {
+        metrics.push({ label: 'Comments', value: formatNumber(analytics.commentCount), icon: MessageCircle });
       }
     }
 
-    if (platform === 'tiktok') {
-      if (analytics.profileViews) {
-        metrics.push({ label: 'Profile Views', value: formatNumber(analytics.profileViews), icon: Eye });
-      }
-      if (analytics.videoCountTotal) {
-        metrics.push({ label: 'Videos', value: formatNumber(analytics.videoCountTotal), icon: BarChart3 });
-      }
-    }
-
-    return metrics.slice(0, 4); // Limit to 4 metrics per platform
+    return metrics.length > 0 ? metrics.slice(0, 4) : null;
   };
+
+  const connectedPlatforms = getConnectedPlatforms();
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
               <BarChart3 className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Social Media Analytics</h2>
+            <div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Social Media Analytics</h2>
+              <p className="text-sm text-gray-400 mt-1">Track your performance across all platforms</p>
+            </div>
           </div>
           <button
-            onClick={() => loadAnalytics()}
-            disabled={loading || selectedPlatforms.length === 0}
+            onClick={loadAllAnalytics}
+            disabled={loading}
             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <span>Refresh All</span>
           </button>
-        </div>
-
-        {/* Platform Selection */}
-        <div>
-          <h3 className="text-lg font-semibold text-purple-200 mb-4">Select Platforms</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {availablePlatforms.map((platform) => {
-              const connectedPlatforms = getConnectedPlatforms();
-              const isConnected = connectedPlatforms.includes(platform.id);
-              const isSelected = selectedPlatforms.includes(platform.id);
-
-              return (
-                <button
-                  key={platform.id}
-                  onClick={() => isConnected && handlePlatformToggle(platform.id)}
-                  disabled={!isConnected}
-                  className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isSelected && isConnected
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-500/30'
-                      : isConnected
-                      ? 'bg-purple-900/20 text-purple-200 hover:bg-purple-800/30 border border-purple-500/30'
-                      : 'bg-gray-900/40 text-gray-500 cursor-not-allowed border border-gray-700/30'
-                  }`}
-                >
-                  {platform.name}
-                  {isConnected && (
-                    <div className="text-xs mt-1">Connected</div>
-                  )}
-                  {!isConnected && (
-                    <div className="text-xs mt-1">Not connected</div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
@@ -254,56 +178,82 @@ const AnalyticsPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Analytics Data */}
+      {/* Loading State */}
       {loading ? (
-        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-          <div className="text-center py-12">
-            <RefreshCw className="h-8 w-8 text-purple-400 mx-auto mb-4 animate-spin" />
-            <p className="text-gray-400">Loading analytics data...</p>
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-12 backdrop-blur-xl">
+          <div className="text-center">
+            <RefreshCw className="h-12 w-12 text-purple-400 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-400 text-lg">Loading analytics data...</p>
           </div>
         </div>
-      ) : analytics && selectedPlatforms.length > 0 ? (
+      ) : connectedPlatforms.length === 0 ? (
+        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-12 backdrop-blur-xl">
+          <div className="text-center">
+            <BarChart3 className="h-16 w-16 text-purple-500/50 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-purple-200 mb-2">No Connected Platforms</h3>
+            <p className="text-gray-400">Connect your social media accounts to view analytics.</p>
+          </div>
+        </div>
+      ) : (
         <div className="grid gap-6">
-          {selectedPlatforms.map((platformId) => {
+          {connectedPlatforms.map((platformId) => {
             const platform = availablePlatforms.find(p => p.id === platformId);
-            const metrics = getPlatformMetrics(platformId, analytics);
-            
-            if (!platform || !metrics || metrics.length === 0) return null;
+            if (!platform) return null;
+
+            const metrics = analytics ? getPlatformMetrics(platformId, analytics) : null;
+            const PlatformIcon = platform.icon;
 
             return (
-              <div key={platformId} className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
-                    <BarChart3 className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{platform.name} Analytics</h3>
-                    {analytics[platformId]?.lastUpdated && (
-                      <p className="text-sm text-gray-400 flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>Last updated: {new Date(analytics[platformId].lastUpdated).toLocaleDateString()}</span>
-                      </p>
-                    )}
+              <div
+                key={platformId}
+                className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl hover:border-purple-500/40 transition-all"
+              >
+                {/* Platform Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className={`bg-gradient-to-r ${platform.color} p-3 rounded-xl shadow-lg`}>
+                      <PlatformIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{platform.name} Analytics</h3>
+                      {analytics?.[platformId]?.lastUpdated && (
+                        <p className="text-sm text-gray-400 flex items-center space-x-1 mt-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Last updated: {new Date(analytics[platformId].lastUpdated).toLocaleDateString()}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {metrics.map((metric, index) => {
-                    const Icon = metric.icon;
-                    return (
-                      <div key={index} className="bg-purple-900/20 rounded-xl p-6 text-center border border-purple-500/20">
-                        <Icon className="h-8 w-8 text-purple-400 mx-auto mb-3" />
-                        <div className="text-2xl font-bold text-white mb-1">
-                          {metric.value}
+                {/* Metrics Grid */}
+                {metrics && metrics.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {metrics.map((metric, index) => {
+                      const Icon = metric.icon;
+                      return (
+                        <div
+                          key={index}
+                          className="bg-black/30 rounded-xl p-5 text-center border border-purple-500/10 hover:border-purple-500/30 transition-all"
+                        >
+                          <Icon className="h-7 w-7 text-purple-400 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-white mb-1">
+                            {metric.value}
+                          </div>
+                          <div className="text-xs text-gray-400">{metric.label}</div>
                         </div>
-                        <div className="text-sm text-gray-400">{metric.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <AlertCircle className="h-8 w-8 text-gray-500 mx-auto mb-2" />
+                    <p className="text-gray-500">No analytics data available for this platform</p>
+                  </div>
+                )}
 
-                {/* Additional platform-specific info */}
-                {analytics[platformId]?.analytics?.username && (
+                {/* Account Username */}
+                {analytics?.[platformId]?.analytics?.username && (
                   <div className="mt-6 pt-6 border-t border-purple-500/20">
                     <p className="text-sm text-gray-400">
                       <span className="font-medium text-purple-200">Account:</span> @{analytics[platformId].analytics.username}
@@ -314,15 +264,7 @@ const AnalyticsPanel: React.FC = () => {
             );
           })}
         </div>
-      ) : selectedPlatforms.length === 0 ? (
-        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-          <div className="text-center py-12">
-            <BarChart3 className="h-16 w-16 text-purple-500/50 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-purple-200 mb-2">No Platforms Selected</h3>
-            <p className="text-gray-400">Select connected platforms above to view analytics data.</p>
-          </div>
-        </div>
-      ) : null}
+      )}
     </div>
   );
 };
