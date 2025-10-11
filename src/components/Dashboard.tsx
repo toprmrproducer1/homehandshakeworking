@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles, FolderOpen, Terminal } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { BentoGrid } from './ui/bento-grid';
 import SidebarMenu from './SidebarMenu';
@@ -16,6 +16,7 @@ import ProfileSettingsPanel from './ProfileSettingsPanel';
 import OverviewDashboard from './OverviewDashboard';
 import LibraryPanel from './LibraryPanel';
 import SettingsPanel from './SettingsPanel';
+import VizardDebugPanel from './VizardDebugPanel';
 
 const Dashboard: React.FC = () => {
   const { userProfile, loading, error, refetchProfile } = useUserContext();
@@ -30,6 +31,7 @@ const Dashboard: React.FC = () => {
     { id: 'library', name: 'Library', icon: FolderOpen },
     { id: 'social', name: 'Social Accounts', icon: Users },
     { id: 'analytics', name: 'Analytics', icon: BarChart3 },
+    { id: 'debug', name: 'Debug', icon: Terminal },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
@@ -141,6 +143,10 @@ const Dashboard: React.FC = () => {
 
         {activeTab === 'settings' && (
           <SettingsPanel />
+        )}
+
+        {activeTab === 'debug' && (
+          <VizardDebugPanel />
         )}
       </div>
     </div>
