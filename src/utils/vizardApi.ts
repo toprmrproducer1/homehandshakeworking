@@ -22,12 +22,11 @@ export interface VizardClipConfig {
 
 export interface VizardCreateResponse {
   code: number;
-  data: {
-    projectId: string;
-  } | null;
-  message: string;
-  serverTime: number;
-  success: boolean;
+  projectId?: string;
+  shareLink?: string;
+  message?: string;
+  serverTime?: number;
+  success?: boolean;
 }
 
 export interface VizardClip {
@@ -179,12 +178,12 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
         throw new Error('Failed to parse Vizard response: ' + responseText.substring(0, 200));
       }
 
-      if (!result.success || !result.data?.projectId) {
+      if (result.code !== 2000 || !result.projectId) {
         throw new Error(result.message || 'Failed to create Vizard project');
       }
 
-      console.log('Vizard project created successfully:', result.data.projectId);
-      return result.data.projectId;
+      console.log('Vizard project created successfully:', result.projectId);
+      return result.projectId;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
 
