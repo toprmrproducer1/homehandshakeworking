@@ -51,12 +51,7 @@ interface GeneratedImage {
   generated_images: string[];
   viral_score?: number;
   batch_id?: string;
-  thumbnail_url?: string;
-  width?: number;
-  height?: number;
-  style?: string;
-  status: string;
-  metadata?: any;
+  inspiration_image_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -171,8 +166,7 @@ const LibraryPanel: React.FC = () => {
   const filteredImages = images
     .filter(image => {
       const matchesSearch = image.prompt.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesFilter = filterStatus === 'all' || image.status === filterStatus;
-      return matchesSearch && matchesFilter;
+      return matchesSearch;
     })
     .sort((a, b) => {
       if (sortBy === 'viral_score') {
@@ -271,16 +265,18 @@ const LibraryPanel: React.FC = () => {
             <option value="viral_score">Sort by Viral Score</option>
           </select>
 
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
-          >
-            <option value="all">All Status</option>
-            <option value="completed">Completed</option>
-            <option value="processing">Processing</option>
-            <option value="failed">Failed</option>
-          </select>
+          {activeTab === 'videos' && (
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
+            >
+              <option value="all">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="processing">Processing</option>
+              <option value="failed">Failed</option>
+            </select>
+          )}
 
           <div className="flex items-center gap-2 bg-purple-900/20 rounded-lg p-1">
             <button
@@ -459,15 +455,10 @@ const LibraryPanel: React.FC = () => {
                       <Calendar className="h-3 w-3" />
                       <span>{formatDate(image.created_at)}</span>
                     </div>
-                    <span className={`capitalize ${getStatusColor(image.status)}`}>
-                      {image.status}
-                    </span>
+                    {image.generated_images && image.generated_images.length > 0 && (
+                      <span className="text-purple-400">{image.generated_images.length} images</span>
+                    )}
                   </div>
-                  {image.width && image.height && (
-                    <div className="text-xs text-gray-400 mb-3">
-                      {image.width} × {image.height}px
-                    </div>
-                  )}
                   <div className="flex items-center gap-2">
                     {image.generated_images && image.generated_images.length > 0 && (
                       <a
