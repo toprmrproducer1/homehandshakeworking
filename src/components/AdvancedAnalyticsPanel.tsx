@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, Heart, MessageCircle, Globe, RefreshCw, Calendar, Eye, Share, AlertCircle, Facebook, Instagram, Twitter, Youtube, Sparkles } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from './ui/chart';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Tooltip } from 'recharts';
 import { fetchSocialAnalytics } from '../utils/ayrshare';
 import { generateSocialMediaInsights } from '../utils/openai';
 import { fetchEngagementHistory, getEngagementChartData, fillMissingDates } from '../utils/engagementTracking';
@@ -319,7 +317,7 @@ const AdvancedAnalyticsPanel: React.FC = () => {
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(139, 92, 246, 0.1)" />
                           <XAxis dataKey="date" stroke="rgba(156, 163, 175, 0.5)" />
                           <YAxis stroke="rgba(156, 163, 175, 0.5)" />
-                          <ChartTooltip
+                          <Tooltip
                             content={({ active, payload }) => {
                               if (active && payload && payload.length) {
                                 return (

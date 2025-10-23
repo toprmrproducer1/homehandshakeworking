@@ -3,7 +3,6 @@ import { UserButton, useUser } from '@clerk/clerk-react';
 import { Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createProfile } from '../utils/profileApi';
-import { ShimmerButton } from './ui/shimmer-button';
 
 const AccountActivation: React.FC = () => {
   const { user } = useUser();
@@ -160,11 +159,10 @@ const AccountActivation: React.FC = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <ShimmerButton
+              <button
                 onClick={handleCreateProfile}
                 disabled={isCreatingProfile}
-                className="disabled:opacity-50 disabled:cursor-not-allowed"
-                background="linear-gradient(to right, rgb(147 51 234), rgb(126 34 206))"
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isCreatingProfile ? (
                   <span className="flex items-center gap-2">
@@ -174,14 +172,14 @@ const AccountActivation: React.FC = () => {
                 ) : (
                   'Create Profile'
                 )}
-              </ShimmerButton>
+              </button>
 
-              <ShimmerButton
+              <button
                 onClick={() => window.location.reload()}
-                background="linear-gradient(to right, rgb(147 51 234), rgb(168 85 247))"
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg shadow-purple-500/50"
               >
                 Refresh Status
-              </ShimmerButton>
+              </button>
             </div>
           </div>
         </div>

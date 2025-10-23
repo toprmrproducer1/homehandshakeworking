@@ -1,10 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useClerk } from '@clerk/clerk-react';
-import { HeroSection } from './ui/hero-odyssey';
 import { motion } from 'framer-motion';
-import { TestimonialsColumn } from './ui/testimonials-columns';
-import { PricingWithChart } from './ui/pricing-with-chart';
 import {
   Scissors,
   Share2,
@@ -117,7 +114,30 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <HeroSection />
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-black" />
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent mb-6">
+              Homehandshake
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
+              Transform your content with AI-powered video clipping, image generation, and social media management all in one platform.
+            </p>
+            <button
+              onClick={handleGetStarted}
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg shadow-purple-500/50 transform hover:scale-105"
+            >
+              Get Started
+              <ArrowRight className="inline-block ml-2 h-5 w-5" />
+            </button>
+          </motion.div>
+        </div>
+      </section>
 
       <main className="relative z-10">
         <section id="features" className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/20 to-black">
@@ -281,10 +301,28 @@ const LandingPage: React.FC = () => {
               </p>
             </motion.div>
 
-            <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_25%,black_75%,transparent)] max-h-[700px] overflow-hidden">
-              <TestimonialsColumn testimonials={testimonials} duration={15} />
-              <TestimonialsColumn testimonials={testimonials2} className="hidden md:block" duration={19} />
-              <TestimonialsColumn testimonials={testimonials3} className="hidden lg:block" duration={17} />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {testimonials.map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6"
+                >
+                  <p className="text-gray-300 mb-4">{testimonial.review}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="h-10 w-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold">
+                      {testimonial.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">{testimonial.name}</p>
+                      <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
@@ -321,7 +359,123 @@ const LandingPage: React.FC = () => {
         </section>
 
         <section id="pricing" className="px-6 py-20 bg-gradient-to-b from-black via-purple-950/10 to-black">
-          <PricingWithChart />
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-200 bg-clip-text text-transparent">
+                Simple, Transparent Pricing
+              </h2>
+              <p className="text-xl text-gray-400">
+                Choose the plan that works for you
+              </p>
+            </motion.div>
+            <div className="grid md:grid-cols-3 gap-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8"
+              >
+                <h3 className="text-2xl font-bold text-white mb-2">Starter</h3>
+                <div className="text-4xl font-bold text-purple-400 mb-6">$29<span className="text-lg text-gray-400">/mo</span></div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    10 video clips/month
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    50 images/month
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    3 social accounts
+                  </li>
+                </ul>
+                <button
+                  onClick={handleGetStarted}
+                  className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  Get Started
+                </button>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-purple-600/30 to-black rounded-2xl border-2 border-purple-500 p-8 relative"
+              >
+                <div className="absolute top-0 right-6 -translate-y-1/2 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  Popular
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
+                <div className="text-4xl font-bold text-purple-400 mb-6">$79<span className="text-lg text-gray-400">/mo</span></div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    50 video clips/month
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    250 images/month
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    10 social accounts
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    Advanced analytics
+                  </li>
+                </ul>
+                <button
+                  onClick={handleGetStarted}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all shadow-lg shadow-purple-500/50"
+                >
+                  Get Started
+                </button>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8"
+              >
+                <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
+                <div className="text-4xl font-bold text-purple-400 mb-6">Custom</div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    Unlimited everything
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    Priority support
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    Custom integrations
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-300">
+                    <CheckCircle className="h-5 w-5 text-purple-400" />
+                    Dedicated account manager
+                  </li>
+                </ul>
+                <button
+                  onClick={handleGetStarted}
+                  className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  Contact Sales
+                </button>
+              </motion.div>
+            </div>
+          </div>
         </section>
 
         <section className="px-6 py-20">
