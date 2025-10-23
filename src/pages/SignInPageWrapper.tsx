@@ -75,7 +75,6 @@ const SignInPageWrapper = () => {
         }
       }
     } catch (err: any) {
-      console.error('Authentication error:', err);
       const errorMessage = err.errors?.[0]?.message || 'Authentication failed. Please try again.';
       toast.error(errorMessage);
     }
@@ -94,7 +93,6 @@ const SignInPageWrapper = () => {
         redirectUrlComplete: '/',
       });
     } catch (err: any) {
-      console.error('Google sign-in error:', err);
       toast.error('Google sign-in failed. Please try again.');
     }
   };

@@ -73,7 +73,6 @@ const AccountActivation: React.FC = () => {
             }, 1500);
           } catch (reloadError) {
             toast.dismiss(reloadToast);
-            console.error('Failed to reload user:', reloadError);
             toast('Please click "Refresh Status" to continue', {
               icon: '🔄',
               duration: 5000
@@ -91,7 +90,6 @@ const AccountActivation: React.FC = () => {
     } catch (error) {
       toast.dismiss(loadingToast);
       toast.error('An unexpected error occurred');
-      console.error('Profile creation error:', error);
     } finally {
       setIsCreatingProfile(false);
     }

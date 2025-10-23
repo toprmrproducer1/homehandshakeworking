@@ -55,7 +55,6 @@ const OverviewDashboard: React.FC = () => {
         await syncEngagementData(profileKey, platforms);
       }
     } catch (err) {
-      console.error('Error loading analytics:', err);
       setAnalytics(null);
     } finally {
       setLoading(false);
@@ -84,7 +83,6 @@ const OverviewDashboard: React.FC = () => {
 
       setEngagementData(filledData);
     } catch (err) {
-      console.error('Error loading engagement data:', err);
       setEngagementData([]);
     }
   };

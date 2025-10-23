@@ -222,14 +222,12 @@ const PostingPanel: React.FC = () => {
           throw new Error('User not authenticated');
         }
 
-        console.log(`File size ${formatFileSize(file.size)} exceeds 30MB, using cloud upload`);
         setUploadProgress(prev => ({ ...prev, [index]: 10 }));
 
         const uploadResult = await uploadVideoForVizard(file, user.id, (progress) => {
           setUploadProgress(prev => ({ ...prev, [index]: progress }));
         });
 
-        console.log(`Video upload successful (${uploadResult.service}):`, uploadResult.url);
         updateMediaUrl(index, uploadResult.url);
       } else {
         setUploadProgress(prev => ({ ...prev, [index]: 50 }));
@@ -255,7 +253,6 @@ const PostingPanel: React.FC = () => {
       }, 1000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to upload file';
-      console.error('Upload error:', errorMessage, err);
       setError(errorMessage);
       setUploadingFiles(prev => {
         const newState = { ...prev };
@@ -460,14 +457,6 @@ const PostingPanel: React.FC = () => {
     try {
       const payload = buildPostPayload();
 
-      console.log('Publishing post with payload:', {
-        ...payload,
-        platforms: payload.platforms,
-        mediaUrls: payload.mediaUrls,
-        hasTwitterOptions: !!payload.twitterOptions,
-        hasFacebookOptions: !!payload.faceBookOptions,
-      });
-
       const result = await publishPost(
         profileKey,
         payload.post,
@@ -476,7 +465,6 @@ const PostingPanel: React.FC = () => {
         payload
       );
 
-      console.log('Publish result:', result);
 
       setPublishResult(result);
 
@@ -488,11 +476,9 @@ const PostingPanel: React.FC = () => {
         setValidationResult(null);
       } else if (result.errors && result.errors.length > 0) {
         const errorMessages = result.errors.map((e: any) => `${e.platform}: ${e.message}`).join(', ');
-        console.error('Publish errors:', errorMessages);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to publish post';
-      console.error('Publish error:', errorMessage, err);
       setError(errorMessage);
     } finally {
       setPublishing(false);

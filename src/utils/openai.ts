@@ -63,7 +63,6 @@ export const callOpenAI = async (
       usage: data.usage,
     };
   } catch (error) {
-    console.error('OpenAI API error:', error);
     throw error;
   }
 };

@@ -72,7 +72,6 @@ export const fetchEngagementHistory = async (
     .order('date', { ascending: true });
 
   if (error) {
-    console.error('Error fetching engagement history:', error);
     return [];
   }
 
@@ -112,7 +111,6 @@ export const saveEngagementSnapshot = async (
     });
 
   if (error) {
-    console.error('Error saving engagement snapshot:', error);
   }
 };
 
@@ -129,7 +127,6 @@ export const syncEngagementData = async (
       }
     }
   } catch (error) {
-    console.error('Error syncing engagement data:', error);
   }
 };
 

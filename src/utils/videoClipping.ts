@@ -48,7 +48,6 @@ export const uploadVideoForVizard = async (
 
   try {
     if (file.size > MAX_SUPABASE_SIZE) {
-      console.log(`File size ${formatFileSize(file.size)} exceeds Supabase limit, using Mux for upload`);
       if (onProgress) onProgress(10);
 
       try {
@@ -61,7 +60,6 @@ export const uploadVideoForVizard = async (
 
         if (onProgress) onProgress(100);
 
-        console.log('Mux upload complete. Using download URL:', muxResult.url);
 
         const videoUrl = muxResult.videoUrls.mp4Download || muxResult.videoUrls.mp4Highest;
 
@@ -77,7 +75,6 @@ export const uploadVideoForVizard = async (
           muxVideoUrls: muxResult.videoUrls,
         };
       } catch (muxError) {
-        console.error('Mux upload failed:', muxError);
         const errorMsg = muxError instanceof Error ? muxError.message : 'Unknown error';
 
         if (errorMsg.includes('timeout')) {
@@ -91,7 +88,6 @@ export const uploadVideoForVizard = async (
         throw new Error(`Failed to upload large video to Mux: ${errorMsg}`);
       }
     } else {
-      console.log(`File size ${formatFileSize(file.size)} within Supabase limit, using Supabase storage`);
       if (onProgress) onProgress(10);
       const uploadResult = await uploadVideoToStorage(file, userId, (progress) => {
         if (onProgress) onProgress(10 + (progress * 0.8));
@@ -107,7 +103,6 @@ export const uploadVideoForVizard = async (
       };
     }
   } catch (error) {
-    console.error('Video upload error:', error);
     throw new Error(
       'Failed to upload video: ' + (error instanceof Error ? error.message : 'Unknown error')
     );

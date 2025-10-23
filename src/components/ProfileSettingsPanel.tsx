@@ -25,7 +25,6 @@ const ProfileSettingsPanel: React.FC = () => {
   };
 
   const handleSave = () => {
-    console.log('Saving profile settings...');
   };
 
   return (

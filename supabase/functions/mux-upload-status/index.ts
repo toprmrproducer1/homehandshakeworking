@@ -67,7 +67,6 @@ Deno.serve(async (req: Request) => {
 
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
-      console.error("Mux API error:", errorText);
       throw new Error(`Mux API error: ${uploadResponse.status} - ${errorText}`);
     }
 
@@ -106,7 +105,6 @@ Deno.serve(async (req: Request) => {
             staticRenditionsReady: mp4Ready,
           };
 
-          console.log(`Asset ${asset.id} status: ${asset.status}, mp4_support: ${asset.mp4_support}, static_renditions: ${asset.static_renditions?.status}, MP4 ready: ${mp4Ready}`);
         }
       }
     }
@@ -127,7 +125,6 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    console.error("Error checking Mux upload status:", error);
     return new Response(
       JSON.stringify({
         success: false,

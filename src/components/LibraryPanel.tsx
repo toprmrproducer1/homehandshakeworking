@@ -103,7 +103,6 @@ const LibraryPanel: React.FC = () => {
         setImages(data || []);
       }
     } catch (err) {
-      console.error('Error loading library:', err);
       setError(err instanceof Error ? err.message : 'Failed to load library');
     } finally {
       setLoading(false);
@@ -125,7 +124,6 @@ const LibraryPanel: React.FC = () => {
         setImages(images.filter(i => i.id !== id));
       }
     } catch (err) {
-      console.error('Error deleting item:', err);
       alert('Failed to delete item');
     }
   };

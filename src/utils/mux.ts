@@ -140,7 +140,6 @@ export const pollMuxUploadUntilReady = async (
     if (status.status === 'asset_created' && status.videoUrls) {
       if (!status.videoUrls.staticRenditionsReady) {
         if (!waitingForRenditions) {
-          console.log('Mux asset created, waiting for static renditions to be ready...');
           waitingForRenditions = true;
         }
         if (onProgress) {
@@ -151,7 +150,6 @@ export const pollMuxUploadUntilReady = async (
         if (onProgress) {
           onProgress('Video processing complete!');
         }
-        console.log('Mux static renditions ready, returning URLs');
         return status.videoUrls;
       }
     } else {
@@ -199,7 +197,6 @@ export const uploadVideoToMuxComplete = async (
       videoUrls,
     };
   } catch (error) {
-    console.error('Mux upload error:', error);
     throw new Error(`Failed to upload to Mux: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };

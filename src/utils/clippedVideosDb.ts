@@ -62,9 +62,6 @@ export const saveVizardClips = async (
   parentUploadId?: string,
   vizardShareLink?: string
 ): Promise<ClippedVideo[]> => {
-  console.log(`💾 saveVizardClips called with ${clips.length} clips for project ${vizardProjectId}`);
-  console.log(`   User ID: ${userId}`);
-  console.log(`   Profile Key: ${profileKey}`);
 
   const savedClips: ClippedVideo[] = [];
 
@@ -95,13 +92,10 @@ export const saveVizardClips = async (
       },
     };
 
-    console.log(`   Saving clip ${i + 1}/${clips.length}: "${clip.title}"`);
     const savedClip = await createClippedVideoRecord(clipData);
-    console.log(`   ✅ Clip ${i + 1} saved with ID: ${savedClip.id}`);
     savedClips.push(savedClip);
   }
 
-  console.log(`💾 ✅ All ${savedClips.length} clips saved successfully to database`);
   return savedClips;
 };
 

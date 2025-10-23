@@ -41,7 +41,6 @@ Deno.serve(async (req: Request) => {
 
     const apiKey = Deno.env.get('HOMEHANDSHAKE_API_KEY');
     if (!apiKey) {
-      console.error('Missing HOMEHANDSHAKE_API_KEY environment variable');
       return new Response(
         JSON.stringify({ 
           success: false,
@@ -68,8 +67,6 @@ Deno.serve(async (req: Request) => {
       requestBody.userId = userId;
     }
 
-    console.log('Calling external API:', externalApiUrl);
-    console.log('Request body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(externalApiUrl, {
       method: "POST",
@@ -81,11 +78,9 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify(requestBody),
     });
 
-    console.log('Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API error response:', errorText);
       
       let errorData;
       try {
@@ -111,7 +106,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await response.json();
-    console.log('Success response:', JSON.stringify(data, null, 2));
 
     return new Response(
       JSON.stringify({
@@ -133,7 +127,6 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    console.error("Profile creation error:", error);
     return new Response(
       JSON.stringify({
         success: false,

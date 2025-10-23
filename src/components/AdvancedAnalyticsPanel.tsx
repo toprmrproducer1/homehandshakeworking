@@ -84,7 +84,6 @@ const AdvancedAnalyticsPanel: React.FC = () => {
       );
       setPlatformInsights(prev => ({ ...prev, [platform]: result }));
     } catch (err) {
-      console.error(`Failed to generate insights for ${platform}:`, err);
     } finally {
       setLoadingInsights(prev => ({ ...prev, [platform]: false }));
     }

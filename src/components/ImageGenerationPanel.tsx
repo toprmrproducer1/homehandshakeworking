@@ -65,7 +65,6 @@ const ImageGenerationPanel: React.FC = () => {
           filter: `profile_key=eq.${profileKey}`,
         },
         async (payload: any) => {
-          console.log('Job update received:', payload);
 
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             const updatedJob = payload.new;
@@ -97,7 +96,6 @@ const ImageGenerationPanel: React.FC = () => {
           filter: `profile_key=eq.${profileKey}`,
         },
         async (payload: any) => {
-          console.log('New images received:', payload);
           setSuccess('New images added to gallery!');
           await loadGeneratedImages();
           setTimeout(() => setSuccess(null), 3000);
@@ -156,7 +154,6 @@ const ImageGenerationPanel: React.FC = () => {
 
       setActiveJobs(updatedJobs.filter(job => job.status === 'pending' || job.status === 'processing'));
     } catch (err) {
-      console.error('Error checking job statuses:', err);
     }
   };
 
@@ -167,7 +164,6 @@ const ImageGenerationPanel: React.FC = () => {
       const jobs = await getActiveJobs(profileKey);
       setActiveJobs(jobs);
     } catch (err) {
-      console.error('Error loading active jobs:', err);
     }
   };
 
@@ -180,7 +176,6 @@ const ImageGenerationPanel: React.FC = () => {
         setSelectedBrandGuideline(defaultGuideline);
       }
     } catch (err) {
-      console.error('Error loading default brand guideline:', err);
     }
   };
 
@@ -247,7 +242,6 @@ const ImageGenerationPanel: React.FC = () => {
       };
 
       generateImagesBackground(request, profileKey, user.id, job.id!, previewUrl || undefined).catch(err => {
-        console.error('Background generation error:', err);
       });
 
       setPrompt('');
@@ -678,7 +672,6 @@ const ImageGenerationPanel: React.FC = () => {
                             className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-110"
                                 loading="lazy"
                                 onError={(e) => {
-                                  console.error('Failed to load image:', imageUrl);
                                   e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzc0MTUxIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
                                 }}
                               />

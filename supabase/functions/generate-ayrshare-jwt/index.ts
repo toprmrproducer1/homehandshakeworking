@@ -31,7 +31,6 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!apiKey || !domain || !privateKey) {
-      console.error("Missing config:", { hasApiKey: !!apiKey, hasDomain: !!domain, hasPrivateKey: !!privateKey });
       return new Response(
         JSON.stringify({ error: "Ayrshare configuration is missing" }),
         {
@@ -43,11 +42,6 @@ Deno.serve(async (req: Request) => {
         }
       );
     }
-
-    console.log("Generating JWT with domain:", domain);
-    console.log("Profile key:", profileKey);
-    console.log("Private key length:", privateKey.length);
-    console.log("Private key first 30 chars:", privateKey.substring(0, 30));
 
     const response = await fetch("https://api.ayrshare.com/api/profiles/generateJWT", {
       method: "POST",
@@ -63,11 +57,8 @@ Deno.serve(async (req: Request) => {
     });
 
     const responseText = await response.text();
-    console.log("Ayrshare response status:", response.status);
-    console.log("Ayrshare response:", responseText);
 
     if (!response.ok) {
-      console.error("Ayrshare API error:", responseText);
       return new Response(
         JSON.stringify({ error: "Failed to generate JWT", details: responseText }),
         {
@@ -93,7 +84,6 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    console.error("Error in generate-ayrshare-jwt function:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
