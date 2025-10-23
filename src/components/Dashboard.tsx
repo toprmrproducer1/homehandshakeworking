@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserButton } from '@clerk/clerk-react';
-import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles, FolderOpen, Terminal } from 'lucide-react';
+import { Scissors, Users, ChartBar as BarChart3, Settings, Plus, ExternalLink, RefreshCw, CircleAlert as AlertCircle, CircleCheck as CheckCircle, Calendar, Send, History, Image, Wand as Wand2, TrendingUp, Zap, Video, ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { BentoGrid } from './ui/bento-grid';
 import SidebarMenu from './SidebarMenu';
@@ -16,7 +16,6 @@ import ProfileSettingsPanel from './ProfileSettingsPanel';
 import OverviewDashboard from './OverviewDashboard';
 import LibraryPanel from './LibraryPanel';
 import SettingsPanel from './SettingsPanel';
-import VizardDebugPanel from './VizardDebugPanel';
 
 const Dashboard: React.FC = () => {
   const { userProfile, loading, error, refetchProfile } = useUserContext();
@@ -31,31 +30,30 @@ const Dashboard: React.FC = () => {
     { id: 'library', name: 'Library', icon: FolderOpen },
     { id: 'social', name: 'Social Accounts', icon: Users },
     { id: 'analytics', name: 'Analytics', icon: BarChart3 },
-    { id: 'debug', name: 'Debug', icon: Terminal },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors">
       <SidebarMenu activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Header */}
-      <header className="bg-black/40 backdrop-blur-xl border-b border-purple-900/20 px-6 py-4">
+      <header className="bg-white/80 dark:bg-black/40 backdrop-blur-xl border-b border-gray-200 dark:border-purple-900/20 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-2 rounded-xl shadow-lg shadow-purple-500/50">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-purple-600 to-purple-700 dark:from-white dark:via-purple-200 dark:to-purple-400 bg-clip-text text-transparent">
               Homehandshake
             </span>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <button 
+            <button
               onClick={refetchProfile}
               disabled={loading}
-              className="p-2 text-gray-400 hover:text-purple-400 transition-colors duration-200 disabled:opacity-50"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 disabled:opacity-50"
             >
               <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -70,7 +68,7 @@ const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Navigation Tabs */}
-        <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 mb-8 overflow-x-auto backdrop-blur-xl scrollbar-hide">
+        <div className="bg-gradient-to-br from-gray-50 via-purple-50 to-white dark:from-purple-900/20 dark:to-black rounded-2xl border border-gray-200 dark:border-purple-500/20 mb-8 overflow-x-auto backdrop-blur-xl scrollbar-hide">
           <nav className="flex">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -81,7 +79,7 @@ const Dashboard: React.FC = () => {
                   className={`flex-shrink-0 px-4 py-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg shadow-purple-500/50'
-                      : 'text-gray-400 hover:text-purple-300 hover:bg-purple-500/10'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-100/50 dark:hover:bg-purple-500/10'
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -143,10 +141,6 @@ const Dashboard: React.FC = () => {
 
         {activeTab === 'settings' && (
           <SettingsPanel />
-        )}
-
-        {activeTab === 'debug' && (
-          <VizardDebugPanel />
         )}
       </div>
     </div>

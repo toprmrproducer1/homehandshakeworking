@@ -16,50 +16,51 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SettingsPanel: React.FC = () => {
   const { user } = useUser();
+  const { theme, setTheme } = useTheme();
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
     posts: true,
     analytics: true
   });
-  const [theme, setTheme] = useState('dark');
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-black rounded-2xl border border-purple-200 dark:border-purple-500/20 p-6 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl flex items-center justify-center">
             <Settings className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-purple-700 dark:from-white dark:to-purple-200 bg-clip-text text-transparent">
               Settings
             </h2>
-            <p className="text-gray-400">Manage your account preferences and settings</p>
+            <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and settings</p>
           </div>
         </div>
       </div>
 
       {/* Account Information */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-black rounded-2xl border border-purple-200 dark:border-purple-500/20 p-6 backdrop-blur-xl">
         <div className="flex items-center gap-3 mb-6">
-          <User className="h-5 w-5 text-purple-400" />
-          <h3 className="text-lg font-semibold text-purple-200">Account Information</h3>
+          <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-200">Account Information</h3>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Email Address</label>
             <div className="flex items-center gap-3">
               <input
                 type="email"
                 value={user?.primaryEmailAddress?.emailAddress || ''}
                 disabled
-                className="flex-1 px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
+                className="flex-1 px-4 py-3 bg-gray-100 dark:bg-purple-900/20 border border-gray-300 dark:border-purple-500/30 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-purple-400"
               />
               <button className="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2">
                 <Mail className="h-4 w-4" />
@@ -69,39 +70,39 @@ const SettingsPanel: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Full Name</label>
             <input
               type="text"
               value={user?.fullName || ''}
               disabled
-              className="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
+              className="w-full px-4 py-3 bg-gray-100 dark:bg-purple-900/20 border border-gray-300 dark:border-purple-500/30 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-purple-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Username</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Username</label>
             <input
               type="text"
               value={user?.username || 'Not set'}
               disabled
-              className="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400"
+              className="w-full px-4 py-3 bg-gray-100 dark:bg-purple-900/20 border border-gray-300 dark:border-purple-500/30 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-purple-400"
             />
           </div>
         </div>
       </div>
 
       {/* Notifications */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-black rounded-2xl border border-purple-200 dark:border-purple-500/20 p-6 backdrop-blur-xl">
         <div className="flex items-center gap-3 mb-6">
-          <Bell className="h-5 w-5 text-purple-400" />
-          <h3 className="text-lg font-semibold text-purple-200">Notifications</h3>
+          <Bell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-200">Notifications</h3>
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20">
+          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20">
             <div>
-              <div className="font-medium text-white">Email Notifications</div>
-              <div className="text-sm text-gray-400">Receive updates via email</div>
+              <div className="font-medium text-gray-900 dark:text-white">Email Notifications</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Receive updates via email</div>
             </div>
             <button
               onClick={() => setNotifications({...notifications, email: !notifications.email})}
@@ -117,10 +118,10 @@ const SettingsPanel: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20">
+          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20">
             <div>
-              <div className="font-medium text-white">Push Notifications</div>
-              <div className="text-sm text-gray-400">Receive browser notifications</div>
+              <div className="font-medium text-gray-900 dark:text-white">Push Notifications</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Receive browser notifications</div>
             </div>
             <button
               onClick={() => setNotifications({...notifications, push: !notifications.push})}
@@ -136,10 +137,10 @@ const SettingsPanel: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20">
+          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20">
             <div>
-              <div className="font-medium text-white">Post Updates</div>
-              <div className="text-sm text-gray-400">Get notified about post performance</div>
+              <div className="font-medium text-gray-900 dark:text-white">Post Updates</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Get notified about post performance</div>
             </div>
             <button
               onClick={() => setNotifications({...notifications, posts: !notifications.posts})}
@@ -155,10 +156,10 @@ const SettingsPanel: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20">
+          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20">
             <div>
-              <div className="font-medium text-white">Analytics Reports</div>
-              <div className="text-sm text-gray-400">Weekly analytics summary</div>
+              <div className="font-medium text-gray-900 dark:text-white">Analytics Reports</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Weekly analytics summary</div>
             </div>
             <button
               onClick={() => setNotifications({...notifications, analytics: !notifications.analytics})}
@@ -177,48 +178,48 @@ const SettingsPanel: React.FC = () => {
       </div>
 
       {/* Appearance */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-black rounded-2xl border border-purple-200 dark:border-purple-500/20 p-6 backdrop-blur-xl">
         <div className="flex items-center gap-3 mb-6">
-          <Sun className="h-5 w-5 text-purple-400" />
-          <h3 className="text-lg font-semibold text-purple-200">Appearance</h3>
+          <Sun className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-200">Appearance</h3>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-3">Theme</label>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Theme</label>
             <div className="grid grid-cols-3 gap-3">
               <button
                 onClick={() => setTheme('light')}
                 className={`p-4 rounded-lg border transition-all ${
                   theme === 'light'
                     ? 'border-purple-500 bg-purple-600/20'
-                    : 'border-purple-500/20 bg-purple-900/10 hover:bg-purple-800/20'
+                    : 'border-purple-300 dark:border-purple-500/20 bg-purple-100/50 dark:bg-purple-900/10 hover:bg-purple-200/50 dark:hover:bg-purple-800/20'
                 }`}
               >
-                <Sun className="h-6 w-6 text-white mx-auto mb-2" />
-                <div className="text-sm text-white">Light</div>
+                <Sun className="h-6 w-6 text-gray-900 dark:text-white mx-auto mb-2" />
+                <div className="text-sm text-gray-900 dark:text-white">Light</div>
               </button>
               <button
                 onClick={() => setTheme('dark')}
                 className={`p-4 rounded-lg border transition-all ${
                   theme === 'dark'
                     ? 'border-purple-500 bg-purple-600/20'
-                    : 'border-purple-500/20 bg-purple-900/10 hover:bg-purple-800/20'
+                    : 'border-purple-300 dark:border-purple-500/20 bg-purple-100/50 dark:bg-purple-900/10 hover:bg-purple-200/50 dark:hover:bg-purple-800/20'
                 }`}
               >
-                <Moon className="h-6 w-6 text-white mx-auto mb-2" />
-                <div className="text-sm text-white">Dark</div>
+                <Moon className="h-6 w-6 text-gray-900 dark:text-white mx-auto mb-2" />
+                <div className="text-sm text-gray-900 dark:text-white">Dark</div>
               </button>
               <button
                 onClick={() => setTheme('auto')}
                 className={`p-4 rounded-lg border transition-all ${
                   theme === 'auto'
                     ? 'border-purple-500 bg-purple-600/20'
-                    : 'border-purple-500/20 bg-purple-900/10 hover:bg-purple-800/20'
+                    : 'border-purple-300 dark:border-purple-500/20 bg-purple-100/50 dark:bg-purple-900/10 hover:bg-purple-200/50 dark:hover:bg-purple-800/20'
                 }`}
               >
-                <Globe className="h-6 w-6 text-white mx-auto mb-2" />
-                <div className="text-sm text-white">Auto</div>
+                <Globe className="h-6 w-6 text-gray-900 dark:text-white mx-auto mb-2" />
+                <div className="text-sm text-gray-900 dark:text-white">Auto</div>
               </button>
             </div>
           </div>
@@ -226,44 +227,44 @@ const SettingsPanel: React.FC = () => {
       </div>
 
       {/* Security */}
-      <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-black rounded-2xl border border-purple-200 dark:border-purple-500/20 p-6 backdrop-blur-xl">
         <div className="flex items-center gap-3 mb-6">
-          <Shield className="h-5 w-5 text-purple-400" />
-          <h3 className="text-lg font-semibold text-purple-200">Security</h3>
+          <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-200">Security</h3>
         </div>
 
         <div className="space-y-3">
-          <button className="w-full flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20 hover:bg-purple-800/20 transition-colors">
+          <button className="w-full flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-800/20 transition-colors">
             <div className="flex items-center gap-3">
-              <Key className="h-5 w-5 text-purple-400" />
+              <Key className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div className="text-left">
-                <div className="font-medium text-white">Change Password</div>
-                <div className="text-sm text-gray-400">Update your password</div>
+                <div className="font-medium text-gray-900 dark:text-white">Change Password</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Update your password</div>
               </div>
             </div>
-            <RefreshCw className="h-5 w-5 text-gray-400" />
+            <RefreshCw className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
 
-          <button className="w-full flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20 hover:bg-purple-800/20 transition-colors">
+          <button className="w-full flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-800/20 transition-colors">
             <div className="flex items-center gap-3">
-              <Lock className="h-5 w-5 text-purple-400" />
+              <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div className="text-left">
-                <div className="font-medium text-white">Two-Factor Authentication</div>
-                <div className="text-sm text-gray-400">Add an extra layer of security</div>
+                <div className="font-medium text-gray-900 dark:text-white">Two-Factor Authentication</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Add an extra layer of security</div>
               </div>
             </div>
-            <span className="text-sm text-gray-500">Not enabled</span>
+            <span className="text-sm text-gray-500 dark:text-gray-500">Not enabled</span>
           </button>
 
-          <button className="w-full flex items-center justify-between p-4 bg-purple-900/10 rounded-lg border border-purple-500/20 hover:bg-purple-800/20 transition-colors">
+          <button className="w-full flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-200 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-800/20 transition-colors">
             <div className="flex items-center gap-3">
-              <CreditCard className="h-5 w-5 text-purple-400" />
+              <CreditCard className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div className="text-left">
-                <div className="font-medium text-white">Connected Sessions</div>
-                <div className="text-sm text-gray-400">Manage active sessions</div>
+                <div className="font-medium text-gray-900 dark:text-white">Connected Sessions</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Manage active sessions</div>
               </div>
             </div>
-            <span className="text-sm text-gray-400">1 active</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">1 active</span>
           </button>
         </div>
       </div>
@@ -287,7 +288,7 @@ const SettingsPanel: React.FC = () => {
 
       {/* Save Button */}
       <div className="flex items-center justify-end gap-3">
-        <button className="px-6 py-3 border border-purple-500/30 text-purple-200 rounded-lg hover:bg-purple-900/20 transition-colors">
+        <button className="px-6 py-3 border border-purple-300 dark:border-purple-500/30 text-purple-700 dark:text-purple-200 rounded-lg hover:bg-purple-100/50 dark:hover:bg-purple-900/20 transition-colors">
           Cancel
         </button>
         <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all flex items-center gap-2">

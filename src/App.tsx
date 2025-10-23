@@ -5,6 +5,7 @@ import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import AccountActivation from './components/AccountActivation';
 import { UserProvider } from './contexts/UserContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -81,16 +82,18 @@ function App() {
   console.log('🎯 Should show:', isActive ? 'DASHBOARD ✅' : 'ACTIVATION PAGE ⚠️');
   console.log('================================');
 
-  // Always wrap in UserProvider, but show activation page if not active
+  // Always wrap in UserProvider and ThemeProvider, but show activation page if not active
   return (
-    <UserProvider>
-      <Routes>
-        <Route path="/" element={isActive ? <Dashboard /> : <AccountActivation />} />
-        <Route path="/dashboard" element={isActive ? <Dashboard /> : <AccountActivation />} />
-        <Route path="/sso-callback" element={isActive ? <Dashboard /> : <AccountActivation />} />
-        <Route path="*" element={isActive ? <Dashboard /> : <AccountActivation />} />
-      </Routes>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <Routes>
+          <Route path="/" element={isActive ? <Dashboard /> : <AccountActivation />} />
+          <Route path="/dashboard" element={isActive ? <Dashboard /> : <AccountActivation />} />
+          <Route path="/sso-callback" element={isActive ? <Dashboard /> : <AccountActivation />} />
+          <Route path="*" element={isActive ? <Dashboard /> : <AccountActivation />} />
+        </Routes>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 
