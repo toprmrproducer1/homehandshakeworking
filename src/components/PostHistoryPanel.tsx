@@ -178,6 +178,7 @@ const PostHistoryPanel: React.FC = () => {
       const sorted = sortCommentsByDate(comments, false);
       setPostComments(prev => ({ ...prev, [postId]: sorted }));
     } catch (err) {
+      console.error('Failed to load comments:', err);
       setPostComments(prev => ({ ...prev, [postId]: [] }));
     } finally {
       setLoadingComments(prev => ({ ...prev, [postId]: false }));

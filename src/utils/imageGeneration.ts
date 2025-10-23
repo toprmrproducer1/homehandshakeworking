@@ -57,6 +57,7 @@ export const generateImagesBackground = async (
     }
 
     const result = await response.json();
+    console.log('Image generation webhook response:', result);
 
     // Parse the nested structure: [{ data: [{ data: "url" }, ...] }]
     let imageUrls: string[] = [];
@@ -72,6 +73,7 @@ export const generateImagesBackground = async (
       }
     }
 
+    console.log('Extracted image URLs:', imageUrls);
 
     if (imageUrls.length === 0) {
       throw new Error('No valid image URLs received from generation service');
@@ -95,7 +97,9 @@ export const generateImagesBackground = async (
       generated_images: imageUrls,
     });
 
+    console.log('Successfully saved generated images to database');
   } catch (error) {
+    console.error('Error in background image generation:', error);
     await updateImageGenerationJob(jobId, {
       status: 'failed',
       error_message: error instanceof Error ? error.message : 'Unknown error occurred',

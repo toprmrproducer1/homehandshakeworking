@@ -33,6 +33,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: WebhookPayload = await req.json();
+    console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
 
     const { jobId, status, profileKey, userId, prompt, inspirationImageUrl } = payload;
 
@@ -58,6 +59,7 @@ Deno.serve(async (req: Request) => {
         ).filter(Boolean);
       }
 
+      console.log('Extracted image URLs:', imageUrls);
 
       if (imageUrls.length === 0) {
         throw new Error('No valid image URLs found in webhook payload');
@@ -92,6 +94,7 @@ Deno.serve(async (req: Request) => {
         throw new Error(`Failed to save generated images: ${saveError.message}`);
       }
 
+      console.log('Successfully processed webhook and saved images');
 
       return new Response(
         JSON.stringify({
@@ -138,6 +141,7 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Unknown status: ${status}`);
     }
   } catch (error) {
+    console.error('Webhook error:', error);
 
     return new Response(
       JSON.stringify({

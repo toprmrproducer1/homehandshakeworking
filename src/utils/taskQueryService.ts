@@ -143,6 +143,7 @@ export const queryTaskById = async (
       };
     }
   } catch (error) {
+    console.error('Error querying task:', error);
     return {
       success: false,
       taskId,

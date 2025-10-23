@@ -2,6 +2,7 @@ const VIZARD_API_BASE = 'https://elb-api.vizard.ai/hvizard-server-front/open-api
 const VIZARD_API_KEY = import.meta.env.VITE_VIZARD_API_KEY;
 
 if (!VIZARD_API_KEY) {
+  console.error('VITE_VIZARD_API_KEY is not set in environment variables');
 }
 
 export interface VizardClipConfig {
@@ -145,6 +146,12 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
     throw new Error('Invalid video URL format. Please provide a valid URL.');
   }
 
+  console.log('Submitting to Vizard with config:', {
+    ...config,
+    videoUrl: config.videoUrl.substring(0, 100) + '...',
+    videoUrlFull: config.videoUrl,
+  });
+
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -168,9 +175,12 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
       try {
         responseText = await response.text();
       } catch (e) {
+        console.error('Failed to read response text:', e);
         throw new Error('Failed to read Vizard API response');
       }
 
+      console.log('Vizard API response status:', response.status);
+      console.log('Vizard API response:', responseText);
 
       if (!response.ok) {
         let errorMsg = `Vizard API error (${response.status}): ${response.statusText}`;
@@ -191,6 +201,7 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
         }
 
         if (response.status >= 500 && attempt < retries - 1) {
+          console.log(`Vizard server error, retrying... (${attempt + 1}/${retries})`);
           await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
           continue;
         }
@@ -209,6 +220,8 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
         throw new Error(getVizardErrorMessage(result.code, result.message || 'Failed to create Vizard project'));
       }
 
+      console.log('Vizard project created successfully:', result.projectId);
+      console.log('Vizard share link:', result.shareLink);
 
       return {
         projectId: result.projectId,
@@ -218,10 +231,12 @@ export const submitVideoToVizard = async (config: VizardClipConfig, retries: num
       lastError = error instanceof Error ? error : new Error('Unknown error');
 
       if (error instanceof Error && error.name === 'AbortError') {
+        console.error('Vizard API request timeout');
         lastError = new Error('Vizard API request timed out. Please try again.');
       }
 
       if (attempt < retries - 1) {
+        console.log(`Retrying Vizard submission... (${attempt + 1}/${retries})`);
         await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
         continue;
       }
@@ -251,6 +266,7 @@ export const queryVizardProject = async (projectId: string, retries: number = 2)
 
       if (!response.ok) {
         if (response.status >= 500 && attempt < retries - 1) {
+          console.log(`Vizard query error, retrying... (${attempt + 1}/${retries})`);
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
           continue;
         }
@@ -258,6 +274,7 @@ export const queryVizardProject = async (projectId: string, retries: number = 2)
       }
 
       const result: VizardQueryResponse = await response.json();
+      console.log('Vizard query response:', result);
 
       return result;
     } catch (error) {
@@ -298,6 +315,7 @@ export const pollVizardUntilComplete = async (
     }
 
     if (result.code === 1000) {
+      console.log('Video still processing...');
     }
 
     await new Promise(resolve => setTimeout(resolve, pollInterval));
@@ -329,6 +347,7 @@ export const uploadVideoToVizardAndWait = async (
 
     return videos;
   } catch (error) {
+    console.error('Vizard upload error:', error);
     throw error;
   }
 };

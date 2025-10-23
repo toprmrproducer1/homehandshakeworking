@@ -49,6 +49,7 @@ Deno.serve(async (req: Request) => {
 
     if (!muxResponse.ok) {
       const errorText = await muxResponse.text();
+      console.error("Mux API error:", errorText);
       throw new Error(`Mux API error: ${muxResponse.status} - ${errorText}`);
     }
 
@@ -69,6 +70,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    console.error("Error creating Mux upload:", error);
     return new Response(
       JSON.stringify({
         success: false,

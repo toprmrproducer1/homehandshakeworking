@@ -76,6 +76,7 @@ export const createProfile = async (email: string, userId?: string): Promise<Cre
       message: data.message || 'Profile created successfully',
     };
   } catch (error) {
+    console.error('Profile creation error:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Failed to create profile',

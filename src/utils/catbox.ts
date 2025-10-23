@@ -41,6 +41,7 @@ export const uploadToCatbox = async (
         uploadedAt: new Date(),
       };
     } catch (directError) {
+      console.warn('Direct Catbox upload failed, trying with CORS proxy:', directError);
 
       uploadUrl = CORS_PROXY + encodeURIComponent(CATBOX_UPLOAD_URL);
       usedProxy = true;
@@ -95,6 +96,7 @@ export const uploadToCatboxWithFallback = async (
       return result.url;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
+      console.error(`Catbox upload attempt ${attempt + 1} failed:`, lastError);
 
       if (attempt < MAX_RETRIES - 1) {
         await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));

@@ -36,9 +36,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const isAccountActive = accountActiveRaw === true || accountActiveRaw === 'true';
 
   // Console log for debugging
+  console.log('UserContext - Clerk Metadata:', user?.publicMetadata);
+  console.log('UserContext - Profile Key:', profileKey);
+  console.log('UserContext - Account Active Raw:', accountActiveRaw);
+  console.log('UserContext - Account Active:', isAccountActive);
 
   const fetchProfile = async (forceRefresh = false) => {
     if (!profileKey) {
+      console.warn('Profile key not found in user metadata');
       setError(null);
       setLoading(false);
       return;
@@ -50,7 +55,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       // Add cache busting for force refresh
       const profile = await fetchUserProfile(profileKey);
       setUserProfile(profile);
+      console.log('Profile updated:', profile);
     } catch (err) {
+      console.error('Profile fetch error:', err);
       setError(null);
       setUserProfile(null);
     } finally {

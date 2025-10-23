@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { User, Building, Image as ImageIcon, Save, Upload, Mail, Phone, Globe, MapPin } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 
 const ProfileSettingsPanel: React.FC = () => {
   const [companyName, setCompanyName] = useState('');
@@ -23,6 +25,7 @@ const ProfileSettingsPanel: React.FC = () => {
   };
 
   const handleSave = () => {
+    console.log('Saving profile settings...');
   };
 
   return (
@@ -35,26 +38,23 @@ const ProfileSettingsPanel: React.FC = () => {
           </h1>
           <p className="text-gray-400 mt-2">Manage your company details and brand assets</p>
         </div>
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-lg shadow-purple-500/50"
-        >
+        <Button onClick={handleSave} className="flex items-center gap-2">
           <Save className="h-4 w-4" />
           Save Changes
-        </button>
+        </Button>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
-          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2 mb-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5 text-purple-400" />
                 Company Information
-              </h3>
-              <p className="text-sm text-gray-400">Update your company details and contact information</p>
-            </div>
-            <div className="space-y-4">
+              </CardTitle>
+              <CardDescription>Update your company details and contact information</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-purple-200 mb-2">Company Name</label>
                 <input
@@ -134,110 +134,116 @@ const ProfileSettingsPanel: React.FC = () => {
                   className="w-full px-4 py-3 bg-purple-900/10 border border-purple-500/20 rounded-lg focus:outline-none focus:border-purple-500/50 text-white placeholder:text-gray-500 resize-none"
                 />
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2 mb-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5 text-purple-400" />
                 Brand Colors
-              </h3>
-              <p className="text-sm text-gray-400">Define your brand color palette</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {brandColors.map((color, index) => (
-                <div key={index}>
-                  <label className="block text-sm font-medium text-purple-200 mb-2">
-                    Color {index + 1}
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={color}
-                      onChange={(e) => {
-                        const newColors = [...brandColors];
-                        newColors[index] = e.target.value;
-                        setBrandColors(newColors);
-                      }}
-                      className="w-16 h-12 rounded-lg cursor-pointer border border-purple-500/20"
-                    />
-                    <input
-                      type="text"
-                      value={color}
-                      onChange={(e) => {
-                        const newColors = [...brandColors];
-                        newColors[index] = e.target.value;
-                        setBrandColors(newColors);
-                      }}
-                      className="flex-1 px-3 py-2 bg-purple-900/10 border border-purple-500/20 rounded-lg focus:outline-none focus:border-purple-500/50 text-white text-sm"
-                    />
+              </CardTitle>
+              <CardDescription>Define your brand color palette</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                {brandColors.map((color, index) => (
+                  <div key={index}>
+                    <label className="block text-sm font-medium text-purple-200 mb-2">
+                      Color {index + 1}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={color}
+                        onChange={(e) => {
+                          const newColors = [...brandColors];
+                          newColors[index] = e.target.value;
+                          setBrandColors(newColors);
+                        }}
+                        className="w-16 h-12 rounded-lg cursor-pointer border border-purple-500/20"
+                      />
+                      <input
+                        type="text"
+                        value={color}
+                        onChange={(e) => {
+                          const newColors = [...brandColors];
+                          newColors[index] = e.target.value;
+                          setBrandColors(newColors);
+                        }}
+                        className="flex-1 px-3 py-2 bg-purple-900/10 border border-purple-500/20 rounded-lg focus:outline-none focus:border-purple-500/50 text-white text-sm"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2 mb-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5 text-purple-400" />
                 Company Logo
-              </h3>
-              <p className="text-sm text-gray-400">Upload your company logo</p>
-            </div>
-            <div className="space-y-4">
-              <div className="aspect-square bg-purple-900/10 border-2 border-dashed border-purple-500/20 rounded-lg flex items-center justify-center overflow-hidden">
-                {logo ? (
-                  <img src={logo} alt="Company Logo" className="w-full h-full object-contain" />
-                ) : (
-                  <div className="text-center p-4">
-                    <Upload className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-400">No logo uploaded</p>
-                  </div>
-                )}
-              </div>
-              <label className="block">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-                <div className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-center font-medium transition-colors text-white">
-                  <Upload className="h-4 w-4 inline mr-2" />
-                  Upload Logo
+              </CardTitle>
+              <CardDescription>Upload your company logo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="aspect-square bg-purple-900/10 border-2 border-dashed border-purple-500/20 rounded-lg flex items-center justify-center overflow-hidden">
+                  {logo ? (
+                    <img src={logo} alt="Company Logo" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-center p-4">
+                      <Upload className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">No logo uploaded</p>
+                    </div>
+                  )}
                 </div>
-              </label>
-              <p className="text-xs text-gray-400">
-                Recommended: Square image, at least 512x512px, PNG or JPG format
-              </p>
-            </div>
-          </div>
+                <label className="block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <div className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-center font-medium transition-colors">
+                    <Upload className="h-4 w-4 inline mr-2" />
+                    Upload Logo
+                  </div>
+                </label>
+                <p className="text-xs text-gray-400">
+                  Recommended: Square image, at least 512x512px, PNG or JPG format
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-6 backdrop-blur-xl">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2 mb-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5 text-purple-400" />
                 Brand Assets
-              </h3>
-              <p className="text-sm text-gray-400">Additional brand images</p>
-            </div>
-            <div className="space-y-3">
-              <label className="block">
-                <input type="file" accept="image/*" multiple className="hidden" />
-                <div className="cursor-pointer px-4 py-3 bg-purple-900/10 border border-purple-500/20 hover:border-purple-500/50 rounded-lg text-center text-sm text-gray-300 transition-colors">
-                  <Upload className="h-4 w-4 inline mr-2" />
-                  Upload Brand Images
-                </div>
-              </label>
-              <p className="text-xs text-gray-400">
-                Upload product images, team photos, or other brand materials
-              </p>
-            </div>
-          </div>
+              </CardTitle>
+              <CardDescription>Additional brand images</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <label className="block">
+                  <input type="file" accept="image/*" multiple className="hidden" />
+                  <div className="cursor-pointer px-4 py-3 bg-purple-900/10 border border-purple-500/20 hover:border-purple-500/50 rounded-lg text-center text-sm text-gray-300 transition-colors">
+                    <Upload className="h-4 w-4 inline mr-2" />
+                    Upload Brand Images
+                  </div>
+                </label>
+                <p className="text-xs text-gray-400">
+                  Upload product images, team photos, or other brand materials
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

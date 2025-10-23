@@ -12,6 +12,7 @@ function App() {
   // Monitor user metadata changes
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
+      console.log('🔄 User metadata updated:', user.publicMetadata);
     }
   }, [isLoaded, isSignedIn, user?.publicMetadata]);
 
@@ -26,8 +27,10 @@ function App() {
     if (!isActive) {
       const intervalId = setInterval(async () => {
         try {
+          console.log('🔄 Checking for account activation updates...');
           await user.reload();
         } catch (error) {
+          console.error('Failed to reload user metadata:', error);
         }
       }, 10000);
 
@@ -67,6 +70,16 @@ function App() {
   const isActive = (accountActive === true || accountActive === 'true') && !!profileKey;
 
   // Console log Clerk metadata for debugging
+  console.log('=== APP.TSX ACTIVATION CHECK ===');
+  console.log('Clerk isLoaded:', isLoaded);
+  console.log('User ID:', user?.id);
+  console.log('User Email:', user?.primaryEmailAddress?.emailAddress);
+  console.log('Clerk Public Metadata:', JSON.stringify(user?.publicMetadata, null, 2));
+  console.log('Account Active Raw:', accountActive, '(type:', typeof accountActive, ')');
+  console.log('Profile Key:', profileKey);
+  console.log('Account Active Status (isActive):', isActive);
+  console.log('🎯 Should show:', isActive ? 'DASHBOARD ✅' : 'ACTIVATION PAGE ⚠️');
+  console.log('================================');
 
   // Always wrap in UserProvider, but show activation page if not active
   return (

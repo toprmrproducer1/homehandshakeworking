@@ -131,6 +131,7 @@ const VideoClippingPanel: React.FC = () => {
       const jobs = await getClippingJobs(profileKey);
       setProcessingJobs(jobs.filter(job => job.status === 'processing'));
     } catch (err) {
+      console.error('Failed to load processing jobs:', err);
     }
   };
 
@@ -141,6 +142,7 @@ const VideoClippingPanel: React.FC = () => {
       const jobs = await getClippingJobs(profileKey);
       setAllTasks(jobs);
     } catch (err) {
+      console.error('Failed to load all tasks:', err);
     }
   };
 
@@ -215,6 +217,7 @@ const VideoClippingPanel: React.FC = () => {
         );
         uploadedVideoUrl = uploadResult.url;
         videoExtension = uploadResult.extension;
+        console.log(`Upload complete via ${uploadResult.service}:`, uploadedVideoUrl);
         setProcessingStatus(`Upload complete via ${uploadResult.service.toUpperCase()}!`);
         setProcessingPercent(100);
       } else if (videoType === 1) {
@@ -250,6 +253,15 @@ const VideoClippingPanel: React.FC = () => {
       }
 
       setProcessingStatus('Validating video URL...');
+      console.log('==========================================');
+      console.log('VIZARD SUBMISSION DETAILS:');
+      console.log('Video URL:', uploadedVideoUrl);
+      console.log('Video Service:', uploadResult?.service || 'direct-url');
+      console.log('File Size:', (videoFile?.size || 0) / (1024 * 1024), 'MB');
+      console.log('Extension:', videoExtension);
+      console.log('Language:', language);
+      console.log('Max Clips:', maxClipNumber);
+      console.log('==========================================');
 
       try {
         new URL(uploadedVideoUrl);
@@ -283,6 +295,7 @@ const VideoClippingPanel: React.FC = () => {
         setVideoPreviewUrl(null);
       }
     } catch (err) {
+      console.error('Video clipping error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to process video';
 
       if (errorMessage.includes('code:') || errorMessage.includes('API error')) {
@@ -315,10 +328,14 @@ const VideoClippingPanel: React.FC = () => {
 
   const handleManualCheck = async () => {
     if (!profileKey || !user?.id) {
+      console.error('Manual check failed: Missing profileKey or user.id');
       setError('Authentication error. Please refresh the page.');
       return;
     }
 
+    console.log('=== MANUAL VIZARD CHECK STARTED ===');
+    console.log('Profile Key:', profileKey);
+    console.log('User ID:', user.id);
 
     setCheckingVizard(true);
     setError(null);
@@ -326,12 +343,15 @@ const VideoClippingPanel: React.FC = () => {
 
     try {
       const jobs = await getClippingJobs(profileKey);
+      console.log(`Total jobs found: ${jobs.length}`);
 
       const processingJobsList = jobs.filter(job => job.status === 'processing');
+      console.log(`Processing jobs: ${processingJobsList.length}`);
 
       if (processingJobsList.length === 0) {
         setSuccess('No processing jobs to check');
         setLastManualCheck(new Date());
+        console.log('=== MANUAL CHECK COMPLETE: No jobs to check ===');
         return;
       }
 
@@ -341,11 +361,15 @@ const VideoClippingPanel: React.FC = () => {
 
       for (const job of processingJobsList) {
         try {
+          console.log(`\nChecking job ${job.id} (Vizard Project: ${job.vizard_project_id})...`);
           const result = await queryVizardProject(job.vizard_project_id);
+          console.log(`Vizard response code: ${result.code}`);
 
           if (result.code === 2000 && result.videos && result.videos.length > 0) {
+            console.log(`✅ Job ${job.id} is COMPLETED! Found ${result.videos.length} videos`);
 
             const clips = result.videos.map((video, index) => {
+              console.log(`  Clip ${index + 1}:`, video.title);
               return {
                 clipEditorUrl: video.clipEditorUrl || '',
                 relatedTopic: Array.isArray(video.relatedTopic) ? video.relatedTopic.join(', ') : (video.relatedTopic || null),
@@ -359,6 +383,7 @@ const VideoClippingPanel: React.FC = () => {
               };
             });
 
+            console.log(`Saving ${clips.length} clips to database...`);
             try {
               const savedClips = await saveVizardClips(
                 user.id,
@@ -370,34 +395,47 @@ const VideoClippingPanel: React.FC = () => {
                 undefined,
                 job.vizard_share_link
               );
+              console.log(`✅ Saved ${savedClips.length} clips to database`);
 
               await markJobCompleted(job.id, clips.length);
+              console.log(`✅ Marked job ${job.id} as completed`);
               completedCount++;
             } catch (saveError) {
+              console.error(`❌ Failed to save clips for job ${job.id}:`, saveError);
               setError(`Failed to save clips: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`);
               errorCount++;
             }
           } else if (result.code === 1000) {
+            console.log(`⏳ Job ${job.id} still processing in Vizard`);
             stillProcessingCount++;
           } else if (result.code === 4002) {
+            console.log(`❌ Job ${job.id} failed in Vizard`);
             await markJobFailed(job.id, result.msg || 'Video clipping failed');
             errorCount++;
           } else {
+            console.log(`⚠️ Job ${job.id} returned unexpected code: ${result.code}, msg: ${result.msg}`);
           }
         } catch (err) {
+          console.error(`❌ Error checking job ${job.id}:`, err);
           errorCount++;
         }
       }
 
+      console.log(`\n=== CHECK SUMMARY ===`);
+      console.log(`Completed: ${completedCount}`);
+      console.log(`Still Processing: ${stillProcessingCount}`);
+      console.log(`Errors: ${errorCount}`);
 
       if (completedCount > 0) {
         setSuccess(`Found and imported ${completedCount} completed video${completedCount > 1 ? 's' : ''} with clips!`);
+        console.log(`Reloading clipped videos and processing jobs...`);
 
         await Promise.all([
           loadClippedVideos(),
           loadProcessingJobs()
         ]);
 
+        console.log(`✅ Data reloaded successfully`);
       } else if (stillProcessingCount > 0) {
         setSuccess(`All ${stillProcessingCount} job${stillProcessingCount > 1 ? 's are' : ' is'} still processing in Vizard. Check back in a few minutes.`);
       } else if (errorCount > 0) {
@@ -407,7 +445,9 @@ const VideoClippingPanel: React.FC = () => {
       }
 
       setLastManualCheck(new Date());
+      console.log('=== MANUAL CHECK COMPLETE ===\n');
     } catch (err) {
+      console.error('❌ Manual check error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to check for completed videos';
       setError(`Check failed: ${errorMsg}`);
     } finally {
@@ -452,6 +492,7 @@ const VideoClippingPanel: React.FC = () => {
 
       setTimeout(() => setUploadProgress(0), 2000);
     } catch (err) {
+      console.error('Video re-upload error:', err);
       setError(err instanceof Error ? err.message : 'Failed to re-upload video');
       setUploadProgress(0);
     } finally {
