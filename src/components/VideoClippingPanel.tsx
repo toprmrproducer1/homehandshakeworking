@@ -1064,64 +1064,6 @@ const VideoClippingPanel: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-gradient-to-br from-emerald-900/20 to-black rounded-2xl border border-emerald-500/20 shadow-lg p-8 backdrop-blur-xl">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 p-2 rounded-xl">
-              <Copy className="h-6 w-6 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-              Query Task by ID
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            <p className="text-sm text-emerald-200/80">
-              Enter a Task ID to fetch video outputs. You can use this to check any task from your history or paste an ID you saved earlier.
-            </p>
-
-            <TaskIdDropdown
-              tasks={allTasks}
-              onSelectTask={handleSelectTask}
-              className="mb-4"
-            />
-
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={manualTaskId}
-                  onChange={(e) => setManualTaskId(e.target.value)}
-                  placeholder="Paste Task ID here... (e.g., 24659016)"
-                  className="w-full px-4 py-3 bg-emerald-900/20 border border-emerald-500/30 rounded-xl text-white placeholder-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-400 transition-colors"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleQueryTaskById();
-                    }
-                  }}
-                />
-              </div>
-              <button
-                onClick={handleQueryTaskById}
-                disabled={queryingTask || !manualTaskId.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-800 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-emerald-900 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-              >
-                {queryingTask ? (
-                  <>
-                    <RefreshCw className="h-5 w-5 animate-spin" />
-                    <span>Querying...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-5 w-5" />
-                    <span>Query Task</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
         {allTasks.length > 0 && (
           <div>
             <button
