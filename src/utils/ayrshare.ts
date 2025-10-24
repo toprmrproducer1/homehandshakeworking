@@ -51,6 +51,8 @@ export const fetchSocialAnalytics = async (profileKey: string, platforms: string
 };
 
 export const fetchUserProfile = async (profileKey: string) => {
+  console.log('[Ayrshare] Fetching user profile with key:', profileKey);
+
   const response = await fetch(`${BASE_URL}/user`, {
     method: 'GET',
     headers: {
@@ -61,10 +63,16 @@ export const fetchUserProfile = async (profileKey: string) => {
   });
 
   if (!response.ok) {
+    console.error('[Ayrshare] Failed to fetch profile:', response.status, response.statusText);
     throw new Error(`Failed to fetch user profile: ${response.statusText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('[Ayrshare] Profile data received:', data);
+  console.log('[Ayrshare] Display names array:', data.displayNames);
+  console.log('[Ayrshare] Active social accounts:', data.activeSocialAccounts);
+
+  return data;
 };
 
 export const fetchPostHistory = async (profileKey: string, platform: string) => {

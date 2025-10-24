@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ExternalLink, Plus } from 'lucide-react';
 import { useUserContext } from '../contexts/UserContext';
 import { getConnectSocialsURL } from '../utils/jwt';
 
 const ConnectSocialsButton: React.FC = () => {
-  const { profileKey } = useUserContext();
+  const { profileKey, refetchProfile } = useUserContext();
+  const windowRef = useRef<Window | null>(null);
+  const checkIntervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleConnectSocials = async () => {
     if (!profileKey) {
@@ -13,14 +23,32 @@ const ConnectSocialsButton: React.FC = () => {
     }
 
     try {
-      console.log('Attempting to generate connect URL with profileKey:', profileKey);
+      console.log('[ConnectSocials] Generating connect URL with profileKey:', profileKey);
       const url = await getConnectSocialsURL(profileKey);
-      console.log('Successfully generated URL:', url);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      console.log('[ConnectSocials] Opening Ayrshare connection window');
+
+      windowRef.current = window.open(url, '_blank', 'noopener,noreferrer');
+
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+
+      checkIntervalRef.current = window.setInterval(() => {
+        if (windowRef.current && windowRef.current.closed) {
+          console.log('[ConnectSocials] Window closed, refreshing profile data');
+          clearInterval(checkIntervalRef.current!);
+          checkIntervalRef.current = null;
+          windowRef.current = null;
+
+          setTimeout(() => {
+            console.log('[ConnectSocials] Triggering profile refetch');
+            refetchProfile();
+          }, 1000);
+        }
+      }, 1000);
     } catch (error) {
-      console.error('Error generating connect socials URL:', error);
+      console.error('[ConnectSocials] Error generating connect socials URL:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error details:', errorMessage);
       alert(`Unable to generate connection URL. Error: ${errorMessage}`);
     }
   };

@@ -43,22 +43,29 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const fetchProfile = async (forceRefresh = false) => {
     if (!profileKey) {
-      console.warn('Profile key not found in user metadata');
+      console.warn('[UserContext] Profile key not found in user metadata');
       setError(null);
       setLoading(false);
       return;
     }
 
     try {
+      console.log(`[UserContext] Fetching profile (forceRefresh: ${forceRefresh})`);
       setLoading(true);
       setError(null);
-      // Add cache busting for force refresh
+
       const profile = await fetchUserProfile(profileKey);
+
+      console.log('[UserContext] Profile fetched successfully');
+      console.log('[UserContext] Profile object:', profile);
+      console.log('[UserContext] Display names:', profile.displayNames);
+      console.log('[UserContext] Display names length:', profile.displayNames?.length || 0);
+      console.log('[UserContext] Active social accounts:', profile.activeSocialAccounts);
+
       setUserProfile(profile);
-      console.log('Profile updated:', profile);
     } catch (err) {
-      console.error('Profile fetch error:', err);
-      setError(null);
+      console.error('[UserContext] Profile fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch profile');
       setUserProfile(null);
     } finally {
       setLoading(false);

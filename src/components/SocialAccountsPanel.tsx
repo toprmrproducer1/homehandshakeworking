@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useUserContext } from '../contexts/UserContext';
 import ConnectSocialsButton from './ConnectSocialsButton';
-import { 
+import {
   Facebook,
   Twitter,
   Instagram,
@@ -10,11 +10,21 @@ import {
   ExternalLink,
   Users,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 const SocialAccountsPanel: React.FC = () => {
-  const { userProfile, loading } = useUserContext();
+  const { userProfile, loading, refetchProfile } = useUserContext();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  console.log('[SocialAccountsPanel] Rendering with:', {
+    userProfile,
+    loading,
+    hasDisplayNames: !!userProfile?.displayNames,
+    displayNamesLength: userProfile?.displayNames?.length || 0,
+    displayNames: userProfile?.displayNames
+  });
 
   const getPlatformIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -47,10 +57,16 @@ const SocialAccountsPanel: React.FC = () => {
   
   const getConnectedAccounts = () => {
     if (!userProfile?.displayNames) return [];
-    
-    // Return all accounts from displayNames - they're already connected
+
     return userProfile.displayNames || [];
   };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetchProfile();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -68,7 +84,18 @@ const SocialAccountsPanel: React.FC = () => {
 
       {/* Connected Accounts */}
       <div className="bg-gradient-to-br from-purple-900/20 to-black rounded-2xl border border-purple-500/20 p-8 backdrop-blur-xl">
-        <h3 className="text-xl font-semibold text-purple-200 mb-6">Connected Platforms</h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-purple-200">Connected Platforms</h3>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing || loading}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh connected accounts"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
         
         {loading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
